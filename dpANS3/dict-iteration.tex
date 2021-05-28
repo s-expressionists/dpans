@@ -51,7 +51,7 @@
 
 \param{statement}---a \term{compound form}; \evalspecial.
 
-\param{results}---if a \macref{return} or \macref{return-from} form is executed,
+\param{results}---if a \macref{return} or \specref{return-from} form is executed,
  the \term{values} passed from that \term{form};
 %% 7.9.2 13            
  otherwise, the \term{values} returned by the \param{result-forms}.
@@ -343,7 +343,7 @@ the \specref{let} and \macref{psetq}, respectively.
 \param{statement}---a \term{compound form}; \evalspecial.
 
 %% 7.8.3 4
-\param{results}---if a \macref{return} or \macref{return-from} form is executed,
+\param{results}---if a \macref{return} or \specref{return-from} form is executed,
  the \term{values} passed from that \term{form};
  otherwise, the \term{values} returned by the \param{result-form}
  or \nil\ if there is no \param{result-form}.
@@ -487,7 +487,7 @@ Here is an example of the use of \f{dotimes} in processing strings:
 \param{statement}---a \term{compound form}; \evalspecial.
 
 %% 7.8.3 4
-\param{results}---if a \macref{return} or \macref{return-from} form is executed,
+\param{results}---if a \macref{return} or \specref{return-from} form is executed,
  the \term{values} passed from that \term{form};
  otherwise, the \term{values} returned by the \param{result-form}
  or \nil\ if there is no \param{result-form}.
@@ -699,7 +699,7 @@ The ``extended'' \macref{loop} \term{form}:
  \brac{\curly{\loopref{in} | \loopref{of}} \param{package}}}
 \auxbnf{type-spec}{\down{simple-type-spec} | \down{destructured-type-spec}}
 \auxbnf{simple-type-spec}%
-{\declref{fixnum} | \declref{float} | \declref{t} | \declref{nil}}
+{\typeref{fixnum} | \typeref{float} | \typeref{t} | \typeref{nil}}
 \auxbnf{destructured-type-spec}{\loopref{of-type} \param{d-type-spec}}
 \auxbnf{d-type-spec}%
 {\param{type-specifier} | \f{(\param{d-type-spec} . \param{d-type-spec})}}
@@ -805,7 +805,7 @@ For details, \seesection\LoopFacility.
 %% Per X3J13. -kmp 05-Oct-93
 % The simple form of \macref{loop} is related to the extended form
 % in the following way:
-Except that \macref{loop-finish} cannot be used within a simple \funref{loop} \term{form},
+Except that \macref{loop-finish} cannot be used within a simple \macref{loop} \term{form},
 a simple \macref{loop} \term{form} is related to an extended \macref{loop} \term{form} 
 in the following way:
 
@@ -833,7 +833,7 @@ to terminate that \term{form} ``normally.''
 That is, it transfers control to the loop epilogue
 %% Added per X3J13 -kmp 05-Oct-93
 of the lexically innermost extended \macref{loop} \term{form}.
-This permits execution of any \macref{finally} clause (for effect)
+This permits execution of any \loopref{finally} clause (for effect)
 and
 %% Per X3J13. -kmp 05-Oct-93
 %then returns
@@ -916,7 +916,7 @@ of \macref{loop} are undefined.
 {\secref\LoopFacility}
 
 %% Semantics clarified per X3J13. -kmp 05-Oct-93
-\label Notes::
+\label Notes:\None.
 
 % %% This part added to make it clear to users that this is a portability pitfall.
 % 

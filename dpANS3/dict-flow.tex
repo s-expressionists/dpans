@@ -826,7 +826,7 @@ visible at the site of the macro call which produced the expansion.
 \macref{defmacro},
 \macref{defun},
 \funref{documentation},
-\macref{let},
+\specref{let},
 {\secref\Evaluation},
 {\secref\DocVsDecls}
 
@@ -1227,7 +1227,7 @@ or \funref{eval} (as opposed to being created by \term{loading} a \term{compiled
 
 \funref{compile},
 \funref{compile-file},
-\funref{compiled-function}
+\typeref{compiled-function}
 
 \label Notes::
 
@@ -1457,7 +1457,7 @@ this-is-a-constant \EV NEVER-CHANGING
 
 \label See Also::
 
-\funref{declaim},
+\macref{declaim},
 \macref{defparameter}, 
 \macref{defvar},
 \funref{documentation},
@@ -1623,7 +1623,7 @@ correct operation of \term{conforming programs}.
 
 \label See Also::
 
-\funref{declaim}, 
+\macref{declaim},
 \macref{defconstant},
 \funref{documentation},
 {\secref\Compilation}
@@ -2739,7 +2739,7 @@ as described in \secref\TransferOfControl.
 \endcode
 
 The following has undefined consequences because the \specref{block} \term{form}
-exits normally before the \macref{return-from} \term{form} is attempted.
+exits normally before the \specref{return-from} \term{form} is attempted.
 
 \code
  (funcall (block nil #'(lambda () (return-from nil)))) is an error.
@@ -3124,7 +3124,7 @@ in force at the point of the \specref{throw}.
 
 \specref{catch} and \specref{throw} are normally used when the \term{exit point}
 must have \term{dynamic scope} (\eg the \specref{throw} is not lexically enclosed
-by the \specref{catch}), while \specref{block} and \specref{return} are used 
+by the \specref{catch}), while \specref{block} and \macref{return} are used
 when \term{lexical scope} is sufficient.
 
 \endcom
@@ -4658,7 +4658,7 @@ If no \param{forms} are supplied, \macref{or} returns \nil.
 \label See Also::
 
 \macref{and},
-\macref{some},
+\funref{some},
 \macref{unless}
 
 \label Notes:\None.
@@ -4753,7 +4753,7 @@ and the \macref{unless} \term{form} returns \nil.
 
 \macref{and},
 \macref{cond},
-\macref{if},
+\specref{if},
 \macref{or}
 
 \label Notes::
@@ -5367,7 +5367,7 @@ of each other.
 \label Description::
 
 %% 7.9.1 12
-\macref{multiple-value-prog1} evaluates \param{first-form} and saves
+\specref{multiple-value-prog1} evaluates \param{first-form} and saves
 all the values produced by that \term{form}. It then evaluates each 
 \param{form} from left to right, discarding their values.  
 
@@ -5615,7 +5615,7 @@ Should signal \typeref{type-error} if its argument is not a \term{proper list}.
 \label See Also::
 
 \macref{multiple-value-bind},
-\conref{multiple-value-list},
+\macref{multiple-value-list},
 \conref{multiple-values-limit},
 \funref{values}
 
@@ -5712,7 +5712,7 @@ returned by \param{form}.  (The first returned value is numbered \f{0}.)
 
 \label Notes::
 
-Operationally, the following relationship is true, although \specref{nth-value} 
+Operationally, the following relationship is true, although \macref{nth-value}
 might be more efficient in some \term{implementations} 
 because, for example, some \term{consing} might be avoided.
 
@@ -6517,7 +6517,7 @@ and gives the user additional control.
 
 \endcom
 
-%%% ========== DEFINE-SETF-METHOD
+%%% ========== DEFINE-SETF-EXPANDER
 \begincom{define-setf-expander}\ftype{Macro}
 
 \issue{DECLS-AND-DOC}
@@ -6536,12 +6536,12 @@ and gives the user additional control.
 
 % tweaked.  --sjl 5 Mar 92
 %\issue{GET-SETF-METHOD-ENVIRONMENT:ADD-ARG}
-%\param{lambda-list} -- \term{lambda list}; 
+%\param{lambda-list}---\term{lambda list};
 %  can contain the \term{lambda list keywords} 
 %    \keyref{optional}, \keyref{rest}, \keyref{key}, \keyref{allow-other-keys}, \keyref{aux},
 %    and \keyref{environment}.
 %\endissue{GET-SETF-METHOD-ENVIRONMENT:ADD-ARG}
-\param{lambda-list} -- \term{macro lambda list}.
+\param{lambda-list}---\term{macro lambda list}.
 
 \param{declaration}---a \misc{declare} \term{expression}; \noeval.
 

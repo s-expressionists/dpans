@@ -81,7 +81,7 @@ savings time is in effect for any given session.
 
 %%% ========== ENCODE-UNIVERSAL-TIME
 \begincom{encode-universal-time}\ftype{Function}
-                                             
+
 \label Syntax::
 
 \DefunWithValuesNewline encode-universal-time
@@ -968,9 +968,9 @@ it is first compiled but the result of this implicit compilation is not installe
 
 \label Syntax::
  
-\DefgenWithValues documentation {x doc-type} {documentation}
+\DefgenWithValues documentation {object doc-type} {documentation}
 
-\DefgenWithValues {(setf documentation)} {new-value x doc-type} {new-value}
+\DefgenWithValues {(setf documentation)} {new-value object doc-type} {new-value}
 
 \label Argument Precedence Order::
 
@@ -980,7 +980,7 @@ it is first compiled but the result of this implicit compilation is not installe
 
 \def\DocMethods#1#2{{%
 {\bf #1:}\par
-\def\Meth##1##2{\Defmeth{documentation} {\specparam{x}{##1} \specparam{doc-type}{\f{(eql '##2)}}}\idxref{##2}\par}%
+\def\Meth##1##2{\Defmeth{documentation} {\specparam{object}{##1} \specparam{doc-type}{\f{(eql '##2)}}}\idxref{##2}\par}%
 #2\par%
 \def\Meth##1##2{\Defmeth{(setf documentation)} {\param{new-value} \specparam{x}{##1} \specparam{doc-type}{\f{(eql '##2)}}}\idxref{##2}\par}%
 #2\par}}
@@ -1027,7 +1027,7 @@ it is first compiled but the result of this implicit compilation is not installe
 \label Arguments and Values::
  
 \issue{DOCUMENTATION-FUNCTION-BUGS:FIX}
-\param{x}---an \term{object}.
+\param{object}---an \term{object}.
 %% Removed the detail here because it is implied by the signatures above.
 %  This leaves room more naturally for implementation-defined extension. -kmp 2-Sep-91
 %           a \term{symbol},
@@ -1066,8 +1066,8 @@ associated with the given \term{object} if it is available;
 otherwise it returns \nil.
 
 The \term{generic function} \funref{(setf documentation)} updates the 
-\term{documentation string} associated with \param{x} to \param{new-value}.
-If \param{x} is a \term{list},
+\term{documentation string} associated with \param{object} to \param{new-value}.
+If \param{object} is a \term{list},
 it must be of the form \f{(setf \param{symbol})}.
 
 \term{Documentation strings} are made available for debugging purposes.
@@ -1089,28 +1089,28 @@ The nature of the \term{documentation string} returned depends on the
 \itemitem{\misc{compiler-macro}}
 
 Returns the \term{documentation string} of the \term{compiler macro}
-whose \term{name} is the \term{function name} \param{x}.
+whose \term{name} is the \term{function name} \param{object}.
 \endissue{DOCUMENTATION-FUNCTION-BUGS:FIX}
 
 \itemitem{\misc{function}}
 
-If \param{x} is a \term{function name},
+If \param{object} is a \term{function name},
 returns the \term{documentation string} of 
 the \term{function}, \term{macro}, or \term{special operator} 
-whose \term{name} is \param{x}.
+whose \term{name} is \param{object}.
 
-If \param{x} is a \term{function},
-returns the \term{documentation string} associated with \param{x}.
+If \param{object} is a \term{function},
+returns the \term{documentation string} associated with \param{object}.
  
 \itemitem{\misc{method-combination}}
 
-If \param{x} is a \term{symbol},
+If \param{object} is a \term{symbol},
 returns the \term{documentation string} of
 the \term{method combination}
-whose \term{name} is \param{x}.
+whose \term{name} is \param{object}.
 
-If \param{x} is a \term{method combination},
-returns the \term{documentation string} associated with \param{x}.
+If \param{object} is a \term{method combination},
+returns the \term{documentation string} associated with \param{object}.
 
 \itemitem{\misc{setf}}
 
@@ -1118,69 +1118,69 @@ Returns the \term{documentation string} of
 \issue{SETF-METHOD-VS-SETF-METHOD:RENAME-OLD-TERMS}
 the \term{setf expander}
 \endissue{SETF-METHOD-VS-SETF-METHOD:RENAME-OLD-TERMS}
-whose \term{name} is the \term{symbol} \param{x}.
+whose \term{name} is the \term{symbol} \param{object}.
 
 \itemitem{\misc{structure}}
 
 %!!! wording??
 Returns the \term{documentation string} 
-associated with the \term{structure name} \param{x}.
+associated with the \term{structure name} \param{object}.
 
 \itemitem{\misc{t}}
 
 % added introductory text for this next list  --sjl 7 Mar 92
 Returns a \term{documentation string} specialized on the \term{class} of
-the argument \param{x} itself.
-For example, if \param{x} is a \term{function},
-the \term{documentation string} associated with the \term{function} \param{x} is returned.
+the argument \param{object} itself.
+For example, if \param{object} is a \term{function},
+the \term{documentation string} associated with the \term{function} \param{object} is returned.
 
 % \beginlist
 % 
 % \itemitem{\typeref{function}}
 % 
 % Returns the \term{documentation string} associated with
-% the \term{function} \param{x}.
+% the \term{function} \param{object}.
 % 
 % \itemitem{\typeref{method-combination}}
 % 
 % Returns the \term{documentation string} associated with
-% the \term{method combination} \param{x}.
+% the \term{method combination} \param{object}.
 % 
 % \itemitem{\typeref{package}}
 % 
 % Returns the \term{documentation string} associated with
-% the \term{package} \param{x}.
+% the \term{package} \param{object}.
 % 
 % \itemitem{\typeref{standard-class} or \typeref{structure-class}}
 % 
 % Returns the \term{documentation string} associated with
-% the \term{class} \param{x}.
+% the \term{class} \param{object}.
 % 
 % \itemitem{\typeref{standard-method}}
 % 
 % Returns the \term{documentation string} associated with
-% the \term{method} \param{x}.
+% the \term{method} \param{object}.
 % 
 % \endlist 
 
 \itemitem{\misc{type}}
 
-If \param{x} is a \term{symbol},
+If \param{object} is a \term{symbol},
 returns the \term{documentation string} of the \term{class}
-whose \term{name} is the \term{symbol} \param{x},
+whose \term{name} is the \term{symbol} \param{object},
 if there is such a \term{class}.
 Otherwise, it returns the \term{documentation string} of the \term{type} 
-which is the \term{type specifier} \term{symbol} \param{x}.
+which is the \term{type specifier} \term{symbol} \param{object}.
 
-If \param{x} is a \term{structure class} or \term{standard class},
+If \param{object} is a \term{structure class} or \term{standard class},
 returns the \term{documentation string} associated with
-the \term{class} \param{x}.
+the \term{class} \param{object}.
 
 \itemitem{\misc{variable}}
 
 Returns the \term{documentation string} of
 the \term{dynamic variable} or \term{constant variable}
-whose \term{name} is the \term{symbol} \param{x}.
+whose \term{name} is the \term{symbol} \param{object}.
  
 \endlist
 
@@ -1200,7 +1200,7 @@ may extend the set of \term{symbols} that are acceptable as the \param{doc-type}
 % %KMP: Done. 1-Feb-92
 % For those situations where a \param{doc-type} argument is not permitted,
 % the nature of the \term{documentation string} returned depends on the
-% \term{type} of the \term{object} \param{x}.
+% \term{type} of the \term{object} \param{object}.
 
 \label Examples:\None.
  
@@ -1212,7 +1212,7 @@ may extend the set of \term{symbols} that are acceptable as the \param{doc-type}
 %% people over the head with a restatement of what should already be apparent,
 %% and also risk that we've said it in some way that's hard to implement. -kmp 21-Aug-93
 %
-% If \param{x} is
+% If \param{object} is
 %      a \term{method} \term{object}, 
 %      a \term{class} \term{object},
 % \issue{DOCUMENTATION-FUNCTION-BUGS:FIX}

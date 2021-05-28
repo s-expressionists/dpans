@@ -40,7 +40,7 @@ is actually created) as a \term{documentation string}.
 \label See Also::
 
 \specref{function},
-\specref{documentation},
+\funref{documentation},
 {\secref\LambdaExpressions},
 {\secref\LambdaForms},
 {\secref\DocVsDecls}
@@ -527,7 +527,7 @@ code processed by \funref{compile-file}.  \Seesection\FileCompilation.
 The use of the \param{situation} \kwd{execute} (or {\tt eval}) controls whether
 evaluation occurs for other \specref{eval-when} \term{forms}; that is, 
 those that are not \term{top level forms}, or those in code processed by
-\funref{eval} or \varref{compile}.  If the \kwd{execute} situation is
+\funref{eval} or \funref{compile}.  If the \kwd{execute} situation is
 specified in such a \term{form}, then the body \param{forms} are processed as 
 an \term{implicit progn}; otherwise, the \specref{eval-when} \term{form}
 returns \nil.
@@ -2097,7 +2097,7 @@ as established by \macref{defmacro} are considered.
 \label Affected By::
 
 \macref{defmacro},
-\macref{setf} of \macref{macro-function},
+\macref{setf} of \funref{macro-function},
 \specref{macrolet},
 \specref{symbol-macrolet}
 
@@ -2107,7 +2107,7 @@ as established by \macref{defmacro} are considered.
 
 \varref{*macroexpand-hook*},
 \macref{defmacro},
-\macref{setf} of \macref{macro-function},
+\macref{setf} of \funref{macro-function},
 \specref{macrolet},
 \specref{symbol-macrolet},
 {\secref\Evaluation}
@@ -2485,7 +2485,7 @@ An implementation is free to support other (\term{implementation-defined})
 
 \label See Also::
 
-\specref{declaim},
+\macref{declaim},
 \misc{declare},
 {\secref\Compilation}
 
@@ -3986,7 +3986,7 @@ always \declref{special}.
 
 \label Arguments and Values::
 
-\param{Declaration}---a \misc{declare} \term{expression}; \noeval.
+\param{declaration}---a \misc{declare} \term{expression}; \noeval.
 
 \param{forms}---an \term{implicit progn}.
 
@@ -4100,7 +4100,7 @@ is not of the declared type.
 % \param{Value-type} can be any valid \term{type specifier}.
 % In the case that \param{form} returns one
 %   value and \param{value-type} is not a 
-% \declref{values} \term{type specifier}, 
+% \typeref{values} \term{type specifier},
 % 
 % \code
 %  (the type exp) 
@@ -4157,11 +4157,11 @@ are not of the \term{type} specified by \param{value-type}.
 
 \label See Also::
 
-\declref{values}
+\typeref{values}
 
 \label Notes::
 
-The \declref{values} \term{type specifier} can be used to indicate the types
+The \typeref{values} \term{type specifier} can be used to indicate the types
 of \term{multiple values}:
 
 \code

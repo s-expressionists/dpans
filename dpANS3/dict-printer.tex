@@ -252,9 +252,9 @@ Tests whether or not the \param{list} passed to
 the \term{lexically current logical block}
 has been exhausted; \seesection\DynamicControlofOutput.
 If this \param{list} has been
-reduced to \nil, \funref{pprint-exit-if-list-exhausted} terminates the execution
+reduced to \nil, \macref{pprint-exit-if-list-exhausted} terminates the execution
 of the \term{lexically current logical block} except for the printing
-of the suffix.  Otherwise \funref{pprint-exit-if-list-exhausted} returns \nil. 
+of the suffix.  Otherwise \macref{pprint-exit-if-list-exhausted} returns \nil.
 
 \issue{LEXICAL-CONSTRUCT-GLOBAL-DEFINITION:UNDEFINED}
 Whether or not \macref{pprint-exit-if-list-exhausted} is \term{fbound} in the
@@ -275,18 +275,18 @@ of \macref{pprint-logical-block} are undefined.
 \label Exceptional Situations::
 
 An error is signaled (at macro expansion time or at run time) if
-\funref{pprint-exit-if-list-exhausted} is used anywhere other than
+\macref{pprint-exit-if-list-exhausted} is used anywhere other than
 %syntactically nested
 lexically within a call on \macref{pprint-logical-block}.  
-% It is undefined what happens if \funref{pprint-if-list-exhausted} is executed outside
-% of the dynamic extent of this \funref{pprint-logical-block}.
-Also, the consequences of executing \funref{pprint-if-list-exhausted} outside
+% It is undefined what happens if \macref{pprint-exit-if-list-exhausted} is executed outside
+% of the dynamic extent of this \macref{pprint-logical-block}.
+Also, the consequences of executing \macref{pprint-exit-if-list-exhausted} outside
 of the dynamic extent of the \macref{pprint-logical-block} which lexically
 contains it are undefined.
 
 \label See Also::
 
-\macref{pprint-logical-block}, \funref{pprint-pop}.
+\macref{pprint-logical-block}, \macref{pprint-pop}.
 
 \label Notes:\None.
 
@@ -793,7 +793,7 @@ Output to \param{stream}.
 
 \label Affected By::
 
-\varref{*print-pretty*}, \varref{*print-miser*}.
+\varref{*print-pretty*}, \varref{*print-miser-width*}.
 The presence of containing logical blocks.
 The placement of newlines and conditional newlines.
 
