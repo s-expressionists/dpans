@@ -937,9 +937,9 @@ If no \term{slot} of the \term{name} \param{slot-name} exists in the
 \param{instance}, \funref{slot-missing} is called as follows:
 
 \code
- (slot-missing (class-of \i{instance})
-               \i{instance}
-               \i{slot-name}
+ (slot-missing (class-of \param{instance})
+               \param{instance}
+               \param{slot-name}
                'slot-boundp)
 \endcode
 
@@ -1051,9 +1051,9 @@ If no \term{slot} of the name \param{slot-name} exists in the
 \param{instance}, \funref{slot-missing} is called as follows:
 
 \code
-(slot-missing (class-of \i{instance})
-              \i{instance}
-              \i{slot-name}
+(slot-missing (class-of \param{instance})
+              \param{instance}
+              \param{slot-name}
               'slot-makunbound)
 \endcode
 
@@ -1101,7 +1101,7 @@ for \term{conditions} and \term{structures} is not specified.
  
 \param{class}---the \term{class} of \param{object}.
  
-\param{object}---an \term{object}.
+\param{object}---an \term{object}. % TODO \param{instance} in similar functions
  
 \param{slot-name}---a \term{symbol} (the \term{name} of a would-be \term{slot}).
  
@@ -1284,7 +1284,8 @@ or if \funref{slot-makunbound} has been called on the \term{slot}.
  
 \label Arguments and Values::
  
-\param{object}---an \term{object}.
+\param{object}---an \term{object}. % TODO often called instance in
+                                % similar functions
  
 \param{slot-name}---a \term{symbol}.
  
@@ -1332,9 +1333,9 @@ the name \param{slot-name} exists in the \param{object},
 \funref{slot-missing} is called as follows:
 
 \code
- (slot-missing (class-of \i{instance})
-               \i{instance}
-               \i{slot-name}
+ (slot-missing (class-of \param{object})
+               \param{object}
+               \param{slot-name}
                'slot-value)
 \endcode
  
@@ -1348,11 +1349,11 @@ the name \param{slot-name} exists in the \param{object},
 \funref{slot-missing} is called as follows:
 
 \code
- (slot-missing (class-of \i{instance})
-               \i{instance}
-               \i{slot-name}
+ (slot-missing (class-of \param{object})
+               \param{object}
+               \param{slot-name}
                'setf
-               \i{new-value})
+               \param{new-value})
 \endcode
 
 \issue{SLOT-MISSING-VALUES:SPECIFY}
@@ -2608,43 +2609,43 @@ $\vert$ {\tt (setf \term{symbol})}}\cr
  
 %!!! Treatment of documentation?
 
-\param{Class-name}---a \term{non-nil} \term{symbol}.
+\param{class-name}---a \term{non-nil} \term{symbol}.
                                                     
-\param{Superclass-name}--a \term{non-nil} \term{symbol}.
+\param{superclass-name}---a \term{non-nil} \term{symbol}.
  
-\param{Slot-name}--a \term{symbol}.
+\param{slot-name}---a \term{symbol}.
   The \param{slot-name} argument is 
 %!!! Isn't there a more concise way to say this?
   a \term{symbol} that is syntactically valid for use as a variable name.
  
-\param{Reader-function-name}---a \term{non-nil} \term{symbol}.
+\param{reader-function-name}---a \term{non-nil} \term{symbol}.
  \kwd{reader} can be supplied more than once for a given \term{slot}.
           
-\param{Writer-function-name}---a \term{generic function} name.
+\param{writer-function-name}---a \term{generic function} name.
  \kwd{writer} can be supplied more than once for a given \term{slot}.
  
-\param{Reader-function-name}---a \term{non-nil} \term{symbol}.
+\param{reader-function-name}---a \term{non-nil} \term{symbol}.
  \kwd{accessor} can be supplied more than once for a given \term{slot}.
  
-\param{Allocation-type}---(member \kwd{instance} \kwd{class}).
+\param{allocation-type}---(member \kwd{instance} \kwd{class}).
  \kwd{allocation} can be supplied once at most for a given \term{slot}.
  
-\param{Initarg-name}---a \term{symbol}.
+\param{initarg-name}---a \term{symbol}.
  \kwd{initarg} can be supplied more than once for a given \term{slot}.  
  
-\param{Form}---a \term{form}.
+\param{form}---a \term{form}.
  \kwd{initform} can be supplied once at most for a given \term{slot}.  
  
-\param{Type-specifier}---a \term{type specifier}.
+\param{type-specifier}---a \term{type specifier}.
  \kwd{type} can be supplied once at most for a given \term{slot}. 
  
-\param{Class-option}--- refers to the \term{class} as a whole or to all class \term{slots}.
+\param{class-option}--- refers to the \term{class} as a whole or to all class \term{slots}.
 
-\param{Initarg-list}---a \term{list} of alternating initialization argument
+\param{initarg-list}---a \term{list} of alternating initialization argument
 		        \term{names} and default initial value \term{forms}.
  \kwd{default-initargs} can be supplied at most once.
 
-\param{Class-name}---a \term{non-nil} \term{symbol}.
+\param{class-name}---a \term{non-nil} \term{symbol}. % TODO repeated?
  \kwd{metaclass} can be supplied once at most.
  
 %The \i{class-name} argument is a \term{non-nil} symbol.
