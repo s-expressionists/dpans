@@ -1,10 +1,10 @@
-Date: Fri, 8 Jun 90 19:55 EDT
-From: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>
-Subject: Issue: CLOS-CONDITIONS-AGAIN (Version 6)
-To: X3J13@mcc.com
-Message-ID: <19900608235525.3.MOON@KENNETH-WILLIAMS.SCRC.Symbolics.COM>
-
-This version includes the amendment that was passed at the X3J13 meeting today.
+% Date: Fri, 8 Jun 90 19:55 EDT
+% From: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+% Subject: Issue: CLOS-CONDITIONS-AGAIN (Version 6)
+% To: X3J13@mcc.com
+% Message-ID: <19900608235525.3.MOON@KENNETH-WILLIAMS.SCRC.Symbolics.COM>
+% 
+% This version includes the amendment that was passed at the X3J13 meeting today.
 
 Issue:         CLOS-CONDITIONS-AGAIN
 
