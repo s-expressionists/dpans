@@ -1275,11 +1275,12 @@ or if \funref{slot-makunbound} has been called on the \term{slot}.
 \endcom
 
 %%% ========== SLOT-VALUE
-\begincom{slot-value}\ftype{Function}
+\begincom{slot-value}\ftype{Accessor}
  
 \label Syntax::
  
 \DefunWithValues {slot-value} {object slot-name} {value}
+\Defsetf         {slot-value} {object slot-name} {new-value}
  
 \label Arguments and Values::
  
@@ -1289,6 +1290,8 @@ or if \funref{slot-makunbound} has been called on the \term{slot}.
  
 \param{value}---an \term{object}.
  
+\param{new-value}---an \term{object}.
+
 \label Description::
  
 \Thefunction{slot-value} returns the \term{value} of the \term{slot}
@@ -1296,7 +1299,6 @@ named \param{slot-name} in the \param{object}.
 If there is no \term{slot} named \param{slot-name}, \funref{slot-missing} is called.
 If the \term{slot} is unbound, \funref{slot-unbound} is called.
  
-%!!! Reflect this in the Syntax above? Or is (SETF SLOT-VALUE) described somewhere?
 The macro \macref{setf} can be used with \funref{slot-value} 
 to change the value of a \term{slot}. 
 
@@ -1326,7 +1328,7 @@ to change the value of a \term{slot}.
 \label Exceptional Situations::
  
 If an attempt is made to read a \term{slot} and no \term{slot} of
-the name \param{slot-name} exists in the \param{object}, 
+the name \param{slot-name} exists in the \param{object},
 \funref{slot-missing} is called as follows:
 
 \code
