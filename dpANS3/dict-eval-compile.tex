@@ -2034,7 +2034,7 @@ as established by \macref{defmacro} are considered.
 \code
  (defmacro alpha (x y) `(beta ,x ,y)) \EV ALPHA
  (defmacro beta (x y) `(gamma ,x ,y)) \EV BETA
- (defmacro delta (x y) `(gamma ,x ,y)) \EV EPSILON
+ (defmacro delta (x y) `(gamma ,x ,y)) \EV DELTA
  (defmacro expand (form &environment env)
    (multiple-value-bind (expansion expanded-p)
        (macroexpand form env)
