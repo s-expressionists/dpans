@@ -1,0 +1,1372 @@
+*start*
+00988 00024 USa
+Return-Path: <@SAIL.Stanford.EDU:Pavel.pa@Xerox.COM>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 22 OCT 87 11:51:54 PDT
+Received: from XEROX.COM by SAIL.STANFORD.EDU with TCP; 22 Oct 87  11:50:20 PDT
+Received: from Semillon.ms by ArpaGateway.ms ; 22 OCT 87 11:49:41 PDT
+Date: Thu, 22 Oct 87 11:49:34 PDT
+From: Pavel.pa
+Subject: Re: DECLARE-MACROS (Version 1)
+In-reply-to: <871022104113.0.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+To: CL-Cleanup@SAIL.STANFORD.EDU
+Message-ID: <871022-114941-5200@Xerox>
+
+I support this change.  It was the cause of no small amount of grousing
+by other developers of Xerox Common Lisp when they saw the complexities
+it entailed in the interpreter, compiler, and macros.  I think the
+proposal states the situation correctly: ``This linguistic feature
+provides some useful   flexibility, but has a number of disadvantages''.
+I think the problems far outweigh the value of the flexibility.
+
+	Pavel
+
+*start*
+01268 00024 US 
+Return-Path: <@SAIL.Stanford.EDU:FAHLMAN@C.CS.CMU.EDU>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 22 OCT 87 12:27:19 PDT
+Received: from C.CS.CMU.EDU by SAIL.STANFORD.EDU with TCP; 22 Oct 87  12:24:48 PDT
+Received: ID <FAHLMAN@C.CS.CMU.EDU>; Thu 22 Oct 87 15:25:13-EDT
+Date: Thu, 22 Oct 87 15:24 EDT
+Message-ID: <FAHLMAN.12344573036.BABYL@C.CS.CMU.EDU>
+Sender: FAHLMAN@C.CS.CMU.EDU
+From: "Scott E. Fahlman" <Fahlman@C.CS.CMU.EDU>
+To: Kent M Pitman <KMP@SCRC-STONY-BROOK.ARPA>
+Cc: CL-Cleanup@SAIL.STANFORD.EDU
+Subject: DECLARE-MACROS (Version 1)
+In-reply-to: Msg of 22 Oct 1987  10:41-EDT from Kent M Pitman <KMP at STONY-BROOK.SCRC.Symbolics.COM>
+
+
+I have suggested on several occasions that we eliminate macro ->
+declaration expansion, and I still think that this would be a good idea.
+It would have been an even better idea if it had happened earlier, but
+my time machine has been confiscated by the reality police, so I can't
+do much about that.
+
+I think that there are several bits of hair in the language spec that we
+added because of this "feature" and that we could flush if it goes away
+-- environment args in various places, etc.  It may be best to let these
+things live on, however.
+
+-- Scott
+
+*start*
+06524 00024 USf
+Return-Path: <@SAIL.Stanford.EDU:KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 22 OCT 87 07:44:19 PDT
+Received: from SCRC-STONY-BROOK.ARPA by SAIL.STANFORD.EDU with TCP; 22 Oct 87  07:41:08 PDT
+Received: from RIO-DE-JANEIRO.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 260815; Thu 22-Oct-87 10:41:49 EDT
+Date: Thu, 22 Oct 87 10:41 EDT
+From: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: DECLARE-MACROS (Version 1)
+To: CL-Cleanup@SAIL.STANFORD.EDU
+cc: KMP@STONY-BROOK.SCRC.Symbolics.COM, Moon@STONY-BROOK.SCRC.Symbolics.COM
+Message-ID: <871022104113.0.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+
+Issue:        DECLARE-MACROS
+References:   Declaration Syntax (p154)
+Category:     CHANGE
+Edit history: 22-Oct-87, Version 1 by Pitman
+Status:	      For Internal Discussion
+
+Problem Description:
+
+  It is permissible for a macro call to expand into a declaration and be
+  recognized as such. This linguistic feature provides some useful
+  flexibility, but has a number of disadvantages:
+
+  * Operations on the executable portion of a body of code inside a 
+    binding form (such as inserting an additional form) is a complicated
+    operation. This is because one or more trial macro expansions must be
+    done in order to pass over any declarations or documentation string
+    and find the beginning of the body.
+
+  * In some cases, it may be desirable to ask a question about a 
+    particular piece of code without actually modifying the code. Since 
+    the presence of *MACROEXPAND-HOOK* in the language means that a call
+    to MACROEXPAND can be a destructive operation, some seemingly harmless
+    inquiry operations about an expression during program analysis can
+    risk destructively modifying the expression.
+
+  * In order to find the end of the declarations, MACROEXPAND must be
+    called until a non-macro form is seen or until a macro does not expand
+    into a macro. In some interpreters which do macroexpansion on the fly,
+    this may cause inefficiency because macro expansion of the first form
+    in a body must be done twice. In implementations where this is 
+    optimized, the implementor may resent the fact that an optimization is
+    needed in the first place.
+
+  * Various code analysis tools have been shown to have been significantly
+    slowed down by the need to expand macros in order to determine whether
+    a binding is SPECIAL when analyzing a variable binding form. This is
+    particularly serious when macro invocations are deeply nested; the
+    number of macro expansions can be expontential in the depth of nesting
+    unless a macro-expansion caching mechanism is added. For example,
+    certain efficiency problems in the Symbolics compiler have been traced
+    to this feature.
+
+  * User macros must be very careful about finding declarations in a body
+    of code by doing proper macro expansion. Often, however, naive users
+    don't realize this and so unknowingly write buggy code. This problem can
+    be (and is) defined away as simply a programmer error, but this is a
+    place where we could fairly straightforwardly redefine the language to
+    better accomodate what has been shown to be a common expectation of the
+    naive user.
+
+Proposal (DECLARE-MACROS:FLUSH):
+
+  Make it illegal for a macro call to expand into a DECLARE form and be
+  recognized as such.
+
+  It should still be possible for a macro call to expand into a PROCLAIM
+  form, however.
+
+Rationale:
+
+  The advantages provided by the ability to have a macro form expand into
+  a declaration have been shown in practice to not be worth the price paid
+  elsewhere in the language.
+
+Current Practice:
+
+  Most or all implementations support the old behavior even though few
+  user programs probably need it.
+
+  Some user macros are careful about finding declarations in a body of code
+  by doing proper macro expansion, but some probably cheat and look just
+  for explicit uses of DECLARE. The cheat probably works most of the time.
+
+Adoption Cost:
+
+  The nature of this change is such that implementations which did not
+  choose to change would simply be supporting an implementation-dependent
+  extension (except for some `minor' worry about destructive modification
+  due to macro expanding while *MACROEXPAND-HOOK* is set to something
+  which implemented displacing macros).
+
+  In any case, there might be several places in which the interpreter,
+  compiler, and system macros had knowledge about doing macro expansion
+  before declaration processing. The change is not trivial, but most of
+  its complexity is likely to be in finding the places which need change
+  and not in making the actual change.
+
+Benefits:
+
+  The efficiency of some tools may be improved.
+
+  User macros which must do minor surgery on bodies of code will be
+  easier to write.
+
+Conversion Cost:
+
+  Most users probably do not write macros which expand into DECLARE forms
+  so most users are probably not affected.
+
+  Users who do exploit this feature probably know that they do. In any
+  case, compilers could be made to detect cases where this feature is
+  being exploited and warn about it.
+
+  Rewrites must be devised on a case-by-case basis. A common sort of
+  rewrite would take the form:
+
+   Old code:  (DEFMACRO SPEEDY () `(DECLARE (SPEED 3) (SAFETY 0)))
+   	      (LET (..bindings..) (SPEEDY) ..body..)
+
+   New code:  (DEFMACRO SPEEDY-LET (BVL &BODY FORMS)
+		`(LET ,BVL (DECLARE (SPEED 3) (SAFETY 0)) ,@FORMS))
+	      (SPEEDY-LET (..bindings..) ..body..)
+
+Aesthetics:
+
+  This change simplifies the semantics of the language slightly and
+  probably tends to better support the assumptions of naive programmers
+  writing macros.
+
+  In some cases involving complicated extensions to declarations, it
+  may be slightly harder to express such extensions in a modular way.
+  Experience thus far has shown such cases to be rare, however.
+
+Discussion:
+
+  Symbolics took an in-house poll of people who take advantage of the
+  feature and it was generally agreed that in most cases where this
+  feature is used at all, that it would be just as easy to work around
+  using the sample rewrite techniques cited above.
+
+  Moon `credits' Pitman for (against some opposition) pushing this
+  `feature' down everyone's throats in the original CL design process.
+  Pitman admits this was an expensive mistake. Moon and Pitman support
+  this change as an important simplification to the language.
+
+*start*
+00793 00024 US 
+Return-Path: <@SAIL.Stanford.EDU:Masinter.pa@Xerox.COM>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 22 OCT 87 16:48:27 PDT
+Received: from XEROX.COM by SAIL.STANFORD.EDU with TCP; 22 Oct 87  16:45:31 PDT
+Received: from Cabernet.ms by ArpaGateway.ms ; 22 OCT 87 16:46:14 PDT
+Date: 22 Oct 87 16:46 PDT
+From: Masinter.pa
+Subject: Re: DECLARE-MACROS (Version 1)
+In-reply-to: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>'s
+ message of Thu, 22 Oct 87 10:41 EDT
+To: CL-Cleanup@SAIL.STANFORD.EDU
+Message-ID: <871022-164614-5748@Xerox>
+
+I think this issue is ready to release with endorsement -- I recall (but
+cannot easily find) a previous discussion of this on common-lisp where
+the consensus was in favor of it.
+
+Any objections?
+
+*start*
+00676 00024 US 
+Return-Path: <FAHLMAN@C.CS.CMU.EDU>
+Received: from C.CS.CMU.EDU by Xerox.COM ; 22 OCT 87 16:58:32 PDT
+Received: ID <FAHLMAN@C.CS.CMU.EDU>; Thu 22 Oct 87 19:58:14-EDT
+Date: Thu, 22 Oct 87 19:58 EDT
+Message-ID: <FAHLMAN.12344622774.BABYL@C.CS.CMU.EDU>
+Sender: FAHLMAN@C.CS.CMU.EDU
+From: "Scott E. Fahlman" <Fahlman@C.CS.CMU.EDU>
+To: Masinter.pa
+Subject: DECLARE-MACROS (Version 1)
+In-reply-to: Msg of 22 Oct 1987  19:46-EDT from Masinter.pa at Xerox.COM
+
+
+I don't object, but you're moving awfully fast on this since the
+proposal only arrived today.  Other committee members may not even have
+seen it yet.  Do whatever you think best, however.
+
+-- Scott
+*start*
+00900 00024 US 
+Return-Path: <gls@Think.COM>
+Received: from Think.COM by Xerox.COM ; 23 OCT 87 07:18:14 PDT
+Return-Path: <gls@Think.COM>
+Received: from kali.think.com by Think.COM; Fri, 23 Oct 87 10:17:03 EDT
+Received: by kali.think.com; Fri, 23 Oct 87 10:17:24 EDT
+Date: Fri, 23 Oct 87 10:17:24 EDT
+From: gls@Think.COM
+Message-Id: <8710231417.AA01431@kali.think.com>
+To: Masinter.pa
+Cc: CL-Cleanup@sail.stanford.edu
+In-Reply-To: Masinter.pa@xerox.com's message of 22 Oct 87 16:46 PDT <871022-164614-5748@Xerox>
+Subject: DECLARE-MACROS (Version 1)
+
+   Date: 22 Oct 87 16:46 PDT
+   From: Masinter.pa@xerox.com
+
+   I think this issue is ready to release with endorsement -- I recall (but
+   cannot easily find) a previous discussion of this on common-lisp where
+   the consensus was in favor of it.
+
+   Any objections?
+
+Not from me.  In fact, I wish to explicitly endorse KMP's proposal.
+--Guy
+*start*
+01521 00024 US 
+Return-Path: <CL-Cleanup-mailer@SAIL.Stanford.EDU>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 09 NOV 87 11:00:59 PST
+Received: from SCRC-STONY-BROOK.ARPA by SAIL.STANFORD.EDU with TCP; 9 Nov 87  10:54:57 PST
+Received: from EUPHRATES.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 275387; Mon 9-Nov-87 13:53:29 EST
+Date: Mon, 9 Nov 87 13:53 EST
+From: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: DECLARE-MACROS (Version 1)
+To: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+cc: CL-Cleanup@SAIL.STANFORD.EDU
+In-Reply-To: <871022104113.0.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+Message-ID: <19871109185339.6.MOON@EUPHRATES.SCRC.Symbolics.COM>
+
+This looks ready to release, with two minor wording corrections:
+
+  For example,
+  certain efficiency problems in the Symbolics compiler have been traced
+  to this feature.
+
+Most of the efficiency problems are not due to this feature, so perhaps
+this sentence should simply be deleted.  The proposal could use
+shortening anyway.
+
+  Make it illegal for a macro call to expand into a DECLARE form and be
+  recognized as such.
+
+Strictly speaking there is no such thing as a DECLARE form, since a list
+whose car is the symbol DECLARE is an error to evaluate.  CLtL p.153
+uses the term "declaration" for this, although I admit it also says
+"declare form" in one place.  Anyway I'd feel more comfortable if we
+said "declaration" here.
+
+I favor DECLARE-MACROS:FLUSH.
+
+*start*
+02278 00024 US 
+Return-Path: <CL-Cleanup-mailer@SAIL.Stanford.EDU>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 09 NOV 87 11:26:33 PST
+Received: from SCRC-STONY-BROOK.ARPA by SAIL.STANFORD.EDU with TCP; 9 Nov 87  11:22:16 PST
+Received: from EUPHRATES.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 275425; Mon 9-Nov-87 14:22:05 EST
+Date: Mon, 9 Nov 87 14:22 EST
+From: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: DECLARE-MACROS (Version 1)
+To: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+cc: CL-Cleanup@SAIL.STANFORD.EDU
+In-Reply-To: <871109135845.4.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+Message-ID: <19871109192215.2.MOON@EUPHRATES.SCRC.Symbolics.COM>
+
+    Date: Mon, 9 Nov 87 13:58 EST
+    From: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+
+	Date: Mon, 9 Nov 87 13:53 EST
+	From: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+
+	This looks ready to release, with two minor wording corrections:
+	...
+
+	  Make it illegal for a macro call to expand into a DECLARE form and be
+	  recognized as such.
+
+	Strictly speaking there is no such thing as a DECLARE form, since a list
+	whose car is the symbol DECLARE is an error to evaluate.  CLtL p.153
+	uses the term "declaration" for this, although I admit it also says
+	"declare form" in one place.  Anyway I'd feel more comfortable if we
+	said "declaration" here.
+
+    How about "declare expression"? I had deliberately avoided the term
+    "declaration" because I wasn't clear if a "proclaim form" was a
+    declaration. Perhaps we should explicitly acknowledge that we don't intend
+    to keep macros from expanding into declare forms to avoid later confusion
+    on the issue.
+
+I don't understand why anyone would think a proclaim form was a declaration.
+I can see how they might think the object passed as an argument to PROCLAIM
+should be called a declaration.  "Declare expression" would be okay, although
+I don't see why we can't use the terminology CLtL uses instead of making up
+new terminology.
+
+Your last sentence must be a typo, the whole point is to keep macros
+from expanding into declare forms.  Maybe "declare" should be "proclaim"?
+Explicitly saying that sounds good (it already does, doesn't it?).
+
+*start*
+01684 00024 US 
+Return-Path: <CL-Cleanup-mailer@SAIL.Stanford.EDU>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 09 NOV 87 11:02:52 PST
+Received: from SCRC-STONY-BROOK.ARPA by SAIL.STANFORD.EDU with TCP; 9 Nov 87  10:58:06 PST
+Received: from RIO-DE-JANEIRO.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 275393; Mon 9-Nov-87 13:58:57 EST
+Date: Mon, 9 Nov 87 13:58 EST
+From: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: DECLARE-MACROS (Version 1)
+To: Moon@STONY-BROOK.SCRC.Symbolics.COM
+cc: KMP@STONY-BROOK.SCRC.Symbolics.COM, CL-Cleanup@SAIL.STANFORD.EDU
+In-Reply-To: <19871109185339.6.MOON@EUPHRATES.SCRC.Symbolics.COM>
+Message-ID: <871109135845.4.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+
+    Date: Mon, 9 Nov 87 13:53 EST
+    From: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+
+    This looks ready to release, with two minor wording corrections:
+    ...
+
+      Make it illegal for a macro call to expand into a DECLARE form and be
+      recognized as such.
+
+    Strictly speaking there is no such thing as a DECLARE form, since a list
+    whose car is the symbol DECLARE is an error to evaluate.  CLtL p.153
+    uses the term "declaration" for this, although I admit it also says
+    "declare form" in one place.  Anyway I'd feel more comfortable if we
+    said "declaration" here.
+
+How about "declare expression"? I had deliberately avoided the term
+"declaration" because I wasn't clear if a "proclaim form" was a
+declaration. Perhaps we should explicitly acknowledge that we don't intend
+to keep macros from expanding into declare forms to avoid later confusion
+on the issue.
+
+*start*
+06792 00024 USf
+Return-Path: <CL-Cleanup-mailer@SAIL.Stanford.EDU>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 09 NOV 87 16:02:17 PST
+Received: from XEROX.COM by SAIL.STANFORD.EDU with TCP; 9 Nov 87  15:58:36 PST
+Received: from Cabernet.ms by ArpaGateway.ms ; 09 NOV 87 15:57:05 PST
+Date: 9 Nov 87 15:56 PST
+From: Masinter.pa
+Subject: DECLARE-MACROS (Version 2)
+To: CL-Cleanup@SAIL.STANFORD.EDU
+LINE-FOLD: NO
+Message-ID: <871109-155705-4230@Xerox>
+
+I responded to Moon's suggestions for wording correction. I added an
+explicit endorsement at the end.
+
+In the interest of shortening the issue, I removed the argument about
+destructive MACROEXPAND hooks, which, I think, is more controversial
+than the support that it raises.
+
+In order to avoid the controversy of what is a declaration, a declare
+expression, a declare form, or a list whose car is DECLARE, I reworded
+the proposal to be more explicit as to the intent, which is to negate
+one specific paragraph in CLtL.
+
+I run some risk of making things worse, at least in your eyes, so you
+might want to cast yours on the PROPOSAL section and respond to me if
+you are unhappy.
+
+!
+Issue:        DECLARE-MACROS
+References:   Declaration Syntax (p154)
+Category:     CHANGE
+Edit history: 22-Oct-87, Version 1 by Pitman
+               9-Nov-87, version 2 by Masinter
+
+Problem Description:
+
+  It is permissible for a macro call to expand into a declaration and be
+  recognized as such. This linguistic feature provides some useful
+  flexibility, but has a number of disadvantages:
+
+  * Operations on the executable portion of a body of code inside a 
+    binding form (such as inserting an additional form) is a complicated
+    operation. This is because one or more trial macro expansions must be
+    done in order to pass over any declarations or documentation string
+    and find the beginning of the body.
+
+  * In order to find the end of the declarations, MACROEXPAND must be
+    called until a non-macro form is seen or until a macro does not expand
+    into a macro. In some interpreters which do macro expansion on the fly,
+    this may cause inefficiency because macro expansion of the first form
+    in a body must be done twice. In implementations where this is 
+    optimized, the implementor may resent the fact that an optimization is
+    needed in the first place.
+
+  * Various code analysis tools have been shown to have been significantly
+    slowed down by the need to expand macros in order to determine whether
+    a binding is SPECIAL when analyzing a variable binding form. This is
+    particularly serious when macro invocations are deeply nested; the
+    number of macro expansions can be exponential in the depth of nesting
+    unless a macro-expansion caching mechanism is added. 
+
+  * User macros must be very careful about finding declarations in a body
+    of code by doing proper macro expansion. Often, however, naive users
+    don't realize this and so unknowingly write buggy code. This problem can
+    be (and is) defined away as simply a programmer error, but this is a
+    place where we could fairly straightforwardly redefine the language to
+    better accommodate what has been shown to be a common expectation of the
+    naive user.
+
+Proposal (DECLARE-MACROS:FLUSH):
+
+   Under this proposal, it would not be "permissible for a macro call to
+   expand into a declaration and be recognized as such, provided that the
+   macro call appears where a declaration may legitimately appear." (CLtL
+   p. 154). Macros could not legitimately expand into declarations; the only
+   valid declarations would be a list whose CAR is the symbol DECLARE.
+
+   It would still be possible for a macro call to expand into a PROCLAIM
+   form, however.
+
+Rationale:
+
+  The advantages provided by the ability to have a macro form expand into
+  a declaration have been shown in practice to not be worth the price paid
+  elsewhere in the language.
+
+Current Practice:
+
+  Most or all implementations support the old behavior even though few
+  user programs probably need it.
+
+  Some user macros are careful about finding declarations in a body of code
+  by doing proper macro expansion, but some probably cheat and look just
+  for explicit uses of DECLARE. The cheat probably works most of the time.
+
+Adoption Cost:
+
+  The nature of this change is such that implementations which did not
+  choose to change would simply be supporting an implementation-dependent
+  extension (except for some `minor' worry about destructive modification
+  due to macro expanding while *MACROEXPAND-HOOK* is set to something
+  which implemented displacing macros).
+
+  In any case, there might be several places in which the interpreter,
+  compiler, and system macros had knowledge about doing macro expansion
+  before declaration processing. The change is not trivial, but most of
+  its complexity is likely to be in finding the places which need change
+  and not in making the actual change.
+
+Benefits:
+
+  The efficiency of some tools may be improved.
+
+  User macros which must do minor surgery on bodies of code will be
+  easier to write.
+
+Conversion Cost:
+
+  Most users probably do not write macros which expand into DECLARE forms
+  so most users are probably not affected.
+
+  Users who do exploit this feature probably know that they do. In any
+  case, compilers could be made to detect cases where this feature is
+  being exploited and warn about it.
+
+  Rewrites must be devised on a case-by-case basis. A common sort of
+  rewrite would take the form:
+
+   Old code:  (DEFMACRO SPEEDY () `(DECLARE (SPEED 3) (SAFETY 0)))
+   	      (LET (..bindings..) (SPEEDY) ..body..)
+
+   New code:  (DEFMACRO SPEEDY-LET (BVL &BODY FORMS)
+		`(LET ,BVL (DECLARE (SPEED 3) (SAFETY 0)) ,@FORMS))
+	      (SPEEDY-LET (..bindings..) ..body..)
+
+Aesthetics:
+
+  This change simplifies the semantics of the language slightly and
+  probably tends to better support the assumptions of naive programmers
+  writing macros.
+
+  In some cases involving complicated extensions to declarations, it
+  may be slightly harder to express such extensions in a modular way.
+  Experience thus far has shown such cases to be rare, however.
+
+Discussion:
+
+  Symbolics took an in-house poll of people who take advantage of the
+  feature and it was generally agreed that in most cases where this
+  feature is used at all, that it would be just as easy to work around
+  using the sample rewrite techniques cited above.
+
+  Moon `credits' Pitman for (against some opposition) pushing this
+  `feature' down everyone's throats in the original CL design process.
+  Pitman admits this was an expensive mistake. Moon and Pitman support
+  this change as an important simplification to the language.
+
+  The cleanup committee unanimously endorsed this proposal.
+
+*start*
+01912 00024 USa
+Return-Path: <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Received: from STONY-BROOK.SCRC.Symbolics.COM (SCRC-STONY-BROOK.ARPA) by Xerox.COM ; 09 NOV 87 19:55:49 PST
+Received: from RIO-DE-JANEIRO.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 275963; Mon 9-Nov-87 22:55:42 EST
+Date: Mon, 9 Nov 87 22:55 EST
+From: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: DECLARE-MACROS (Version 2)
+To: Masinter.pa
+cc: CL-Cleanup@SAIL.STANFORD.EDU, KMP@STONY-BROOK.SCRC.Symbolics.COM, Moon@STONY-BROOK.SCRC.Symbolics.COM
+In-Reply-To: <871109-155705-4230@Xerox>
+Message-ID: <871109225531.8.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+
+    Date: 9 Nov 87 15:56 PST
+    From: Masinter.pa@Xerox.COM
+
+    I responded to Moon's suggestions for wording correction. I added an
+    explicit endorsement at the end.
+
+Looks ok.
+
+    In the interest of shortening the issue, I removed the argument about
+    destructive MACROEXPAND hooks, which, I think, is more controversial
+    than the support that it raises.
+
+As it happens, it's the issue which mattered the most to me personally --
+just because it upsets my sense of order and makes me generally uneasy
+when I think about it, I guess.  But since the proposal is likely to pass
+anyway and since the issue is still alluded to under adoption cost, I guess
+I can live with this "simplification".
+
+    In order to avoid the controversy of what is a declaration, a declare
+    expression, a declare form, or a list whose car is DECLARE, I reworded
+    the proposal to be more explicit as to the intent, which is to negate
+    one specific paragraph in CLtL.
+
+Looks ok.
+
+    I run some risk of making things worse, at least in your eyes, so you
+    might want to cast yours on the PROPOSAL section and respond to me if
+    you are unhappy.
+
+Looks ok.
+
+[Proposal omitted.]
+
+I'll endorse DECLARE-MACROS:FLUSH (Version 2) as is.
+
+*start*
+06037 00024 US 
+Date: 14 Nov 87 16:30 PST
+From: Masinter.pa
+to: masinter
+subject: Issue DECLARE-MACROS (Version 2) formatted
+
+
+Issue:        DECLARE-MACROS
+References:   Declaration Syntax (p154)
+Category:     CHANGE
+Edit history: 22-Oct-87, Version 1 by Pitman
+               9-Nov-87, version 2 by Masinter
+
+Problem Description:
+
+  It is permissible for a macro call to expand into a declaration and be
+  recognized as such. This linguistic feature provides some useful
+  flexibility, but has a number of disadvantages:
+
+  * Operations on the executable portion of a body of code inside a 
+    binding form (such as inserting an additional form) is a complicated
+    operation. This is because one or more trial macro expansions must be
+    done in order to pass over any declarations or documentation string
+    and find the beginning of the body.
+
+  * In order to find the end of the declarations, MACROEXPAND must be
+    called until a non-macro form is seen or until a macro does not expand
+    into a macro. In some interpreters which do macro expansion on the fly,
+    this may cause inefficiency because macro expansion of the first form
+    in a body must be done twice. In implementations where this is 
+    optimized, the implementor may resent the fact that an optimization is
+    needed in the first place.
+
+  * Various code analysis tools have been shown to have been significantly
+    slowed down by the need to expand macros in order to determine whether
+    a binding is SPECIAL when analyzing a variable binding form. This is
+    particularly serious when macro invocations are deeply nested; the
+    number of macro expansions can be exponential in the depth of nesting
+    unless a macro-expansion caching mechanism is added. 
+
+  * User macros must be very careful about finding declarations in a body
+    of code by doing proper macro expansion. Often, however, naive users
+    don't realize this and so unknowingly write buggy code. This problem can
+    be (and is) defined away as simply a programmer error, but this is a
+    place where we could fairly straightforwardly redefine the language to
+    better accommodate what has been shown to be a common expectation of the
+    naive user.
+
+Proposal (DECLARE-MACROS:FLUSH):
+
+   Under this proposal, it would not be "permissible for a macro call to
+   expand into a declaration and be recognized as such, provided that the
+   macro call appears where a declaration may legitimately appear." (CLtL
+   p. 154). Macros could not legitimately expand into declarations; the only
+   valid declarations would be a list whose CAR is the symbol DECLARE.
+
+   It would still be possible for a macro call to expand into a PROCLAIM
+   form, however.
+
+Rationale:
+
+  The advantages provided by the ability to have a macro form expand into
+  a declaration have been shown in practice to not be worth the price paid
+  elsewhere in the language.
+
+Current Practice:
+
+  Most or all implementations support the old behavior even though few
+  user programs probably need it.
+
+  Some user macros are careful about finding declarations in a body of code
+  by doing proper macro expansion, but some probably cheat and look just
+  for explicit uses of DECLARE. The cheat probably works most of the time.
+
+Adoption Cost:
+
+  The nature of this change is such that implementations which did not
+  choose to change would simply be supporting an implementation-dependent
+  extension (except for some `minor' worry about destructive modification
+  due to macro expanding while *MACROEXPAND-HOOK* is set to something
+  which implemented displacing macros).
+
+  In any case, there might be several places in which the interpreter,
+  compiler, and system macros had knowledge about doing macro expansion
+  before declaration processing. The change is not trivial, but most of
+  its complexity is likely to be in finding the places which need change
+  and not in making the actual change.
+
+Benefits:
+
+  The efficiency of some tools may be improved.
+  User macros which must do minor surgery on bodies of code will be
+  easier to write.
+
+Conversion Cost:
+
+  Most users probably do not write macros which expand into DECLARE forms
+  so most users are probably not affected.
+
+  Users who do exploit this feature probably know that they do. In any
+  case, compilers could be made to detect cases where this feature is
+  being exploited and warn about it.
+
+  Rewrites must be devised on a case-by-case basis. A common sort of
+  rewrite would take the form:
+
+   Old code:  (DEFMACRO SPEEDY () `(DECLARE (SPEED 3) (SAFETY 0)))
+   	      (LET (..bindings..) (SPEEDY) ..body..)
+
+   New code:  (DEFMACRO SPEEDY-LET (BVL &BODY FORMS)
+		`(LET ,BVL (DECLARE (SPEED 3) (SAFETY 0)) ,@FORMS))
+	      (SPEEDY-LET (..bindings..) ..body..)
+
+Aesthetics:
+
+  This change simplifies the semantics of the language slightly and
+  probably tends to better support the assumptions of naive programmers
+  writing macros.
+
+  In some cases involving complicated extensions to declarations, it
+  may be slightly harder to express such extensions in a modular way.
+  Experience thus far has shown such cases to be rare, however.
+
+Discussion:
+
+  Symbolics took an in-house poll of people who take advantage of the
+  feature and it was generally agreed that in most cases where this
+  feature is used at all, that it would be just as easy to work around
+  using the sample rewrite techniques cited above.
+
+  Moon `credits' Pitman for (against some opposition) pushing this
+  `feature' down everyone's throats in the original CL design process.
+  Pitman admits this was an expensive mistake. Moon and Pitman support
+  this change as an important simplification to the language.
+
+  The cleanup committee unanimously endorsed this proposal.
+        TITAN 
+         TITAN 
+           ~                                                 O             \       !      Ï              ´             L             “       
+       ‰             œ             l             R      ] zº*start*
+01098 00024 US 
+Return-Path: <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Received: from STONY-BROOK.SCRC.Symbolics.COM (SCRC-STONY-BROOK.ARPA) by Xerox.COM ; 23 NOV 87 13:18:49 PST
+Received: from RIO-DE-JANEIRO.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 287007; Mon 23-Nov-87 16:18:41 EST
+Date: Mon, 23 Nov 87 16:18 EST
+From: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: Re: DECLARE-MACROS (Version 2) Volunteer wanted.
+To: Masinter.pa
+cc: CL-Cleanup@SAIL.STANFORD.EDU
+In-Reply-To: <871123-130330-2620@Xerox>
+Message-ID: <871123161832.9.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+
+I'm not convinced that the user impact is a big deal. There are a number
+of useful workarounds which this proposal could (and apparently should)
+suggest which will tend to nullify the effect on users.
+
+I plan to submit a revised copy of DECLARE-MACROS that will factor in the
+feedback we got from Gold Hill and Franz, and then we can work from there.
+
+(Larry: I'll try to do this in the near future. Bug me if I don't seem to
+have gotten to it by, say, next week.)
+
+*start*
+01831 00024 US 
+Return-Path: <CL-Cleanup-mailer@SAIL.Stanford.EDU>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 23 NOV 87 13:09:23 PST
+Received: from XEROX.COM by SAIL.STANFORD.EDU with TCP; 23 Nov 87  13:06:21 PST
+Received: from Cabernet.ms by ArpaGateway.ms ; 23 NOV 87 13:03:30 PST
+Date: 23 Nov 87 13:03 PST
+From: Masinter.pa
+Subject: Re: DECLARE-MACROS (Version 2) Volunteer wanted.
+cc: CL-Cleanup@SAIL.STANFORD.EDU
+Message-ID: <871123-130330-2620@Xerox>
+
+At X3J13, the discussion of this issue led me to believe that we should
+do a more extensive job of surveying current uses of macros that expand
+into declare and the alternative syntactic forms that we might provide. 
+
+For example, several folks spoke of providing a single macro, e.g.,
+(inner), that expanded into a (declare (optimize ...)) for those "inner"
+routines that they wanted to turn type checking off locally.
+
+(defun foo (a b c) (inner) ...)
+
+(defun frob (a b c) ...)
+
+(defun another (args) (inner) ...)
+
+
+I suggested another alternative which was to
+
+(defmacro inner (&rest body) `(locally (Declare (optimize ...)) ,@body))
+
+and then wrapping the entire DEFUN, e.g.,
+
+
+(inner
+
+(defun foo (a b c) ...)
+
+)
+
+
+I'd appreciate some help from those who surveyed their user community to
+expand the alternatives. (Probably the simplest way to organize this is
+to put in the "Cost to users" section that alternatives exist, and then
+to elaborate them in the Discussion section.)
+
+
+- - - -- - 
+
+Second, there was some enough mention of the destructive-macro-caching
+example that we should probably put it back in as another justification
+for this proposal. Also, the fact that a straightforward expansion of
+
+(my-let (var1) (my-let (var2) (my-let (var3) ...)))
+
+might result in 2^n macro expansions of the innermost form.
+
+*start*
+02492 00024 US 
+Return-Path: <CL-Cleanup-mailer@SAIL.Stanford.EDU>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 06 JAN 88 23:21:26 PST
+Received: from XEROX.COM by SAIL.STANFORD.EDU with TCP; 6 Jan 88  23:18:05 PST
+Received: from Cabernet.ms by ArpaGateway.ms ; 06 JAN 88 23:18:53 PST
+Date: 6 Jan 88 23:18 PST
+From: Masinter.pa
+Subject: Issue: DECLARE-MACROS
+to: cl-cleanup@sail.stanford.edu
+Message-ID: <880106-231853-6452@Xerox>
+
+I thought that while there were some objections to DECLARE-MACROS the proposal
+recieved very strong endorsement from many members of the community. I thought
+we needed to address the objections and resubmit it.
+
+Does anyone else have any notes or recollection?
+
+     ----- Begin Forwarded Messages -----
+
+Return-Path: <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Received: from STONY-BROOK.SCRC.Symbolics.COM (SCRC-STONY-BROOK.ARPA) by
+Xerox.COM ; 04 JAN 88 19:09:02 PST
+Received: from EUPHRATES.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM
+via CHAOS with CHAOS-MAIL id 314856; Mon 4-Jan-88 22:08:36 EST
+Date: Mon, 4 Jan 88 22:08 EST
+From: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: Re: New issue: FLET-DECLARATIONS
+To: Masinter.pa
+cc: Moon@STONY-BROOK.SCRC.Symbolics.COM
+In-Reply-To: <880104-170649-2879@Xerox>
+Message-ID: <19880105030822.4.MOON@EUPHRATES.SCRC.Symbolics.COM>
+Line-fold: No
+
+    Date: 4 Jan 88 17:06 PST
+    From: Masinter.pa@Xerox.COM
+
+    I think we should presume in future cleanup issues that DECLARE-MACROS has
+been
+    accepted. Your writeup sentence "This rule is required in order to permit
+macros
+    to expand into DECLARE, as noted above." should probably be changed.
+
+Really?  I had pretty well assumed that DECLARE-MACROS was being withdrawn,
+because
+so many people had surfaced who depend on macros expanding into declarations, so
+that it would be a significant incompatible change.  From a language cleanliness
+point of view, I'd like macros not to expand into declarations, but from a
+practical
+point of view I no longer care; at one point I had mistakenly claimed that this
+was
+a major source of slowness in our compiler, but that turned out not to be true.
+It's related to a source of slowness, and fixing the slowness is made more
+complex
+by the need to worry about macros expanding into declarations, but removing the
+feature from the language really wouldn't help us very much.  I was just
+confused
+on that point.
+
+
+     ----- End Forwarded Messages -----
+
+*start*
+01451 00024 US 
+Date: 14 Jan 88 19:56 PST
+From: Masinter.pa
+Subject: [Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>: Re: DECLARE-MACROS (Version 2) Volunteer wanted.]
+To: KMP@STONY-BROOK.SCRC.Symbolics.COM
+cc: Masinter.pa
+
+Consider yourself bugged. I had misfiled this message.
+
+
+     ----- Begin Forwarded Messages -----
+
+Return-Path: <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Received: from STONY-BROOK.SCRC.Symbolics.COM (SCRC-STONY-BROOK.ARPA) by Xerox.COM ; 23 NOV 87 13:18:49 PST
+Received: from RIO-DE-JANEIRO.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 287007; Mon 23-Nov-87 16:18:41 EST
+Date: Mon, 23 Nov 87 16:18 EST
+From: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: Re: DECLARE-MACROS (Version 2) Volunteer wanted.
+To: Masinter.pa
+cc: CL-Cleanup@SAIL.STANFORD.EDU
+In-Reply-To: <871123-130330-2620@Xerox>
+Message-ID: <871123161832.9.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+
+I'm not convinced that the user impact is a big deal. There are a number
+of useful workarounds which this proposal could (and apparently should)
+suggest which will tend to nullify the effect on users.
+
+I plan to submit a revised copy of DECLARE-MACROS that will factor in the
+feedback we got from Gold Hill and Franz, and then we can work from there.
+
+(Larry: I'll try to do this in the near future. Bug me if I don't seem to
+have gotten to it by, say, next week.)
+
+
+     ----- End Forwarded Messages -----
+*start*
+09218 00024 USm
+Return-Path: <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Received: from STONY-BROOK.SCRC.Symbolics.COM (SCRC-STONY-BROOK.ARPA) by Xerox.COM ; 05 FEB 88 11:53:57 PST
+Received: from RIO-DE-JANEIRO.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 336934; Fri 5-Feb-88 14:53:16 EST
+Date: Fri, 5 Feb 88 14:53 EST
+From: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: Rewrite of DECLARE-MACROS
+To: Masinter.PA
+cc: KMP@STONY-BROOK.SCRC.Symbolics.COM
+Message-ID: <880205145305.3.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+
+Issue:        DECLARE-MACROS 
+References:   Declaration Syntax (p154)
+Category:     CHANGE
+Edit history: 22-Oct-87, Version 1 by Pitman
+               9-Nov-87, Version 2 by Masinter
+	       5-Feb-88, Version 3 by Pitman
+Status:       For Internal Discussion
+
+Problem Description:
+
+  It is permissible for a macro call to expand into a declaration and be
+  recognized as such. This linguistic feature provides some useful
+  flexibility, but has a number of disadvantages:
+
+  * Operations on the executable portion of a body of code inside a 
+    binding form (such as inserting an additional form) is a complicated
+    operation. This is because one or more trial macro expansions must be
+    done in order to pass over any declarations or documentation string
+    and find the beginning of the body.
+
+  * In order to find the end of the declarations, MACROEXPAND must be
+    called until a non-macro form is seen or until a macro does not expand
+    into a macro. In some interpreters which do macro expansion on the fly,
+    this may cause inefficiency because macro expansion of the first form
+    in a body must be done twice. In implementations where this is 
+    optimized, the implementor may resent the fact that an optimization is
+    needed in the first place.
+
+  * Various code analysis tools have been shown to have been significantly
+    slowed down by the need to expand macros in order to determine whether
+    a binding is SPECIAL when analyzing a variable binding form. This is
+    particularly serious when macro invocations are deeply nested; the
+    number of macro expansions can be exponential in the depth of nesting
+    unless a macro-expansion caching mechanism is added. 
+
+  * User macros must be very careful about finding declarations in a body
+    of code by doing proper macro expansion. Often, however, naive users
+    don't realize this and so unknowingly write buggy code. This problem can
+    be (and is) defined away as simply a programmer error, but this is a
+    place where we could fairly straightforwardly redefine the language to
+    better accommodate what has been shown to be a common expectation of the
+    naive user.
+
+Proposal (DECLARE-MACROS:FLUSH):
+
+   Under this proposal, it would not be "permissible for a macro call to
+   expand into a declaration and be recognized as such, provided that the
+   macro call appears where a declaration may legitimately appear." (CLtL
+   p. 154). Macros could not legitimately expand into declarations; the only
+   valid declarations would be a list whose CAR is the symbol DECLARE.
+
+   It would still be possible for a macro call to expand into a PROCLAIM
+   form, however.
+
+Rationale:
+
+  The ability to have a macro form expand into a declaration has been shown
+  to be useful in some situations.  More often, however, the presence of
+  this feature has been seen to cause problems elsewhere in the language.
+  Ultimately, its benefits have not outweighed its costs.
+
+Current Practice:
+
+  Most or all implementations support the old behavior even though few
+  user programs probably need it.
+
+  Some user macros are careful about finding declarations in a body of code
+  by doing proper macro expansion, but some probably cheat and look just
+  for explicit uses of DECLARE. The cheat probably works most of the time.
+
+Adoption Cost:
+
+  The nature of this change is such that implementations which did not
+  choose to change would simply be supporting an implementation-dependent
+  extension (except for some `minor' worry about destructive modification
+  due to macro expanding while *MACROEXPAND-HOOK* is set to something
+  which implemented displacing macros).
+
+  In any case, there might be several places in which the interpreter,
+  compiler, and system macros had knowledge about doing macro expansion
+  before declaration processing. The change is not trivial, but most of
+  its complexity is likely to be in finding the places which need change
+  and not in making the actual change.
+
+Benefits:
+
+  The efficiency of some tools may be improved.
+  User macros which must do minor surgery on bodies of code will be
+  easier to write.
+
+Conversion Cost:
+
+  Most users probably do not write macros which expand into DECLARE forms
+  so most users are probably not affected.
+
+  Users who do exploit this feature probably know that they do. In any
+  case, compilers could be made to detect cases where this feature is
+  being exploited and warn about it.
+
+  Franz and Gold Hill are notable exceptions to the claim that users may
+  not want this. Both claim to make a reasonable amount of use of macros
+  which expand into different SPEED and SAFETY declarations, usually
+  dependent on a global switch.
+
+  Rewrites must be devised on a case-by-case basis. A common sort of
+  rewrite would take the form:
+
+   Old code:  (DEFMACRO SPEEDY ()
+		`(DECLARE (OPTIMIZE (SPEED 3) (SAFETY 0))))
+   	      (LET (..bindings..) (SPEEDY) ..body..)
+
+   New code:  (DEFMACRO SPEEDY-LET (BVL &BODY FORMS)
+		`(LET ,BVL
+		   (DECLARE (OPTIMIZE (SPEED 3) (SAFETY 0)))
+		   ,@FORMS))
+	      (SPEEDY-LET (..bindings..) ..body..)
+
+  Another tactic would be:
+
+   Old code: (EVAL-WHEN (EVAL COMPILE LOAD)
+	       (DEFVAR *SPEEDY* NIL))
+	     (DEFMACRO USE-STANDARD-SPEED-AND-SAFETY ()
+	       (IF *SPEEDY*
+		   `(DECLARE (OPTIMIZE (SPEED 3) (SAFETY 0)))
+		   `(DECLARE (OPTIMIZE (SPEED 0) (SAFETY 3)))))
+	     (DEFUN FOO ()
+	       (USE-STANDARD-SPEED-AND-SAFETY)
+	       ...)
+   New code: (EVAL-WHEN (EVAL COMPILE LOAD)
+	       (DEFVAR *STANDARD-SPEED-AND-SAFETY* '((SPEED 0) (SAFETY 3))))
+	     (DEFUN FOO ()
+	       (DECLARE (OPTIMIZE #.*STANDARD-SPEED-AND-SAFETY*))
+	       ...)
+
+  Still a third tactic would be to actually shadow DEFUN, LET, etc. with
+  variants that process macro expansions and then to build code in a
+  package that used the revised DEFUN, LET, etc. eg,
+
+    (DEFUN PARSE-BODY (BODY ENV)
+      (LET ((DECLS '())
+	    (DOC   '()))
+	(DO () ((NULL (CDR BODY)))
+	  (LET ((EXP (MACROEXPAND (POP BODY) ENV)))
+	    (COND ((AND (STRINGP EXP) BODY)
+		   (UNLESS (NULL DOC)
+		     (WARN "More than one documentation string was seen."))
+		   (PUSH EXP DOC))
+		  ((AND (NOT (ATOM EXP)) (EQ (CAR EXP) 'DECLARE))
+		   (PUSH EXP DECLS))
+		  (T
+		   (PUSH EXP BODY)
+		   (RETURN NIL)))))
+	(VALUES BODY (NREVERSE DECLS) (NREVERSE DOC))))
+
+   (DEFMACRO MY:DEFUN (NAME LAMBDA-LIST &BODY DECLS-DOC-AND-FORMS
+		       &ENVIRONMENT ENV)
+     (MULTIPLE-VALUE-BIND (FORMS DECLS DOC-STRINGS)
+	 (PARSE-BODY DECLS-DOC-AND-FORMS ENV)
+       `(DEFUN ,NAME ,BVL ,@DECLS ,@DOC-STRINGS ,@FORMS)))
+
+   (DEFMACRO MY:LET (BINDINGS &BODY DECLS-DOC-AND-FORMS
+		     &ENVIRONMENT ENV)
+     (MULTIPLE-VALUE-BIND (FORMS DECLS DOC-STRINGS)
+	 (PARSE-BODY DECLS-DOC-AND-FORMS ENV)
+       `(LET ,BINDINGS ,@FORMS)))
+
+   ...etc.
+
+  LAMBDA cannot be done this way, of course, since it is not a macro (or
+  even a special form). Support for expanding declarations in a LAMBDA
+  would have to be provided either by using implementation-specific support
+  (such as Zetalisp's ``lambda macros'') or by a workaround such as a
+  macro like:
+
+   (DEFMACRO LAMBDA (LAMBDA-LIST &BODY DECLS-DOC-AND-FORMS
+		     &ENVIRONMENT ENV)
+     (MULTIPLE-VALUE-BIND (FORMS DECLS DOC-STRINGS)
+	 (PARSE-BODY DECLS-DOC-AND-FORMS ENV)
+       `#'(LAMBDA ,BINDINGS ,@FORMS)))
+
+  Note that unlike the other examples, LAMBDA need not be (and in fact,
+  may not be) in the "MY" package in order for this to work since the
+  FUNCTION special form will generally only recognize LISP:LAMBDA.
+
+Aesthetics:
+
+  This change simplifies the semantics of the language slightly and
+  probably tends to better support the assumptions of naive programmers
+  writing macros.
+
+  In some cases involving complicated extensions to declarations, it
+  may be slightly harder to express such extensions in a modular way.
+  Experience thus far has shown such cases to be rare, however.
+
+Discussion:
+
+  Symbolics took an in-house poll of people who take advantage of the
+  feature and it was generally agreed that in most cases where this
+  feature is used at all, that it would be just as easy to work around
+  using the sample rewrite techniques cited above.
+
+  Moon `credits' Pitman for (against some opposition) pushing this
+  `feature' down everyone's throats in the original CL design process.
+  Pitman admits this was an expensive mistake. Moon and Pitman support
+  this change as an important simplification to the language.
+
+  The cleanup committee unanimously endorsed this proposal.
+
+  In discussion at the Nov-87 X3J13 meeting, Franz and Gold Hill
+  mentioned that they use this feature a lot and were not entirely
+  happy about its going away.
+*start*
+09327 00024 US 
+Date: 14 Feb 88 11:21 PST
+From: Masinter.pa
+Subject: Issue: DECLARE-MACROS (Version 3)
+To: X3J13@Sail.stanford.edu
+cc: Masinter
+Line-fold: no
+reply-to: cl-cleanup@Sail.stanford.edu
+
+This issue was distributed in hardcopy at the November 1987 meeting.
+There was some opposition at that time. This version includes a more
+extensive description of possible alternative coding practices.
+
+
+Issue:        DECLARE-MACROS 
+References:   Declaration Syntax (p154)
+Category:     CHANGE
+Edit history: 22-Oct-87, Version 1 by Pitman
+               9-Nov-87, Version 2 by Masinter
+               5-Feb-88, Version 3 by Pitman
+
+Problem Description:
+
+  It is permissible for a macro call to expand into a declaration and be
+  recognized as such. This linguistic feature provides some useful
+  flexibility, but has a number of disadvantages:
+
+  * Operations on the executable portion of a body of code inside a 
+    binding form (such as inserting an additional form) is a complicated
+    operation. This is because one or more trial macro expansions must be
+    done in order to pass over any declarations or documentation string
+    and find the beginning of the body.
+
+  * In order to find the end of the declarations, MACROEXPAND must be
+    called until a non-macro form is seen or until a macro does not expand
+    into a macro. In some interpreters which do macro expansion on the fly,
+    this may cause inefficiency because macro expansion of the first form
+    in a body must be done twice. In implementations where this is 
+    optimized, the implementor may resent the fact that an optimization is
+    needed in the first place.
+
+  * Various code analysis tools have been shown to have been significantly
+    slowed down by the need to expand macros in order to determine whether
+    a binding is SPECIAL when analyzing a variable binding form. This is
+    particularly serious when macro invocations are deeply nested; the
+    number of macro expansions can be exponential in the depth of nesting
+    unless a macro-expansion caching mechanism is added. 
+
+  * User macros must be very careful about finding declarations in a body
+    of code by doing proper macro expansion. Often, however, naive users
+    don't realize this and so unknowingly write buggy code. This problem can
+    be (and is) defined away as simply a programmer error, but this is a
+    place where we could fairly straightforwardly redefine the language to
+    better accommodate what has been shown to be a common expectation of the
+    naive user.
+
+Proposal (DECLARE-MACROS:FLUSH):
+
+   Under this proposal, it would not be "permissible for a macro call to
+   expand into a declaration and be recognized as such, provided that the
+   macro call appears where a declaration may legitimately appear." (CLtL
+   p. 154). Macros could not legitimately expand into declarations; the only
+   valid declarations would be a list whose CAR is the symbol DECLARE.
+
+   It would still be possible for a macro call to expand into a PROCLAIM
+   form, however.
+
+Rationale:
+
+  The ability to have a macro form expand into a declaration has been shown
+  to be useful in some situations.  More often, however, the presence of
+  this feature has been seen to cause problems elsewhere in the language.
+  Ultimately, its benefits have not outweighed its costs.
+
+Current Practice:
+
+  Most or all implementations support the old behavior even though few
+  user programs probably need it.
+
+  Some user macros are careful about finding declarations in a body of code
+  by doing proper macro expansion, but some probably cheat and look just
+  for explicit uses of DECLARE. The cheat probably works most of the time.
+
+Cost to implementors:
+
+  The nature of this change is such that implementations which did not
+  choose to change would simply be supporting an implementation-dependent
+  extension (except for some `minor' worry about destructive modification
+  due to macro expanding while *MACROEXPAND-HOOK* is set to something
+  which implemented displacing macros).
+
+  In any case, there might be several places in which the interpreter,
+  compiler, and system macros had knowledge about doing macro expansion
+  before declaration processing. The change is not trivial, but most of
+  its complexity is likely to be in finding the places which need change
+  and not in making the actual change.
+
+Cost to users:
+
+  Most users probably do not write macros which expand into DECLARE forms
+  so most users are probably not affected.
+
+  Users who do exploit this feature probably know that they do. In any
+  case, compilers could be made to detect cases where this feature is
+  being exploited and warn about it.
+
+  Franz and Gold Hill are notable exceptions to the claim that users may
+  not want this. Both claim to make a reasonable amount of use of macros
+  which expand into different SPEED and SAFETY declarations, usually
+  dependent on a global switch.
+
+  Rewrites must be devised on a case-by-case basis. A common sort of
+  rewrite would take the form:
+
+   Old code:  (DEFMACRO SPEEDY ()
+		`(DECLARE (OPTIMIZE (SPEED 3) (SAFETY 0))))
+   	      (LET (..bindings..) (SPEEDY) ..body..)
+
+   New code:  (DEFMACRO SPEEDY-LET (BVL &BODY FORMS)
+		`(LET ,BVL
+		   (DECLARE (OPTIMIZE (SPEED 3) (SAFETY 0)))
+		   ,@FORMS))
+	      (SPEEDY-LET (..bindings..) ..body..)
+
+  Another tactic would be:
+
+   Old code: (EVAL-WHEN (EVAL COMPILE LOAD)
+	       (DEFVAR *SPEEDY* NIL))
+	     (DEFMACRO USE-STANDARD-SPEED-AND-SAFETY ()
+	       (IF *SPEEDY*
+		   `(DECLARE (OPTIMIZE (SPEED 3) (SAFETY 0)))
+		   `(DECLARE (OPTIMIZE (SPEED 0) (SAFETY 3)))))
+	     (DEFUN FOO ()
+	       (USE-STANDARD-SPEED-AND-SAFETY)
+	       ...)
+   New code: (EVAL-WHEN (EVAL COMPILE LOAD)
+	       (DEFVAR *STANDARD-SPEED-AND-SAFETY* '((SPEED 0) (SAFETY 3))))
+	     (DEFUN FOO ()
+	       (DECLARE (OPTIMIZE #.*STANDARD-SPEED-AND-SAFETY*))
+	       ...)
+
+  Still a third tactic would be to actually shadow DEFUN, LET, etc. with
+  variants that process macro expansions and then to build code in a
+  package that used the revised DEFUN, LET, etc. eg,
+
+    (DEFUN PARSE-BODY (BODY ENV)
+      (LET ((DECLS '())
+	    (DOC   '()))
+	(DO () ((NULL (CDR BODY)))
+	  (LET ((EXP (MACROEXPAND (POP BODY) ENV)))
+	    (COND ((AND (STRINGP EXP) BODY)
+		   (UNLESS (NULL DOC)
+		     (WARN "More than one documentation string was seen."))
+		   (PUSH EXP DOC))
+		  ((AND (NOT (ATOM EXP)) (EQ (CAR EXP) 'DECLARE))
+		   (PUSH EXP DECLS))
+		  (T
+		   (PUSH EXP BODY)
+		   (RETURN NIL)))))
+	(VALUES BODY (NREVERSE DECLS) (NREVERSE DOC))))
+
+   (DEFMACRO MY:DEFUN (NAME LAMBDA-LIST &BODY DECLS-DOC-AND-FORMS
+		       &ENVIRONMENT ENV)
+     (MULTIPLE-VALUE-BIND (FORMS DECLS DOC-STRINGS)
+	 (PARSE-BODY DECLS-DOC-AND-FORMS ENV)
+       `(DEFUN ,NAME ,BVL ,@DECLS ,@DOC-STRINGS ,@FORMS)))
+
+   (DEFMACRO MY:LET (BINDINGS &BODY DECLS-DOC-AND-FORMS
+		     &ENVIRONMENT ENV)
+     (MULTIPLE-VALUE-BIND (FORMS DECLS DOC-STRINGS)
+	 (PARSE-BODY DECLS-DOC-AND-FORMS ENV)
+       `(LET ,BINDINGS ,@FORMS)))
+
+   ...etc.
+
+  LAMBDA cannot be done this way, of course, since it is not a macro (or
+  even a special form). Support for expanding declarations in a LAMBDA
+  would have to be provided either by using implementation-specific support
+  (such as Zetalisp's ``lambda macros'') or by a workaround such as a
+  macro like:
+
+   (DEFMACRO LAMBDA (LAMBDA-LIST &BODY DECLS-DOC-AND-FORMS
+		     &ENVIRONMENT ENV)
+     (MULTIPLE-VALUE-BIND (FORMS DECLS DOC-STRINGS)
+	 (PARSE-BODY DECLS-DOC-AND-FORMS ENV)
+       `#'(LAMBDA ,BINDINGS ,@FORMS)))
+
+  Note that unlike the other examples, LAMBDA need not be (and in fact,
+  may not be) in the "MY" package in order for this to work since the
+  FUNCTION special form will generally only recognize LISP:LAMBDA.
+
+Benefits:
+
+  The efficiency of some tools may be improved.
+  User macros which must do minor surgery on bodies of code will be
+  easier to write.
+
+Aesthetics:
+
+  This change simplifies the semantics of the language slightly and
+  probably tends to better support the assumptions of naive programmers
+  writing macros.
+
+  In some cases involving complicated extensions to declarations, it
+  may be slightly harder to express such extensions in a modular way.
+  Experience thus far has shown such cases to be rare, however.
+
+Discussion:
+
+  Symbolics took an in-house poll of people who take advantage of the
+  feature and it was generally agreed that in most cases where this
+  feature is used at all, that it would be just as easy to work around
+  using the sample rewrite techniques cited above.
+
+  Moon `credits' Pitman for (against some opposition) pushing this
+  `feature' down everyone's throats in the original CL design process.
+  Pitman admits this was an expensive mistake. Moon and Pitman support
+  this change as an important simplification to the language.
+
+  The cleanup committee unanimously endorsed this proposal.
+
+  In discussion at the Nov-87 X3J13 meeting, Franz and Gold Hill
+  mentioned that they use this feature a lot and were not entirely
+  happy about its going away.
+        TITAN 
+         TITAN 
+          ƒ                                                        |             \       !      Ï                          L             “             
+       
+       ‰             l             õ      #. zº

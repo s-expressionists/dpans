@@ -1,0 +1,342 @@
+*start*
+03219 00024 USf
+Return-Path: <@SAIL.Stanford.EDU:KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 22 OCT 87 13:01:43 PDT
+Received: from SCRC-STONY-BROOK.ARPA by SAIL.STANFORD.EDU with TCP; 22 Oct 87  12:58:54 PDT
+Received: from RIO-DE-JANEIRO.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 261173; Thu 22-Oct-87 15:59:38 EDT
+Date: Thu, 22 Oct 87 15:59 EDT
+From: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: COLON-NUMBER (Version 1)
+To: CL-Cleanup@SAIL.STANFORD.EDU
+References: <871020150857.2.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>,
+            The message of 20 Oct 87 15:24 EDT from Ram@C.CS.CMU.EDU,
+            <8710202023.AA28861@kali.think.com>,
+            <871020-124811-2217@Xerox>,
+            <19871020212343.9.MOON@EUPHRATES.SCRC.Symbolics.COM>,
+            <8710221841.AA00236@kali.think.com>
+Message-ID: <871022155903.2.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+
+Issue:        COLON-NUMBER
+References:   Parsing of Numbers and Symbols (p339-341, 343-344)
+Category:     CLARIFICATION
+Edit history: 22-Oct-87, Version 1 by Pitman
+Status:	      For Internal Discussion
+
+Problem Description:
+
+  CLtL is unclear about whether a colon followed by a potential number
+  is a potential number. There are passages which seem to address this
+  issue unambiguously but fail.
+
+Proposal (COLON-NUMBER:UNDEFINED):
+
+  Clarify that syntax involving a leading colon followed by a potential
+  number is not well-defined. That is, use of notation such as :1, :1/2,
+  and :2^3 in a position where an expression appropriate for READ is
+  expected is an error.
+
+Rationale:
+
+  This makes the status quo apparent.
+
+Current Practice:
+
+  Some implementations, such as Symbolics Lisp, claim the right to 
+  interpret this as an ``is an error'' situation where their
+  upward-compatible extension is to parse ``:1'' as the number 1
+  (incidentally, but uninterestingly, expressed in the KEYWORD package).
+
+  Other implementations tokenize ``:1'' as a single token, identify it
+  as a symbol, and then parse it as :\1 would be parsed.
+
+Adoption Cost:
+
+  None. This clarification forces no implementations to change.
+
+Benefits:
+
+  Programmer expectations that any useful behavior can be portably relied
+  upon in this pathological case should be soundly trounced.
+
+Conversion Cost:
+
+  Slight. Some users may have mistakenly believed that this was an aspect
+  of the language that was guaranteed and may have written programs that
+  exploited that belief. Such incidences are probably very rare, however.
+  Also, even in the few cases where such code fortuitously worked,
+  implementations are likely to continue to support it so such code will
+  probably continue to fortuitously work in many of those rare situations.
+
+Aesthetics:
+
+  Arguably a slight improvement in visual aesthetics. What was already 
+  a pretty marginal syntax is discouraged.
+
+Discussion:
+
+  Pitman supports this clarification. He thinks this issue is not a big
+  deal, but it does crop up often enough to be a nuisance. It would be
+  nice to have everyone acknowledge a unified position, even if that only
+  meant agreeing to disagree.
+
+*start*
+00776 00024 US 
+Return-Path: <@SAIL.Stanford.EDU:FAHLMAN@C.CS.CMU.EDU>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 22 OCT 87 13:05:36 PDT
+Received: from C.CS.CMU.EDU by SAIL.STANFORD.EDU with TCP; 22 Oct 87  13:03:21 PDT
+Received: ID <FAHLMAN@C.CS.CMU.EDU>; Thu 22 Oct 87 16:03:48-EDT
+Date: Thu, 22 Oct 87 16:03 EDT
+Message-ID: <FAHLMAN.12344580093.BABYL@C.CS.CMU.EDU>
+Sender: FAHLMAN@C.CS.CMU.EDU
+From: "Scott E. Fahlman" <Fahlman@C.CS.CMU.EDU>
+To: Kent M Pitman <KMP@SCRC-STONY-BROOK.ARPA>
+Cc: CL-Cleanup@SAIL.STANFORD.EDU
+Subject: COLON-NUMBER (Version 1)
+In-reply-to: Msg of 22 Oct 1987  15:59-EDT from Kent M Pitman <KMP at STONY-BROOK.SCRC.Symbolics.COM>
+
+
+OK by me.  This seems like as good a solution as any.
+
+-- Scott
+
+*start*
+00818 00024 USa
+Return-Path: <@SAIL.Stanford.EDU:Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 22 OCT 87 14:00:30 PDT
+Received: from SCRC-STONY-BROOK.ARPA by SAIL.STANFORD.EDU with TCP; 22 Oct 87  13:58:00 PDT
+Received: from EUPHRATES.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 261258; Thu 22-Oct-87 16:58:54 EDT
+Date: Thu, 22 Oct 87 16:58 EDT
+From: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: COLON-NUMBER (Version 1)
+To: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+cc: CL-Cleanup@SAIL.STANFORD.EDU
+In-Reply-To: <871022155903.2.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+Message-ID: <19871022205854.2.MOON@EUPHRATES.SCRC.Symbolics.COM>
+
+I agree with COLON-NUMBER:UNDEFINED.
+
+*start*
+00957 00024 US 
+Return-Path: <@SAIL.Stanford.EDU:Masinter.pa@Xerox.COM>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 22 OCT 87 17:18:43 PDT
+Received: from XEROX.COM by SAIL.STANFORD.EDU with TCP; 22 Oct 87  17:16:04 PDT
+Received: from Cabernet.ms by ArpaGateway.ms ; 22 OCT 87 17:16:50 PDT
+Date: 22 Oct 87 17:16 PDT
+From: Masinter.pa
+Subject: Re: COLON-NUMBER (Version 1)
+In-reply-to: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>'s
+ message of Thu, 22 Oct 87 16:58 EDT
+To: CL-Cleanup@SAIL.STANFORD.EDU
+Message-ID: <871022-171650-5792@Xerox>
+
+
+I'm vaguely uneasy that this is not really an issue, and is addressed in
+CLtL although not explicitly enough,  but I guess there is sufficient
+sentiment (as evidenced by Kent taking the time to write it up) that we
+should proceed. 
+
+I propose to edit this to say that the cleanup committee endorses this
+proposal and bring along copies to X3J13.
+
+Objections?
+
+*start*
+00928 00024 US 
+Return-Path: <@SAIL.Stanford.EDU:gls@Think.COM>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 23 OCT 87 07:13:04 PDT
+Received: from THINK.COM by SAIL.STANFORD.EDU with TCP; 23 Oct 87  07:09:10 PDT
+Return-Path: <gls@Think.COM>
+Received: from kali.think.com by Think.COM; Fri, 23 Oct 87 10:08:14 EDT
+Received: by kali.think.com; Fri, 23 Oct 87 10:08:38 EDT
+Date: Fri, 23 Oct 87 10:08:38 EDT
+From: gls@Think.COM
+Message-Id: <8710231408.AA01421@kali.think.com>
+To: Moon@stony-brook.scrc.symbolics.com
+Cc: KMP@stony-brook.scrc.symbolics.com, CL-Cleanup@sail.stanford.edu
+In-Reply-To: David A. Moon's message of Thu, 22 Oct 87 16:58 EDT <19871022205854.2.MOON@EUPHRATES.SCRC.Symbolics.COM>
+Subject: COLON-NUMBER (Version 1)
+
+   Date: Thu, 22 Oct 87 16:58 EDT
+   From: David A. Moon <Moon@stony-brook.scrc.symbolics.com>
+
+   I agree with COLON-NUMBER:UNDEFINED.
+
+Me, too.
+
+*start*
+02627 00024 US 
+Return-Path: <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Received: from STONY-BROOK.SCRC.Symbolics.COM (SCRC-STONY-BROOK.ARPA) by Xerox.COM ; 27 OCT 87 08:40:03 PST
+Received: from EUPHRATES.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 264561; Tue 27-Oct-87 11:15:37 EST
+Redistributed-date: Tue, 27 Oct 87 11:14 EST
+Redistributed-to: Masinter.pa@Xerox.COM
+Resent-Comments: Message retransmitted because it failed to go through the first time.
+Date: Tue, 20 Oct 87 17:23 EDT
+From: Moon@STONY-BROOK.SCRC.Symbolics.COM
+Subject: :1
+To: KMP@STONY-BROOK.SCRC.Symbolics.COM, Ram@C.CS.CMU.EDU, Masinter.pa, gls@Think.COM
+cc: CL-Cleanup@SAIL.STANFORD.EDU
+In-Reply-To: <871020150857.2.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>,
+             <RAM.12344048730.BABYL@>,
+             <871020154057.4.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>,
+             <871020-124811-2217@Xerox>,
+             <8710202023.AA28861@kali.think.com>
+Message-ID: <19871020212343.9.MOON@EUPHRATES.SCRC.Symbolics.COM>
+Line-fold: No
+
+    Date: Tue, 20 Oct 87 15:08 EDT
+    From: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+
+    Does anyone have an unambiguous reference to a passage that claims
+    that the syntax ``:1'' denotes a symbol? In the 3600 implementation,
+    it's a number and I've heard people claim that this is a bug, but
+    I just looked and could not find any text which convinced me of this.
+
+Those people are wrong, see GLS's response below.
+
+    Date: Tue, 20 Oct 1987  15:24 EDT
+    From: Ram@C.CS.CMU.EDU
+
+    How about pp339-341: "Any token that is not a potential number and
+    does not consist entirely of dots will always be taken as a symbol,
+    now and in the future; programs may rely on this fact."
+
+    ":1" is not a potential number according to the rules on page 341.
+
+":1" is not a single token in Symbolics' implementation.  Table 22-1
+says : is a constituent, but that cannot be correct, since it would
+forbid the extension to factored package prefixes such as
+"foo:(bar baz quux)".  : is really a macro character.  It's hard, for
+me anyway, to tell whether this is a simple error in the description
+of read syntax in CLtL, or whether it means Symbolics chooses not to
+conform to a part of the language we disagree with.  Fortunately it
+makes little or no difference to the portability of practical programs.
+
+    Date: Tue, 20 Oct 87 16:23:07 EDT
+    From: gls@Think.COM
+
+    So the token ":1" is an error and may be given any interpretation by
+    an implementation.
+
+Agreed.  No valid portable program may contain or depend on that syntax,
+among numerous others.
+
+*start*
+02542 00024 USm
+Date: 14 Nov 87 15:47 PST
+From: Masinter.pa
+to: Masinter
+Subject: Issue: COLON-NUMBER (Version 1) formatted
+
+
+Issue:        COLON-NUMBER
+References:   Parsing of Numbers and Symbols (p339-341, 343-344)
+Category:     CLARIFICATION
+Edit history: 22-Oct-87, Version 1 by Pitman
+
+Problem Description:
+
+CLtL is unclear about whether a colon followed by a potential number is a potential number. There are passages which seem to address this issue unambiguously but fail.
+
+Proposal (COLON-NUMBER:UNDEFINED):
+
+Clarify that syntax involving a leading colon followed by a potential number is not well-defined. That is, use of notation such as :1, :1/2, and :2^3 in a position where an expression appropriate for READ is expected is an error.
+
+Rationale:
+
+This makes the status quo apparent.
+
+Current Practice:
+
+Some implementations, such as Symbolics Lisp, claim the right to  interpret this as an ``is an error'' situation where their upward-compatible extension is to parse ``:1'' as the number 1 (incidentally, but uninterestingly, expressed in the KEYWORD package).
+
+Other implementations tokenize ``:1'' as a single token, identify it as a symbol, and then parse it as :\1 would be parsed.
+
+Adoption Cost:
+
+None. This clarification forces no implementations to change.
+
+Benefits:
+
+Programmer expectations that any useful behavior can be portably relied upon in this pathological case should be soundly trounced.
+
+Conversion Cost:
+
+Slight. Some users may have mistakenly believed that this was an aspect of the language that was guaranteed and may have written programs that exploited that belief. Such incidences are probably very rare, however. Also, even in the few cases where such code fortuitously worked, implementations are likely to continue to support it so such code will probably continue to fortuitously work in many of those rare situations.
+
+Aesthetics:
+
+Arguably a slight improvement in visual aesthetics. What was already  a pretty marginal syntax is discouraged.
+
+Discussion:
+
+Pitman supports this clarification. He thinks this issue is not a big deal, but it does crop up often enough to be a nuisance. It would be nice to have everyone acknowledge a unified position, even if that only meant agreeing to disagree.
+        TITAN          TITAN            }       
+              3                                           ª       #       è              &             ‚              @       
+       …             ª              q              ð      ¶ zº*start*
+02731 00024 US 
+Date: 14 Feb 88 11:08 PST
+From: Masinter.pa
+Subject: Issue: COLON-NUMBER (Version 1)
+To: X3J13@Sail.stanford.edu
+cc: Masinter
+reply-to: CL-CLEANUP@Sail.Stanford.EDU
+
+
+This issue was distributed in hardcopy at the November 1987 meeting of X3J13. 
+
+
+Issue:        COLON-NUMBER
+References:   Parsing of Numbers and Symbols (p339-341, 343-344)
+Category:     CLARIFICATION
+Edit history: 22-Oct-87, Version 1 by Pitman
+
+Problem Description:
+
+CLtL is unclear about whether a colon followed by a potential number is a potential number. There are passages which seem to address this issue unambiguously but fail.
+
+Proposal (COLON-NUMBER:UNDEFINED):
+
+Clarify that syntax involving a leading colon followed by a potential number is not well-defined. That is, use of notation such as :1, :1/2, and :2^3 in a position where an expression appropriate for READ is expected is an error.
+
+Rationale:
+
+This makes the status quo apparent.
+
+Current Practice:
+
+Some implementations, such as Symbolics Lisp, claim the right to  interpret this as an ``is an error'' situation where their upward-compatible extension is to parse ``:1'' as the number 1 (incidentally, but uninterestingly, expressed in the KEYWORD package).
+
+Other implementations tokenize ``:1'' as a single token, identify it as a symbol, and then parse it as :\1 would be parsed.
+
+Cost to implementors:
+
+None. This clarification forces no implementations to change.
+
+Cost to users:
+
+Slight. Some users may have mistakenly believed that this was an aspect of the language that was guaranteed and may have written programs that exploited that belief. Such incidences are probably very rare, however. Also, even in the few cases where such code fortuitously worked, implementations are likely to continue to support it so such code will probably continue to fortuitously work in many of those rare situations.
+
+Benefits:
+
+Programmer expectations that any useful behavior can be portably relied upon in this pathological case should be soundly trounced.
+
+Aesthetics:
+
+Arguably a slight improvement in visual aesthetics. What was already  a pretty marginal syntax is discouraged.
+
+Discussion:
+
+Pitman supports this clarification. He thinks this issue is not a big deal, but it does crop up often enough to be a nuisance. It would be nice to have everyone acknowledge a unified position, even if that only meant agreeing to disagree.
+        TITAN 
+         TITAN 
+          TITAN 
+           q       
+       y              
+              3                                           ª       #       è              &             ‚              @             ª       
+       …              q              ð      	E zº

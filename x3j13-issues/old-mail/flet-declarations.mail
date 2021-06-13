@@ -1,0 +1,428 @@
+*start*
+04277 00024 USa
+Return-Path: <CL-Cleanup-mailer@SAIL.Stanford.EDU>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 03 JAN 88 14:37:22 PST
+Received: from SCRC-STONY-BROOK.ARPA by SAIL.STANFORD.EDU with TCP; 1 Jan 88  12:44:53 PST
+Received: from EUPHRATES.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 313515; Fri 1-Jan-88 15:45:15 EST
+Date: Fri, 1 Jan 88 15:45 EST
+From: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: New issue: FLET-DECLARATIONS
+To: Cl-Cleanup@SAIL.STANFORD.EDU
+cc: Hornig@STONY-BROOK.SCRC.Symbolics.COM
+Message-ID: <19880101204506.6.MOON@EUPHRATES.SCRC.Symbolics.COM>
+
+This comes from Steele's 1985 list.  I thought that the Cleanup
+committee had picked this one up long ago, but in looking over the
+status list it seems like it's never been written up.  Perhaps it's too
+non-controversial?  I think we may have discussed this at a face to face
+meeting last year and decided we were afraid of anything that touches
+upon declaration scoping.  However, I think there is only one possible
+declaration scoping rule for these that is consistent with CLtL.
+
+Issue:         FLET-DECLARATIONS
+
+References:    FLET, LABELS, MACROLET (CLtL p.113)
+               X3J13 document 86-003 item 113
+
+Category:      ADDITION
+
+Edit history:  Version 1, Moon, 1 Jan 1988
+
+Problem description:
+
+Declarations are not allowed before the body of FLET, LABELS, and
+MACROLET, even though Common Lisp allows declarations in other seemingly
+analogous places, such as LET.
+
+Proposal (FLET-DECLARATIONS:ALLOW):
+
+Change the syntax of FLET, LABELS, and MACROLET to allow declarations
+between the list of local function/macro definitions and the body forms.
+
+In MACROLET, an invocation of one of the macros locally defined by that
+MACROLET is permitted to expand into a DECLARE (assuming Common Lisp is
+not changed to forbid any macros to expand into DECLARE).
+
+The scope of such declarations in FLET and LABELS includes the bodies
+of the locally defined functions, when the declarations are pervasive.
+Non-pervasive declarations have no effect on those bodies, except when
+LABELS includes the body in the scope of a function non-pervasively
+declared.  This paragraph follows directly from CLtL p.155 if the
+locally defined function bodies are treated like initialization forms.
+(This paragraph will be superseded by a proposal on declaration
+scoping that Hornig plans to make soon.)
+
+The scope of such declarations does not include the bodies of the
+macro expander functions defined by MACROLET.  This is consistent with
+the existing rule that the bodies of those functions are in the global
+environment, not the local lexical environment.  This rule is required
+in order to permit macros to expand into DECLARE, as noted above.
+
+Test Cases/Examples:
+
+(defun example (y l)
+  (flet ((attach (x)
+           (setq l (append l (list x)))))
+    (declare (inline attach))
+    (dolist (x y)
+      (unless (null (cdr x))
+        (attach x)))
+    l))
+
+(example '((a apple apricot) (b banana) (c cherry) (d) (e))
+         '((1) (2) (3) (4 2) (5) (6 3 2)))
+ => ((1) (2) (3) (4 2) (5) (6 3 2) (a apple apricot) (b banana) (c cherry))
+
+The above function is erroneous in current Common Lisp.  With this
+proposal, it would have an intuitively obvious meaning.
+
+Rationale:
+
+This will make the syntax of FLET and LET consistent.  This will make
+it possible to attach declarations to function bindings; currently only
+variable bindings can have attached declarations.
+
+Current practice:
+
+I do not know of any Common Lisp implementations that allow declarations
+there.
+
+Cost to Implementors:
+
+The compilation and interpretation of three special forms will have to
+be changed, however the same techniques already developed for
+declarations in LET should be applicable.
+
+Cost to Users:
+
+No cost since this is an upward-compatible addition.
+
+Cost of non-adoption:
+
+Unnecessary inconsistency in the syntax of Common Lisp.
+
+Benefits:
+
+There is no major benefit but the language will be more consistent.
+
+Esthetics:
+
+Makes the language more consistent.
+
+Discussion:
+
+We need to resolve this for CLOS, because CLOS introduces two new
+special forms similar to FLET and LABELS and we need to make their
+syntax consistent.
+
+*start*
+00892 00024 US 
+Return-Path: <CL-Cleanup-mailer@SAIL.Stanford.EDU>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 04 JAN 88 11:49:52 PST
+Received: from XEROX.COM by SAIL.STANFORD.EDU with TCP; 4 Jan 88  11:47:42 PST
+Received: from Cabernet.ms by ArpaGateway.ms ; 04 JAN 88 11:45:03 PST
+Date: Mon, 4 Jan 88 11:44:49 PST
+From: Pavel.pa
+Subject: Re: New issue: FLET-DECLARATIONS
+In-reply-to: <19880101204506.6.MOON@EUPHRATES.SCRC.Symbolics.COM>
+To: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Cc: Cl-Cleanup@SAIL.STANFORD.EDU, Hornig@STONY-BROOK.SCRC.Symbolics.COM
+Message-ID: <880104-114503-2255@Xerox>
+
+For the current practice section, the Xerox Lisp compiler (and maybe
+interpreter, I don't remember for sure and don't immediately have access to a
+Lisp image) already supports all of these declarations with the specified scope.
+
+	Pavel
+
+*start*
+01098 00024 US 
+Return-Path: <CL-Cleanup-mailer@SAIL.Stanford.EDU>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 14 JAN 88 20:55:42 PST
+Received: from Xerox.COM by SAIL.Stanford.EDU with TCP; 14 Jan 88  20:23:45 PST
+Received: from Cabernet.ms by ArpaGateway.ms ; 14 JAN 88 20:18:27 PST
+Date: 14 Jan 88 20:17 PST
+From: Masinter.pa
+Subject: Re: New issue: FLET-DECLARATIONS
+In-reply-to: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>'s message of
+ Fri, 1 Jan 88 15:45 EST
+To: Moon@STONY-BROOK.SCRC.Symbolics.COM
+cc: Cl-Cleanup@SAIL.STANFORD.EDU, Hornig@STONY-BROOK.SCRC.Symbolics.COM
+Message-ID: <880114-201827-4858@Xerox>
+
+I think this issue would be ready to mail out with just a few changes:
+
+a) I think it is independent of whether DECLARE-MACROS passes. Certainly if
+DECLARE-MACROS doesn't pass, it is even more important, but as written it seems
+like it more intertwined.
+
+B) It should probably reference DECLARATION-SCOPE.
+
+c) That at least one CL implementation does this is probably support (in Current
+Practice)
+
+I support this proposal.
+
+*start*
+04309 00024 USR
+Return-Path: <CL-Cleanup-mailer@SAIL.Stanford.EDU>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 03 FEB 88 08:00:02 PST
+Received: from STONY-BROOK.SCRC.Symbolics.COM (SCRC-STONY-BROOK.ARPA) by SAIL.Stanford.EDU with TCP; 3 Feb 88  07:56:52 PST
+Received: from EUPHRATES.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 334282; Tue 2-Feb-88 21:04:33 EST
+Date: Tue, 2 Feb 88 21:04 EST
+From: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: Issue: FLET-DECLARATIONS (Version 2)
+To: Cl-Cleanup@SAIL.STANFORD.EDU
+cc: Hornig@STONY-BROOK.SCRC.Symbolics.COM
+In-Reply-To: <19880101204506.6.MOON@EUPHRATES.SCRC.Symbolics.COM>,
+             <880104-114503-2255@Xerox>,
+             <880114-201827-4858@Xerox>
+Message-ID: <19880203020430.8.MOON@EUPHRATES.SCRC.Symbolics.COM>
+
+    Date: 14 Jan 88 20:17 PST
+    From: Masinter.pa@Xerox.COM
+
+    I think this issue would be ready to mail out with just a few changes....
+
+Here's the revised version, with your suggested changes.  I don't think
+anyone has said they don't support this, so it should be ready to mail out.
+
+Issue:         FLET-DECLARATIONS
+
+References:    FLET, LABELS, MACROLET (CLtL p.113)
+	       X3J13 document 86-003 item 113
+	       Cleanup issue DECLARATION-SCOPE.
+	       Cleanup issue DECLARE-MACROS.
+
+Category:      ADDITION
+
+Edit history:  Version 1, Moon, 1 Jan 1988
+	       Version 2, Moon, 2 Feb 1988 (edits suggested by Masinter)
+
+Problem description:
+
+Declarations are not allowed before the body of FLET, LABELS, and
+MACROLET, even though Common Lisp allows declarations in other seemingly
+analogous places, such as LET.
+
+Proposal (FLET-DECLARATIONS:ALLOW):
+
+Change the syntax of FLET, LABELS, and MACROLET to allow declarations
+between the list of local function/macro definitions and the body forms.
+
+The scope of such declarations in FLET and LABELS includes the bodies
+of the locally defined functions, when the declarations are pervasive.
+Non-pervasive declarations have no effect on those bodies, except when
+LABELS includes the body in the scope of a function non-pervasively
+declared.  This paragraph follows directly from CLtL p.155 if the
+locally defined function bodies are treated like initialization forms.
+(This paragraph will be superseded by cleanup issue DECLARATION-SCOPE
+if it passes.)
+
+The scope of such declarations does not include the bodies of the
+macro expander functions defined by MACROLET.  This is consistent with
+the existing rule that the bodies of those functions are in the global
+environment, not the local lexical environment.
+
+If cleanup issue DECLARE-MACROS is not passed, in MACROLET an
+invocation of one of the macros locally defined by that MACROLET is
+permitted to expand into a DECLARE.
+
+Test Cases/Examples:
+
+(defun example (y l)
+  (flet ((attach (x)
+	   (setq l (append l (list x)))))
+    (declare (inline attach))
+    (dolist (x y)
+      (unless (null (cdr x))
+	(attach x)))
+    l))
+
+(example '((a apple apricot) (b banana) (c cherry) (d) (e))
+	 '((1) (2) (3) (4 2) (5) (6 3 2)))
+ => ((1) (2) (3) (4 2) (5) (6 3 2) (a apple apricot) (b banana) (c cherry))
+
+The above function is erroneous in current Common Lisp.  With this
+proposal, it would have an intuitively obvious meaning.
+
+Rationale:
+
+This will make the syntax of FLET and LET consistent.  This will make
+it possible to attach declarations to function bindings; currently only
+variable bindings can have attached declarations.
+
+Current practice:
+
+Xerox Common Lisp implements FLET-DECLARATIONS:ALLOW.
+Symbolics Common Lisp does not allow declarations in this position.
+
+Cost to Implementors:
+
+The compilation and interpretation of three special forms will have to
+be changed, however the same techniques already developed for
+declarations in LET should be applicable.
+
+Cost to Users:
+
+No cost since this is an upward-compatible addition.
+
+Cost of non-adoption:
+
+Unnecessary inconsistency in the syntax of Common Lisp.
+
+Benefits:
+
+There is no major benefit but the language will be more consistent.
+
+Esthetics:
+
+Makes the language more consistent.
+
+Discussion:
+
+We need to resolve this for CLOS, because CLOS introduces two new
+special forms similar to FLET and LABELS and we need to make their
+syntax consistent with FLET and LABELS.
+
+*start*
+01005 00024 US 
+Return-Path: <CL-Cleanup-mailer@SAIL.Stanford.EDU>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 08 FEB 88 10:42:24 PST
+Received: from STONY-BROOK.SCRC.Symbolics.COM (SCRC-STONY-BROOK.ARPA) by SAIL.Stanford.EDU with TCP; 8 Feb 88  10:40:36 PST
+Received: from RIO-DE-JANEIRO.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 338723; Mon 8-Feb-88 13:40:23 EST
+Date: Mon, 8 Feb 88 13:40 EST
+From: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: Issue: FLET-DECLARATIONS (Version 2)
+To: Moon@STONY-BROOK.SCRC.Symbolics.COM
+cc: CL-Cleanup@SAIL.STANFORD.EDU, KMP@STONY-BROOK.SCRC.Symbolics.COM, Hornig@STONY-BROOK.SCRC.Symbolics.COM
+In-Reply-To: <19880203020430.8.MOON@EUPHRATES.SCRC.Symbolics.COM>
+Message-ID: <880208134020.5.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+
+I support FLET-DECLARATIONS:ALLOW.
+
+I found the second paragraph of the proposal part ("The scope of such ...")
+to be very hard to read.
+
+*start*
+01133 00024 US 
+Return-Path: <CL-Cleanup-mailer@SAIL.Stanford.EDU>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 08 FEB 88 10:53:03 PST
+Received: from VALLECITO.SCRC.Symbolics.COM (SCRC-VALLECITO.ARPA) by SAIL.Stanford.EDU with TCP; 8 Feb 88  10:51:31 PST
+Received: from EUPHRATES.SCRC.Symbolics.COM by VALLECITO.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 202409; Mon 8-Feb-88 13:52:24 EST
+Date: Mon, 8 Feb 88 13:51 EST
+From: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: Issue: FLET-DECLARATIONS (Version 2)
+To: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+cc: CL-Cleanup@SAIL.STANFORD.EDU, Hornig@STONY-BROOK.SCRC.Symbolics.COM
+In-Reply-To: <880208134020.5.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+Message-ID: <19880208185144.0.MOON@EUPHRATES.SCRC.Symbolics.COM>
+
+    Date: Mon, 8 Feb 88 13:40 EST
+    From: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+
+    I found the second paragraph of the proposal part ("The scope of such ...")
+    to be very hard to read.
+
+Then we should pass the DECLARATION-SCOPE proposal, which supersedes that
+paragraph.  :-}
+
+*start*
+03731 00024 US 
+Date: 14 Feb 88 11:59 PST
+From: Masinter.pa
+Subject: Issue: FLET-DECLARATIONS (Version 2)
+To: X3J13@Sail.stanford.edu
+cc: Masinter
+reply-to: CL-CLEANUP@Sail.Stanford.EDU
+
+
+Issue:         FLET-DECLARATIONS
+
+References:    FLET, LABELS, MACROLET (CLtL p.113)
+	       X3J13 document 86-003 item 113
+	       Cleanup issue DECLARATION-SCOPE.
+	       Cleanup issue DECLARE-MACROS.
+
+Category:      ADDITION
+
+Edit history:  Version 1, Moon, 1 Jan 1988
+	       Version 2, Moon, 2 Feb 1988 (edits suggested by Masinter)
+
+Problem description:
+
+Declarations are not allowed before the body of FLET, LABELS, and MACROLET, even though Common Lisp allows declarations in other seemingly analogous places, such as LET.
+
+Proposal (FLET-DECLARATIONS:ALLOW):
+
+Change the syntax of FLET, LABELS, and MACROLET to allow declarations between the list of local function/macro definitions and the body forms.
+
+The scope of such declarations in FLET and LABELS includes the bodies of the locally defined functions, when the declarations are pervasive. Non-pervasive declarations have no effect on those bodies, except when LABELS includes the body in the scope of a function non-pervasively declared.  This paragraph follows directly from CLtL p.155 if the locally defined function bodies are treated like initialization forms. (This paragraph will be superseded by cleanup issue DECLARATION-SCOPE if it passes.)
+
+The scope of such declarations does not include the bodies of the macro expander functions defined by MACROLET.  This is consistent with the existing rule that the bodies of those functions are in the global environment, not the local lexical environment.
+
+If cleanup issue DECLARE-MACROS is not passed, in MACROLET an invocation of one of the macros locally defined by that MACROLET is permitted to expand into a DECLARE.
+
+Example:
+
+(defun example (y l)
+  (flet ((attach (x)
+	   (setq l (append l (list x)))))
+    (declare (inline attach))
+    (dolist (x y)
+      (unless (null (cdr x))
+	(attach x)))
+    l))
+
+(example '((a apple apricot) (b banana) (c cherry) (d) (e))
+	 '((1) (2) (3) (4 2) (5) (6 3 2)))
+ => ((1) (2) (3) (4 2) (5) (6 3 2) (a apple apricot) (b banana) (c cherry))
+
+The above function is erroneous in current Common Lisp.  With this proposal, it would have an intuitively obvious meaning.
+
+Rationale:
+
+This will make the syntax of FLET and LET consistent.  This will make it possible to attach declarations to function bindings; currently only variable bindings can have attached declarations.
+
+Current practice:
+
+Xerox Common Lisp implements FLET-DECLARATIONS:ALLOW. Symbolics Common Lisp does not allow declarations in this position.
+
+Cost to Implementors:
+
+The compilation and interpretation of three special forms will have to be changed, however the same techniques already developed for declarations in LET should be applicable.
+
+Cost to Users:
+
+No cost since this is an upward-compatible addition.
+
+Cost of non-adoption:
+
+Unnecessary inconsistency in the syntax of Common Lisp.
+
+Benefits:
+
+There is no major benefit but the language will be more consistent.
+
+Esthetics:
+
+Makes the language more consistent.
+
+Discussion:
+
+We need to resolve this for CLOS, because CLOS introduces two new special forms similar to FLET and LABELS and we need to make their syntax consistent with FLET and LABELS.
+        TITAN 
+         TITAN 
+          
+TIMESROMAN 
+          
+TIMESROMAN 
+           Z       P                                   ›              
+              _              ¬       $      0       	      Û              Â              |              ±              7              :       
+       F              &              ®      ì !zº

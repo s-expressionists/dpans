@@ -1,0 +1,480 @@
+*start*
+01675 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 09 JUN 87 20:30:42 PDT
+Received: from SCRC-STONY-BROOK.ARPA by SAIL.STANFORD.EDU with TCP; 9 Jun 87  20:29:33 PDT
+Received: from EUPHRATES.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 168954; Tue 9-Jun-87 23:28:33 EDT
+Date: Tue, 9 Jun 87 23:28 EDT
+From: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: Hole
+To: Scott E. Fahlman <Fahlman@C.CS.CMU.EDU>
+cc: Dick Gabriel <RPG@SAIL.STANFORD.EDU>, cl-cleanup@SAIL.STANFORD.EDU
+In-Reply-To: <FAHLMAN.12308935290.BABYL@C.CS.CMU.EDU>
+Message-ID: <870609232830.5.MOON@EUPHRATES.SCRC.Symbolics.COM>
+
+    Date: Mon, 8 Jun 1987  16:40 EDT
+    From: "Scott E. Fahlman" <Fahlman@C.CS.CMU.EDU>
+
+    Maybe this suggests that it is time to bite the bullet and let CLOS
+    methods discriminate on non-required args, keyword or otherwise.  The
+    last time I heard this discussed, it was more a matter of "we don't want
+    to think about how to extend the priority rules right now" than "we
+    can't discriminate on optional args for the following fundamental
+    reason".  Has that changed?
+
+If I remember (I haven't consulted the archives), it wasn't a case of
+"we don't want to think about it".  I think we came up with nine
+different equally plausible extensions to provide for that case, and
+couldn't find any compelling reason to choose one over the others.  I
+think it would be better for the CLOS committee to concentrate on
+finishing what we have tackled so far, and avoid piling on even more
+ambitions.  These things can be added later.
+
+*start*
+02579 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 09 JUN 87 21:13:57 PDT
+Received: from SCRC-STONY-BROOK.ARPA by SAIL.STANFORD.EDU with TCP; 9 Jun 87  21:12:43 PDT
+Received: from EUPHRATES.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 168977; Wed 10-Jun-87 00:11:34 EDT
+Date: Wed, 10 Jun 87 00:11 EDT
+From: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: A Hole in Common Lisp   
+To: cl-cleanup@SAIL.STANFORD.EDU
+In-Reply-To: <FAHLMAN.12308458446.BABYL@C.CS.CMU.EDU>
+Message-ID: <870610001126.7.MOON@EUPHRATES.SCRC.Symbolics.COM>
+
+    Date: Sat, 6 Jun 1987  21:01 EDT
+    From: "Scott E. Fahlman" <Fahlman@C.CS.CMU.EDU>
+
+    Even if I wanted to mix positional and named args in a single function,
+    I don't like your way of doing it -- it seems treacherous to me.  If the
+    value of certain arguments to a function happen to match the named
+    arguments, things get interpreted in an unintended and very mysterious
+    way.
+
+Exactly.  If an argument can sometimes be a value for a parameter, and
+other times be the name of a parameter, it can be very confusing.
+Haven't we seen this same suggestion before and rejected it for that
+reason?  I can't remember whether "we" was the Common Lisp committee a
+few years ago or a bunch of hackers sitting around at MIT a few years
+before that.  Anyway, my preference is to tread very cautiously on this.
+
+    I have sometimes thought that if I were designing a lisp-like language
+    from scratch, I would leave the question of by-postion or by-name
+    arguments to the caller of a function....
+    There [would be] two forms of function calling, positional and by-arg-name
+    either of which can be used on any function.  They need to be
+    syntactically distinguished somehow.  I'll use square brackets to group
+    the name/argument pairs in the latter -- this might be a read macro that
+    turns into some three-element list with a reserved token in the car.
+
+    (function-name pos-arg-1 pos-arg-2 pos-arg-3 ...)
+
+    (function-name [nameX argX] [nameY argY] ...)
+
+This is very like the way Ada does it.  If we were redesigning Lisp, my
+preference would be to do it this way too.  However, I'm sure we'd have
+people screaming that we were destroying Lisp by introducing new syntax
+and by eliminating the ability to understand keyword arguments in terms
+of getf and &rest.  Maybe instead of fixing Lisp to be more like Ada, I
+ought to be thinking of fixing Ada to be more like Lisp.
+
+*start*
+01510 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:FAHLMAN@C.CS.CMU.EDU>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 08 JUN 87 13:45:21 PDT
+Received: from C.CS.CMU.EDU by SAIL.STANFORD.EDU with TCP; 8 Jun 87  13:42:14 PDT
+Received: ID <FAHLMAN@C.CS.CMU.EDU>; Mon 8 Jun 87 16:41:08-EDT
+Date: Mon, 8 Jun 87 16:40 EDT
+Message-ID: <FAHLMAN.12308935290.BABYL@C.CS.CMU.EDU>
+Sender: FAHLMAN@C.CS.CMU.EDU
+From: "Scott E. Fahlman" <Fahlman@C.CS.CMU.EDU>
+To: Dick Gabriel <RPG@SAIL.STANFORD.EDU>
+Cc: cl-cleanup@SAIL.STANFORD.EDU
+Subject: Hole
+In-reply-to: Msg of 8 Jun 1987  15:40-EDT from Dick Gabriel <RPG at SAIL.STANFORD.EDU>
+
+
+    The only problem that could be solved by filling in this hole is to
+    give people a way to supply fewer than all of the optional positionals
+    while supplying some of the named arguments. My suggestion doesn't help
+    with that much.
+
+    As I've mentioned before - but as I know I must mention again - the effect
+    of this might have some relevance to CLOS in which it might be useful (the
+    CLOS folks have not yet decided) to discriminate on the names of named 
+    arguments.
+
+Maybe this suggests that it is time to bite the bullet and let CLOS
+methods discriminate on non-required args, keyword or otherwise.  The
+last time I heard this discussed, it was more a matter of "we don't want
+to think about how to extend the priority rules right now" than "we
+can't discriminate on optional args for the following fundamental
+reason".  Has that changed?
+
+-- Scott
+
+*start*
+01209 00024 US 
+Return-Path: <RPG@SAIL.STANFORD.EDU>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 08 JUN 87 12:41:50 PDT
+Date: 08 Jun 87 12:40 PDT
+From: Dick Gabriel <RPG@SAIL.STANFORD.EDU>
+Subject: Hole
+To: cl-cleanup@SAIL.STANFORD.EDU 
+
+
+The only problem that could be solved by filling in this hole is to
+give people a way to supply fewer than all of the optional positionals
+while supplying some of the named arguments. My suggestion doesn't help
+with that much.
+
+As I've mentioned before - but as I know I must mention again - the effect
+of this might have some relevance to CLOS in which it might be useful (the
+CLOS folks have not yet decided) to discriminate on the names of named 
+arguments.
+
+For example, writing this
+
+(defmethod f ((x c1) (y c2) &required-key foo bar) <code1>)
+(defmethod f ((x c1) (y c2) &required-key baz ola) <code2>)
+
+is simpler to understand than this
+
+(defmethod f ((x c1) (y c2) 
+              &key (foo nil foo-p) (bar nil bar-p) 
+	           (baz nil baz-p) (ola nil ola-p))
+ (cond ((and foo-p bar-p) <code1>)
+       ((and baz-p ola-p) <code2>)))
+
+And when one writes instance initialization code in CLOS, you will be
+writing lots of code like this.
+
+			-rpg-
+
+*start*
+04633 00024 US 
+Return-Path: <RPG@SAIL.STANFORD.EDU>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 06 JUN 87 14:14:11 PDT
+Date: 06 Jun 87 14:12 PDT
+From: Dick Gabriel <RPG@SAIL.STANFORD.EDU>
+Subject: A Hole in Common Lisp   
+To: cl-cleanup@SAIL.STANFORD.EDU 
+
+
+Consider the nature of arguments to functions. In Common Lisp we have
+these two notions: positional arguments and named arguments. In the first
+case values are associated with variables depending on the positions of
+passed arguments.  In the latter case, the binding happens depending on
+the names of the arguments, which are passed along with the arguments.
+
+For example:
+
+(defun f (x y &key a b) ...)
+
+(f 1 2 :b 3 :a 4)
+
+X and Y are positional, and A and B are named.
+
+There is a second pair of notions: required arguments and optional arguments.
+
+Does Common Lisp have all of the combinations of these notions?
+
+         | positional |	named |
+-------------------------------
+required |    yes     |  no   |
+-------------------------------
+optional |    yes     |  yes  |
+-------------------------------
+
+It doesn't seem so. Keyword arguments combine named and optional.
+
+Also there is no way to have a function with both required keyword and
+truly optional positional arguments.
+
+Suppose someone writes
+
+(defun f (x y &optional a b &key foo bar baz ola)
+ (list x y a b foo bar baz ola))
+
+and this form is evaluated:
+
+(f <a1> <a2> <a3> <a4> <a5> <a6> <a7> <a8>)
+
+The binding of the variables in the function definition goes like this:
+
+x is bound to <a1>, y is bound to <a2>, a is bound to <a3>, and b is
+bound to <a4>. Now we lift our heads from the sand and look at what
+<a5> is. It should be one of :foo, :bar, :baz, or :ola. Now suppose
+we had written:
+
+(f 1 2 :foo 4 :bar 5 :baz 6)
+
+Did the user intend for a to be bound to :foo, or did he intend for
+a and b to not be supplied?
+
+Here is an off the wall proposal for lambda expressions; it includes
+Moon's proposal for non-keyword package symbols to be names of arguments:
+
+(lambda ({var}*
+         [&optional {var | (var [initform [svar]])}*]
+         [&required-key {var | (name var)}*]
+	 [&rest var]
+         [&key {var | (name var)} [initform [svar]])}*
+               [&allow-other-keys]]
+         [&aux {var | (var [initform])}*])
+   {declaration | documentation-string}*
+   {form}*)
+
+where var, initform, svar are exactly as before, and name is the name of
+a keyword argument, which can be a symbol in any package. Parsing an
+argument list proceeds as follows:
+
+Let nrp be the number of required positional parameters. The first nrp
+supplied arguments are paired with the nrp required positional parameters.
+The remaining supplied arguments are scanned left-to-right, starting with
+scanning for positional optionals.  If a supplied argument is EQ to one of
+the required named parameters names, the scanning for positional optionals
+ends and all unpaired positional optionals are defaulted according to the
+lambda-list specification; then named parameter parsing begins. If a
+supplied argument is not EQ to any required named parameter name, it is
+paired with the next positional optional parameter.
+
+Once the scanning for optional positional parameters has ended, scanning
+for named parameters begins.  Named parameter parsing is as in current
+Common Lisp, except that if, at the end, there are unsupplied
+required named arguments, an error is signaled.
+
+The difference between this parsing algorithm and the current Common Lisp
+one is that the occurrence of the first required named parameter stops
+parsing of positional optionals. Therefore, the only way to pass the name
+of required named parameter is as a required positional or required named
+argument. Also, if optional named arguments appear to the left of all
+required named arguments, they can be taken as positional optionals.
+
+Examples:
+
+(defun f (x y &optional a b &required-key foo bar &key baz ola)
+ (list x y a b foo bar baz ola))
+
+(f 1 2 3 4 :foo 5 :bar 6 :baz 7 :ola 8) 
+ => (1 2 3 4 5 6 7 8)
+
+(f 1 2 3 :bar 4 :baz 5 :foo 6 :ola 7)
+ => (1 2 3 nil 6 4 5 7)
+
+(f 1 2 :baz 3 :foo 4 :bar 5)
+ => (1 2 :baz 3 4 5 nil nil)
+
+(f 1 2 :baz :foo 3 :bar 4)
+ => (1 2 :baz nil 3 4 nil nil)
+
+This has the advantage that it could make some things in CLOS easier
+to deal with. For example, we could define methods that discriminated
+on the names of required named arguments:
+
+(defmethod foo (x y &required-key foo bar) `(foobar ,x ,y ,foo ,bar))
+(defmethod foo (x y &required-key baz ola) `(bazola ,x ,y ,foo ,bar))
+
+(foo 1 2 :foo 3 :bar 4) => (foobar 1 2 3 4)
+(foo 1 2 :baz 3 :ola 4) => (bazola 1 2 3 4)
+(foo 1 2 :foo 3 :ola 4) => error
+
+			-rpg-
+
+*start*
+00864 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:FAHLMAN@C.CS.CMU.EDU>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 08 JUN 87 08:02:59 PDT
+Received: from C.CS.CMU.EDU by SAIL.STANFORD.EDU with TCP; 8 Jun 87  08:01:57 PDT
+Received: ID <FAHLMAN@C.CS.CMU.EDU>; Mon 8 Jun 87 11:00:42-EDT
+Date: Mon, 8 Jun 87 11:00 EDT
+Message-ID: <FAHLMAN.12308873322.BABYL@C.CS.CMU.EDU>
+Sender: FAHLMAN@C.CS.CMU.EDU
+From: "Scott E. Fahlman" <Fahlman@C.CS.CMU.EDU>
+To: cl-cleanup@SAIL.STANFORD.EDU
+Subject: Hole
+In-reply-to: Msg of 8 Jun 1987  10:27-EDT from Guy Steele <gls at Think.COM>
+
+
+Well, I was wrong about this being incomaptible, but I still don't see
+what problem you two think you are solving, unless an empty box in the
+matrix of possible language constructs is considered to be a problem.
+Does this make life any better for the user of Common Lisp?
+
+-- Scott
+
+*start*
+02177 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:gls@Think.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 08 JUN 87 07:28:04 PDT
+Received: from THINK.COM by SAIL.STANFORD.EDU with TCP; 8 Jun 87  07:27:00 PDT
+Received: from boethius by Think.COM via CHAOS; Mon, 8 Jun 87 10:29:36 EDT
+Date: Mon, 8 Jun 87 10:27 EDT
+From: Guy Steele <gls@Think.COM>
+Subject: Hole
+To: RPG@sail.stanford.edu, cl-cleanup@sail.stanford.edu
+Cc: gls@think.com
+In-Reply-To: <8706072326.AA12046@Think.COM>
+Message-Id: <870608102731.4.GLS@BOETHIUS.THINK.COM>
+
+It strikes me that the interaction of &optional and &required-key
+arguments is dicey at best.  It might be better to allow one or the
+other kind of argument but not both in a single lambda-list.
+
+I am also not crazy about the name &required-key; it is too obviously
+the result of leaning over backwards to accommodate history.
+
+An aesthetically more pleasing design that deals with both objections
+is simply to use the existing keywords &key and &optional, with the
+extension that &optional may occur *after* &key if desired.  That is, it
+is still true that each of &optional and &key may appear at most once in
+an argument list, but they may appear in either order.  Thus &key marks
+the transition from by-position to by-name, and &optional marks the
+transition from required to optional.  One may then have either of two
+patterns:
+
+(defun blah (x y z &optional p q r &key a b c) ...)
+	     -----           -----      -----
+	       |	       |          |
+	       |	       |          optional named
+	       |	       optional positional
+	       required positional
+
+(defun blee (x y z &key p q r &optional a b c) ...)
+	     -----      -----           -----
+	       |	  |               |
+	       |	  |               optional named
+	       |	  required named
+	       required positional
+
+Thus required named and optional positional cannot be mixed,
+and no new keyword is needed.  The only unfortunate aspect of
+this proposal is that it is incompatible with previous practice.
+Currently
+
+(defun blaw (x y z &key a b c) ...)
+
+treats a, b, and c as optioal named parameters, whereas this
+new proposal would treat them as required.
+
+--Guy
+
+*start*
+01072 00024 US 
+Return-Path: <RPG@SAIL.STANFORD.EDU>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 07 JUN 87 16:24:32 PDT
+Date: 07 Jun 87 16:22 PDT
+From: Dick Gabriel <RPG@SAIL.STANFORD.EDU>
+Subject: Hole
+To: cl-cleanup@SAIL.STANFORD.EDU 
+
+
+Actually, I think I wrote things up so that if no one uses &required-key,
+everything behaves as before. Possibly there is some definition of
+``compatible'' with which I am not familiar such that this behavior is
+``very incompatible?''
+
+I suppose if someone wants to not have to remember twenty keywords, they
+don't have to use &required-keys.
+
+I ran through the exercise of inventing a new type of object for
+names of arguments, but then when I considered the frequency of
+this sort of checking and the ways I know type space is divided in
+current implementations, it didn't seem worth it.
+
+Of course, if CLOS needs required named arguments for discrimination
+(not error signaling) it can be a feature of CLOS lambda-lists
+not available in Common Lisp. The syntax of CLOS lambda-lists is an extension
+already.
+
+			-rpg+
+
+*start*
+04311 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:FAHLMAN@C.CS.CMU.EDU>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 06 JUN 87 18:03:48 PDT
+Received: from C.CS.CMU.EDU by SAIL.STANFORD.EDU with TCP; 6 Jun 87  18:02:19 PDT
+Received: ID <FAHLMAN@C.CS.CMU.EDU>; Sat 6 Jun 87 21:01:40-EDT
+Date: Sat, 6 Jun 87 21:01 EDT
+Message-ID: <FAHLMAN.12308458446.BABYL@C.CS.CMU.EDU>
+Sender: FAHLMAN@C.CS.CMU.EDU
+From: "Scott E. Fahlman" <Fahlman@C.CS.CMU.EDU>
+To: Dick Gabriel <RPG@SAIL.STANFORD.EDU>
+Cc: cl-cleanup@SAIL.STANFORD.EDU
+Subject: A Hole in Common Lisp   
+In-reply-to: Msg of 6 Jun 1987  17:12-EDT from Dick Gabriel <RPG at SAIL.STANFORD.EDU>
+
+
+Of course, it's too late for Common Lisp -- this would be a VERY
+incompatible change for no very good reason.  And, of course, you can
+get the effect of a required keyword argument by signalling an error in
+the init form.  We could provide some conventional function for
+signalling this error and CLOS could recognize this and treat that arg
+as required.
+
+Even if I were designing a new Lisp from scratch, I'm not sure that I
+would want to fill in the fourth box in your matrix.  By-name arguments
+are for functions that have so many arguments that you can't remember
+the order, or so many that it is convenient just to type in the two or
+three you need and not the twenty you don't need.  But if the by-name
+arguments are required, you have to type them all.  Furthermore, you
+must remember them all (or look them up to make sure you haven't
+forgotten one), and in that case you may as well enter them in the
+canonical order.
+
+Even if I wanted to mix positional and named args in a single function,
+I don't like your way of doing it -- it seems treacherous to me.  If the
+value of certain arguments to a function happen to match the named
+arguments, things get interpreted in an unintended and very mysterious
+way.  This would only be a good scheme if there were absolute separation
+between the space of legal arguments and the space of arg names.  We
+would have to go back to saying that all keywords must be keywords, and
+we would also have to eliminate the practice of using keywords for other
+things.  Or else we would have to create a new kind of object that is
+reserved for use in arg names.
+
+I have sometimes thought that if I were designing a lisp-like language
+from scratch, I would leave the question of by-postion or by-name
+arguments to the caller of a function.  He's the one who can decide
+whether he wants to remember the order of arguments or to do some extra
+typing.  A lambda would have the following simple form (setting aside
+&rest and &more arguments for now, and flushing &aux, which was a
+mistake from the start):
+
+(lambda ({var | (var intiform) | (var initform svar) }* )
+   declarations, docs, body, etc. )
+
+Variables with no initform are required.  They need not be at the head
+of the list.
+
+There are two forms of function calling, postional and by-arg-name
+either of which can be used on any function.  They need to be
+syntactically distinguished somehow.  I'll use square brackets to group
+the name/argument pairs in the latter -- this might be a read macro that
+turns into some three-element list with a reserved token in the car.
+
+(function-name pos-arg-1 pos-arg-2 pos-arg-3 ...)
+
+(function-name [nameX argX] [nameY argY] ...)
+
+The latter form says to look up the argument names at the time of the
+call and rearrange the call into the order the function is expecting;
+cacheing of this step is encouraged.  The order of evaluation of a
+function's args would be explicitly unpredictable in this language, so
+the rearrangement is legal and not difficult.
+
+Then the function gets called, unsupplied args get their initforms
+evaluated, and if any of the required args does not have a value
+assigned, an error is signaled.  If the lambda list has any optional
+args before a required arg, the only way NOT to supply a value for the
+optional args is to use the by-name form of call.
+
+One can imagine versions of this in which the caller can mix positional
+and named args -- some arguments and then some bracketed pairs -- but if
+this is allowed, one would have to worry about what happens if the same
+variable gets a positional value and a by-name value.  Signal an error,
+I guess, or say that the result is indeterminate.
+
+-- Scott
+

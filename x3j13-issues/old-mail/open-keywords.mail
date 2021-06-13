@@ -1,0 +1,292 @@
+*start*
+02090 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 24 JUL 87 10:26:04 PDT
+Received: from SCRC-STONY-BROOK.ARPA by SAIL.STANFORD.EDU with TCP; 24 Jul 87  10:24:42 PDT
+Received: from RIO-DE-JANEIRO.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 198555; Fri 24-Jul-87 13:25:34 EDT
+Date: Fri, 24 Jul 87 13:25 EDT
+From: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: OPEN-KEYWORDS
+To: CL-Cleanup@SAIL.STANFORD.EDU
+Message-ID: <870724132524.3.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+
+Issue:		OPEN-KEYWORDS
+References:	Pages 420-422
+Category:	CHANGE
+Edit history:	Revision 1 by Skona Brittain 07/17/87
+
+Problem Description:
+
+  The :if-exists and :if-does-not-exist arguments interact, but keyword
+  arguments should generally be orthogonal.
+
+Proposal (OPEN-KEYWORDS:ORTHOGONAL):
+
+  Delete the following phrases from the first 2 paragraphs on page 422:
+  ", or if the :if-exists argument is :overwrite or :append" and
+  ", and the if-exists argument is anything but :overwrite or :append"
+
+Test Case:
+
+  The following piece of code causes an error to be signaled:
+  (open "test" :direction :output :if-exists :overwrite)
+  if a file named "test" -doesn't- already exist.
+  With the change in this proposal, it wouldn't be an error.
+
+Rationale:
+
+  As is clear from the test case example, a user might want to specify
+  that a certain action get taken in the case that a file already
+  exists, without affecting what happens in the case that it doesn't
+  exist.  There is no good reason for the two cases to affect each
+  other.
+
+Current Practice:
+
+
+
+Adoption Cost:
+
+  Slight.
+
+Benefits:
+
+  More sensible, easier to understand, more efficient to use and to
+  implement.
+
+Conversion Cost:
+
+  Slight, automatable.
+
+Esthetics:
+
+  Keyword arguments are supposed to be orthogonal, thus this deviation
+  is unaesthetic.  It being so contrary to intuition makes it particularly
+  difficult for new LISP users to grasp.
+
+Discussion:
+
+
+*start*
+02988 00024 USa
+Return-Path: <CL-Cleanup-mailer@SAIL.Stanford.EDU>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 09 NOV 87 11:14:09 PST
+Received: from SCRC-STONY-BROOK.ARPA by SAIL.STANFORD.EDU with TCP; 9 Nov 87  11:09:34 PST
+Received: from EUPHRATES.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 275409; Mon 9-Nov-87 14:10:22 EST
+Date: Mon, 9 Nov 87 14:10 EST
+From: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: OPEN-KEYWORDS
+To: CL-Cleanup@SAIL.STANFORD.EDU
+In-Reply-To: <870724132524.3.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+Message-ID: <19871109191026.9.MOON@EUPHRATES.SCRC.Symbolics.COM>
+
+Is this the one that's listed in the status report as:
+
+    * OPEN-KEYWORDS-EXISTS (Version 1, 17-Jul-87)
+      No discussion.
+    ???? Ready for release ?
+
+The date matches, although the issue name is different.
+
+The category should clarify that it's an incompatible change.  Other
+than that, this looks ready for release.  If it was a compatible change
+I would favor it, but since it's incompatible I'd have to think for a
+while before I have any opinion.
+
+    Date: Fri, 24 Jul 87 13:25 EDT
+    From: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+
+    Issue:         OPEN-KEYWORDS
+    References:    Pages 420-422
+    Category:      CHANGE
+    Edit history:  Revision 1 by Skona Brittain 07/17/87
+
+    Problem Description:
+
+      The :if-exists and :if-does-not-exist arguments interact, but keyword
+      arguments should generally be orthogonal.
+
+I expect we can find plenty of other places in Common Lisp where keyword
+arguments are not truly orthogonal, so that's a fairly weak argument.
+
+    Proposal (OPEN-KEYWORDS:ORTHOGONAL):
+
+      Delete the following phrases from the first 2 paragraphs on page 422:
+      ", or if the :if-exists argument is :overwrite or :append" and
+      ", and the if-exists argument is anything but :overwrite or :append"
+
+    Test Case:
+
+      The following piece of code causes an error to be signaled:
+      (open "test" :direction :output :if-exists :overwrite)
+      if a file named "test" -doesn't- already exist.
+      With the change in this proposal, it wouldn't be an error.
+
+    Rationale:
+
+      As is clear from the test case example, a user might want to specify
+      that a certain action get taken in the case that a file already
+      exists, without affecting what happens in the case that it doesn't
+      exist.  There is no good reason for the two cases to affect each
+      other.
+
+    Current Practice:
+
+
+
+    Adoption Cost:
+
+      Slight.
+
+    Benefits:
+
+      More sensible, easier to understand, more efficient to use and to
+      implement.
+
+    Conversion Cost:
+
+      Slight, automatable.
+
+    Esthetics:
+
+      Keyword arguments are supposed to be orthogonal, thus this deviation
+      is unaesthetic.  It being so contrary to intuition makes it particularly
+      difficult for new LISP users to grasp.
+
+    Discussion:
+
+
+
+*start*
+01078 00024 US 
+Return-Path: <CL-Cleanup-mailer@SAIL.Stanford.EDU>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 09 NOV 87 11:57:52 PST
+Received: from XEROX.COM by SAIL.STANFORD.EDU with TCP; 9 Nov 87  11:53:40 PST
+Received: from Cabernet.ms by ArpaGateway.ms ; 09 NOV 87 11:40:22 PST
+Date: 9 Nov 87 11:38 PST
+From: Masinter.pa
+Subject: Re: OPEN-KEYWORDS
+In-reply-to: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>'s
+ message of Mon, 9 Nov 87 14:10 EST
+To: CL-Cleanup@SAIL.STANFORD.EDU
+Message-ID: <871109-114022-3556@Xerox>
+
+(Replying in roughly reverse order to various questions; I was out for
+most of last week)
+
+Yes, the issue was misnamed in the status report. Sorry.
+
+I would prefer holding this issue until we get more responses. I believe
+incompatible changes of well-specified behavior require strong
+justification.
+
+The only argument given here is an aesthetic one ("there's no good
+reason" for it to work the way it says it works.)
+
+I'm inclined to reject this, or at least send it back for further
+justification.
+
+*start*
+00913 00024 US 
+Return-Path: <CL-Cleanup-mailer@SAIL.Stanford.EDU>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 09 NOV 87 13:21:29 PST
+Received: from SCRC-YUKON.ARPA by SAIL.STANFORD.EDU with TCP; 9 Nov 87  13:17:34 PST
+Received: from EUPHRATES.SCRC.Symbolics.COM by YUKON.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 290096; Mon 9-Nov-87 15:41:25 EST
+Date: Mon, 9 Nov 87 15:41 EST
+From: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: Re: OPEN-KEYWORDS
+To: CL-Cleanup@SAIL.STANFORD.EDU
+In-Reply-To: <871109-114022-3556@Xerox>
+Message-ID: <19871109204112.5.MOON@EUPHRATES.SCRC.Symbolics.COM>
+
+    Date: 9 Nov 87 11:38 PST
+    From: Masinter.pa@Xerox.COM
+
+    I would prefer holding this issue until we get more responses. I believe
+    incompatible changes of well-specified behavior require strong
+    justification.
+
+That sounds reasonable to me.
+
+*start*
+04306 00024 US 
+Return-Path: <CL-Cleanup-mailer@SAIL.Stanford.EDU>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 09 NOV 87 19:21:01 PST
+Received: from SCRC-STONY-BROOK.ARPA by SAIL.STANFORD.EDU with TCP; 9 Nov 87  19:18:16 PST
+Received: from RIO-DE-JANEIRO.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 275955; Mon 9-Nov-87 22:19:06 EST
+Date: Mon, 9 Nov 87 22:18 EST
+From: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: OPEN-KEYWORDS
+To: CL-Cleanup@SAIL.Stanford.EDU
+cc: KMP@STONY-BROOK.SCRC.Symbolics.COM, Moon@STONY-BROOK.SCRC.Symbolics.COM
+In-Reply-To: <870724132524.3.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+References: <19871109191026.9.MOON@EUPHRATES.SCRC.Symbolics.COM>
+Message-ID: <871109221855.6.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+
+I don't mind keyword orthogonality being used as a simplicity metric in
+the "(a)esthetics" section. I do feel unsure about the way in which it
+is presupposed that keyword orthogonality is an explicit and uniform
+design goal. I think the wording of the proposal should be reworked so
+as not to take such a goal for granted. (:TEST and :TEST-NOT are obvious
+counter-examples to this design principle.)
+
+In principle, for this particular case, I don't see anything wrong with
+the orthogonal meanings for :if-exists and :if-does-not-exist that Skona
+is trying to push. As Moon says, this might be fine if we were doing
+things over, but given that it's an incompatible change, we should
+proceed carefully.
+
+In particular, the behavior is already fully well-defined if you just
+specify all keyword arguments explicitly. We're only haggling over how
+the defaults work. My personal opinion is that if you care enough to
+worry, you should write the keyword explicitly in your code just so it's
+clear to your reader that this is an issue you considered.
+
+For example, a lone :IF-EXISTS :OVERWRITE seems to presuppose the
+existence of a file to overwrite. Ditto for :APPEND. The absence of that
+file -might- be due to this being the first time the program was run,
+but more often it is not. As such, signalling an error is not without
+some motivation of its own. If the programmer wants to assert that
+he's overwriting a file that might not exist, I think
+ :IF-EXISTS :OVERWRITE :IF-DOES-NOT-EXIST :CREATE
+is both reasonable and appropriate. In fact, I would advocate any programmer
+write this even if the proposed change were adopted.
+
+I do not think that it is the purpose of argument defaults to let you just
+fail to specify their value when they are coincidentally what you would
+have supplied. That is, I would sometimes suggest explicitly supplying the
+same value as would be defaulted if that value is important to you and that
+fact might be interesting to your reader.
+
+I do think that The Purposes of argument defaults include:
+ * to let one be deliberately vague about a particular feature.
+   (I don't think the test case Skona is suggesting is a case where
+    the programmer should be vague. Indeed, I think it is one where
+    she has as much as said that the programmer wanted to get a
+    specific, non-vague thing. To get it, the programmer has only
+    to ask for it explicitly.)
+ * to let one omit information that seems irrelevant, and yet to
+   have something reasonable occur in the case where it turned out
+   to be relevant.
+   (In the case in question, if the user omitted the :IF-DOES-NOT-EXIST
+    case, it seems likely that they didn't think this case through. I've
+    discussed the consequences of this above, but I think the current
+    interpretation is as good as the one being proposed. If they did
+    think the case through, I believe that is tantamount to declaring
+    it `relevant' and they should have explicitly specified the option.)
+
+Given that the change neither extends the power of the language nor
+encourages the programmer to write cleaner code (at least, by the metrics
+I've stated above), I can't endorse it. If a stronger argument is advanced,
+I will, of course, reconsider my position based on that argument.
+
+In either case, I am happy to see it presented to the full committee
+for a vote anyway if Skona wants it to (with some reworking of the
+rationale and some -very- trimmed down version of this dissenting
+commentary).
+

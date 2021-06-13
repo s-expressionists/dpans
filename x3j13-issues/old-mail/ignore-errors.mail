@@ -1,0 +1,774 @@
+*start*
+03387 00024 USf
+Return-Path: <@SAIL.STANFORD.EDU:KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 11 MAR 87 10:13:01 PST
+Received: from SCRC-STONY-BROOK.ARPA by SAIL.STANFORD.EDU with TCP; 11 Mar 87  10:04:19 PST
+Received: from RIO-DE-JANEIRO.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 90502; Wed 11-Mar-87 12:23:54 EST
+Date: Wed, 11 Mar 87 12:23 EST
+From: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: IGNORE-ERRORS (revision 3)
+To: CL-Cleanup@SAIL.STANFORD.EDU
+cc: KMP@STONY-BROOK.SCRC.Symbolics.COM
+References: <870226224504.1.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+Message-ID: <870311122304.4.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+
+Issue:        IGNORE-ERRORS
+References:   p428
+Category:     ENHANCEMENT
+Edit history: Revision 1 by KMP 02/26/87,
+	      Revision 2 by KMP 02/26/87 (fixed typo in sample code),
+	      Revision 3 by KMP 03/11/87 (change to 2nd return value)
+Problem Description:
+
+  Common Lisp has no way to trap an error inhibiting entry to the debugger.
+
+Proposal (IGNORE-ERRORS:INTERIM):
+
+  Remove the apology for the absence of ERRSET on p428 and introduce
+  mention of a new macro called IGNORE-ERRORS with the syntax
+   (IGNORE-ERRORS {form}*)
+  Say that it attempts to execute the given forms in order from left to right,
+  returning all the values returned by the last form (or NIL if there
+  are no forms).
+
+  Say also that if an error occurs while executing the forms, no error
+  message is printed; instead control is silently transfered to the
+  IGNORE-ERRORS form, which immediately returns a principal value of NIL.
+  The return value convention for any other values besides the principal
+  return value in the case of an error is expressly left undefined in order
+  to leave room for the full error proposal to attach a useful meaning
+  which cannot be described in the absence of that proposal.
+
+Rationale:
+
+  It will make applications developers rest a bit easier to have an immediate
+  ironclad guarantee that at least this level of functionality will be in the
+  next CL spec.
+
+  The baroque return value convention used by Maclisp's ERRSET special form
+  (mentioned on p428 of CLtL) does not extend gracefully to situations multiple
+  values.
+
+Current Practice:
+
+  Most implementations already offer ERRSET, IGNORE-ERRORS, or something similar
+  in some private package.
+
+Adoption Cost:
+
+  As far as I know, this would not be difficult to implement in any implementation.
+  eg, IGNORE-ERRORS is trivially implemented in terms of ERRSET...
+
+  (DEFMACRO IGNORE-ERRORS (&BODY FORMS)
+    (LET ((TAG (GENSYM)))
+      `(BLOCK ,TAG 
+	 (ERRSET (RETURN-FROM ,TAG (PROGN ,@FORMS)) NIL)
+	 NIL)))
+
+Benefits:
+
+  An error proposal is in the works which will offer IGNORE-ERRORS and more.
+  In case of delays or problems in the acceptance of the spec, applications
+  developers will not have to worry that they'll end up with no way to trap
+  errors.
+
+Conversion Cost:
+
+  User code currently cannot trap errors at all. Almost by definition, user
+  code cannot be affected adversely by this change.
+
+Aesthetics:
+
+  This primitive is simple, clean, easily learnable, and hopefully very
+  non-controversial.
+
+Discussion:
+
+  KMP thinks that in spite of the perceived optimism about the emerging error
+  proposal, it's wise to have a safe and credible interim position.
+
+*start*
+03387 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 11 MAR 87 11:59:13 PST
+Received: from SCRC-STONY-BROOK.ARPA by SAIL.STANFORD.EDU with TCP; 11 Mar 87  09:38:18 PST
+Received: from RIO-DE-JANEIRO.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 90502; Wed 11-Mar-87 12:23:54 EST
+Date: Wed, 11 Mar 87 12:23 EST
+From: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: IGNORE-ERRORS (revision 3)
+To: CL-Cleanup@SAIL.STANFORD.EDU
+cc: KMP@STONY-BROOK.SCRC.Symbolics.COM
+References: <870226224504.1.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+Message-ID: <870311122304.4.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+
+Issue:        IGNORE-ERRORS
+References:   p428
+Category:     ENHANCEMENT
+Edit history: Revision 1 by KMP 02/26/87,
+	      Revision 2 by KMP 02/26/87 (fixed typo in sample code),
+	      Revision 3 by KMP 03/11/87 (change to 2nd return value)
+Problem Description:
+
+  Common Lisp has no way to trap an error inhibiting entry to the debugger.
+
+Proposal (IGNORE-ERRORS:INTERIM):
+
+  Remove the apology for the absence of ERRSET on p428 and introduce
+  mention of a new macro called IGNORE-ERRORS with the syntax
+   (IGNORE-ERRORS {form}*)
+  Say that it attempts to execute the given forms in order from left to right,
+  returning all the values returned by the last form (or NIL if there
+  are no forms).
+
+  Say also that if an error occurs while executing the forms, no error
+  message is printed; instead control is silently transfered to the
+  IGNORE-ERRORS form, which immediately returns a principal value of NIL.
+  The return value convention for any other values besides the principal
+  return value in the case of an error is expressly left undefined in order
+  to leave room for the full error proposal to attach a useful meaning
+  which cannot be described in the absence of that proposal.
+
+Rationale:
+
+  It will make applications developers rest a bit easier to have an immediate
+  ironclad guarantee that at least this level of functionality will be in the
+  next CL spec.
+
+  The baroque return value convention used by Maclisp's ERRSET special form
+  (mentioned on p428 of CLtL) does not extend gracefully to situations multiple
+  values.
+
+Current Practice:
+
+  Most implementations already offer ERRSET, IGNORE-ERRORS, or something similar
+  in some private package.
+
+Adoption Cost:
+
+  As far as I know, this would not be difficult to implement in any implementation.
+  eg, IGNORE-ERRORS is trivially implemented in terms of ERRSET...
+
+  (DEFMACRO IGNORE-ERRORS (&BODY FORMS)
+    (LET ((TAG (GENSYM)))
+      `(BLOCK ,TAG 
+	 (ERRSET (RETURN-FROM ,TAG (PROGN ,@FORMS)) NIL)
+	 NIL)))
+
+Benefits:
+
+  An error proposal is in the works which will offer IGNORE-ERRORS and more.
+  In case of delays or problems in the acceptance of the spec, applications
+  developers will not have to worry that they'll end up with no way to trap
+  errors.
+
+Conversion Cost:
+
+  User code currently cannot trap errors at all. Almost by definition, user
+  code cannot be affected adversely by this change.
+
+Aesthetics:
+
+  This primitive is simple, clean, easily learnable, and hopefully very
+  non-controversial.
+
+Discussion:
+
+  KMP thinks that in spite of the perceived optimism about the emerging error
+  proposal, it's wise to have a safe and credible interim position.
+
+*start*
+03387 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 11 MAR 87 12:02:19 PST
+Received: from SCRC-STONY-BROOK.ARPA by SAIL.STANFORD.EDU with TCP; 11 Mar 87  09:30:05 PST
+Received: from RIO-DE-JANEIRO.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 90502; Wed 11-Mar-87 12:23:54 EST
+Date: Wed, 11 Mar 87 12:23 EST
+From: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: IGNORE-ERRORS (revision 3)
+To: CL-Cleanup@SAIL.STANFORD.EDU
+cc: KMP@STONY-BROOK.SCRC.Symbolics.COM
+References: <870226224504.1.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+Message-ID: <870311122304.4.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+
+Issue:        IGNORE-ERRORS
+References:   p428
+Category:     ENHANCEMENT
+Edit history: Revision 1 by KMP 02/26/87,
+	      Revision 2 by KMP 02/26/87 (fixed typo in sample code),
+	      Revision 3 by KMP 03/11/87 (change to 2nd return value)
+Problem Description:
+
+  Common Lisp has no way to trap an error inhibiting entry to the debugger.
+
+Proposal (IGNORE-ERRORS:INTERIM):
+
+  Remove the apology for the absence of ERRSET on p428 and introduce
+  mention of a new macro called IGNORE-ERRORS with the syntax
+   (IGNORE-ERRORS {form}*)
+  Say that it attempts to execute the given forms in order from left to right,
+  returning all the values returned by the last form (or NIL if there
+  are no forms).
+
+  Say also that if an error occurs while executing the forms, no error
+  message is printed; instead control is silently transfered to the
+  IGNORE-ERRORS form, which immediately returns a principal value of NIL.
+  The return value convention for any other values besides the principal
+  return value in the case of an error is expressly left undefined in order
+  to leave room for the full error proposal to attach a useful meaning
+  which cannot be described in the absence of that proposal.
+
+Rationale:
+
+  It will make applications developers rest a bit easier to have an immediate
+  ironclad guarantee that at least this level of functionality will be in the
+  next CL spec.
+
+  The baroque return value convention used by Maclisp's ERRSET special form
+  (mentioned on p428 of CLtL) does not extend gracefully to situations multiple
+  values.
+
+Current Practice:
+
+  Most implementations already offer ERRSET, IGNORE-ERRORS, or something similar
+  in some private package.
+
+Adoption Cost:
+
+  As far as I know, this would not be difficult to implement in any implementation.
+  eg, IGNORE-ERRORS is trivially implemented in terms of ERRSET...
+
+  (DEFMACRO IGNORE-ERRORS (&BODY FORMS)
+    (LET ((TAG (GENSYM)))
+      `(BLOCK ,TAG 
+	 (ERRSET (RETURN-FROM ,TAG (PROGN ,@FORMS)) NIL)
+	 NIL)))
+
+Benefits:
+
+  An error proposal is in the works which will offer IGNORE-ERRORS and more.
+  In case of delays or problems in the acceptance of the spec, applications
+  developers will not have to worry that they'll end up with no way to trap
+  errors.
+
+Conversion Cost:
+
+  User code currently cannot trap errors at all. Almost by definition, user
+  code cannot be affected adversely by this change.
+
+Aesthetics:
+
+  This primitive is simple, clean, easily learnable, and hopefully very
+  non-controversial.
+
+Discussion:
+
+  KMP thinks that in spite of the perceived optimism about the emerging error
+  proposal, it's wise to have a safe and credible interim position.
+
+*start*
+02821 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 26 FEB 87 19:47:09 PST
+Received: from SCRC-STONY-BROOK.ARPA by SAIL.STANFORD.EDU with TCP; 26 Feb 87  19:44:12 PST
+Received: from RIO-DE-JANEIRO.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL Date: Thu, 26 Feb 87 22:43 EST
+From: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: IGNORE-ERRORS
+To: CL-Cleanup@SAIL.STANFORD.EDU
+cc: KMP@STONY-BROOK.SCRC.Symbolics.COM
+Message-ID: <870226224313.0.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+
+Issue:        IGNORE-ERRORS
+References:   p428
+Category:     ENHANCEMENT
+Edit history: Revision 1 by KMP 02/26/87
+Problem Description:
+
+  Common Lisp has no way to trap an error inhibiting entry to the debugger.
+
+Proposal (IGNORE-ERRORS:INTERIM):
+
+  Remove the apology for the absence of ERRSET on p428 and introduce
+  mention of a new macro called IGNORE-ERRORS with the syntax
+   (IGNORE-ERRORS {form}*)
+  Say that it attempts to execute the given forms in order from left to right,
+  returning all the values returned by the last form (or NIL if there
+  are no forms). If an error occurs while executing the forms, no error
+  message is printed; instead control is silently transfered to the
+  IGNORE-ERRORS form, which immediately returns NIL.
+
+Rationale:
+
+  It will make applications developers rest a bit easier to have an immediate
+  ironclad guarantee that at least this level of functionality will be in the
+  next CL spec.
+
+  The baroque return value convention used by Maclisp's ERRSET special form
+  (mentioned on p428 of CLtL) does not extend gracefully to situations multiple
+  values.
+
+Current Practice:
+
+  Most implementations already offer ERRSET, IGNORE-ERRORS, or something similar
+  in some private package.
+
+Adoption Cost:
+
+  As far as I know, this would not be difficult to implement in any implementation.
+  eg, IGNORE-ERRORS is trivially implemented in terms of ERRSET...
+
+  (DEFMACRO IGNORE-ERRORS (&BODY FORMS)
+    (LET ((TAG (GENSYM)))
+      `(BLOCK ,TAG 
+         (ERRSET (RETURN (PROGN ,@FORMS)) NIL)
+	 NIL)))
+
+Benefits:
+
+  An error proposal is in the works which will offer IGNORE-ERRORS and more.
+  In case of delays or problems in the acceptance of the spec, applications
+  developers will not have to worry that they'll end up with no way to trap
+  errors.
+
+Conversion Cost:
+
+  User code currently cannot trap errors at all. Almost by definition, user
+  code cannot be affected adversely by this change.
+
+Aesthetics:
+
+  This primitive is simple, clean, easily learnable, and hopefully very
+  non-controversial.
+
+Discussion:
+
+  KMP thinks that in spite of the perceived optimism about the emerging error
+  proposal, it's wise to have a safe and credible interim position.
+
+*start*
+02974 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 26 FEB 87 19:48:26 PST
+Received: from SCRC-STONY-BROOK.ARPA by SAIL.STANFORD.EDU with TCP; 26 Feb 87  19:45:38 PST
+Received: from RIO-DE-JANEIRO.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL Date: Thu, 26 Feb 87 22:45 EST
+From: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: IGNORE-ERRORS (revision 2)
+To: CL-Cleanup@SAIL.STANFORD.EDU
+cc: KMP@STONY-BROOK.SCRC.Symbolics.COM
+Supersedes: <870226224313.0.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+Message-ID: <870226224504.1.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+
+Issue:        IGNORE-ERRORS
+References:   p428
+Category:     ENHANCEMENT
+Edit history: Revision 1 by KMP 02/26/87,
+	      Revision 2 by KMP 02/26/87 (fixed typo in sample code)
+Problem Description:
+
+  Common Lisp has no way to trap an error inhibiting entry to the debugger.
+
+Proposal (IGNORE-ERRORS:INTERIM):
+
+  Remove the apology for the absence of ERRSET on p428 and introduce
+  mention of a new macro called IGNORE-ERRORS with the syntax
+   (IGNORE-ERRORS {form}*)
+  Say that it attempts to execute the given forms in order from left to right,
+  returning all the values returned by the last form (or NIL if there
+  are no forms). If an error occurs while executing the forms, no error
+  message is printed; instead control is silently transfered to the
+  IGNORE-ERRORS form, which immediately returns NIL.
+
+Rationale:
+
+  It will make applications developers rest a bit easier to have an immediate
+  ironclad guarantee that at least this level of functionality will be in the
+  next CL spec.
+
+  The baroque return value convention used by Maclisp's ERRSET special form
+  (mentioned on p428 of CLtL) does not extend gracefully to situations multiple
+  values.
+
+Current Practice:
+
+  Most implementations already offer ERRSET, IGNORE-ERRORS, or something similar
+  in some private package.
+
+Adoption Cost:
+
+  As far as I know, this would not be difficult to implement in any implementation.
+  eg, IGNORE-ERRORS is trivially implemented in terms of ERRSET...
+
+  (DEFMACRO IGNORE-ERRORS (&BODY FORMS)
+    (LET ((TAG (GENSYM)))
+      `(BLOCK ,TAG 
+         (ERRSET (RETURN-FROM ,TAG (PROGN ,@FORMS)) NIL)
+	 NIL)))
+
+Benefits:
+
+  An error proposal is in the works which will offer IGNORE-ERRORS and more.
+  In case of delays or problems in the acceptance of the spec, applications
+  developers will not have to worry that they'll end up with no way to trap
+  errors.
+
+Conversion Cost:
+
+  User code currently cannot trap errors at all. Almost by definition, user
+  code cannot be affected adversely by this change.
+
+Aesthetics:
+
+  This primitive is simple, clean, easily learnable, and hopefully very
+  non-controversial.
+
+Discussion:
+
+  KMP thinks that in spite of the perceived optimism about the emerging error
+  proposal, it's wise to have a safe and credible interim position.
+
+*start*
+01186 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 02 MAR 87 21:59:43 PST
+Received: from SCRC-STONY-BROOK.ARPA by SAIL.STANFORD.EDU with TCP; 2 Mar 87  21:57:21 PST
+Received: from EUPHRATES.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 82Date: Tue, 3 Mar 87 00:56 EST
+From: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: IGNORE-ERRORS (revision 2)
+To: CL-Cleanup@SAIL.STANFORD.EDU
+In-Reply-To: <870226224504.1.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+Message-ID: <870303005602.6.MOON@EUPHRATES.SCRC.Symbolics.COM>
+
+I support this with an amendment (already discussed with KMP).
+The proposal as written implies that if an error occurs, NIL is the
+only value returned.  However, the pending error proposal states that
+if an error occurs, two values are returned: the first is NIL and the
+second is something else.  I suggest amending the IGNORE-ERRORS proposal
+to state that in the event of an error the first value returned is NIL
+and unspecified additional values might be returned; this will avoid
+the need to make an incompatible change later.
+
+*start*
+01033 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:FAHLMAN@C.CS.CMU.EDU>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 28 FEB 87 18:43:06 PST
+Received: from C.CS.CMU.EDU by SAIL.STANFORD.EDU with TCP; 28 Feb 87  18:41:11 PST
+Received: ID <FAHLMAN@C.CS.CMU.EDU>; Sat 28 Feb 87 21:41:57-EST
+Date: Sat, 28 Feb 87 21:41 EST
+Message-ID: <FAHLMAN.12282786592.BABYL@C.CS.CMU.EDU>
+Sender: FAHLMAN@C.CS.CMU.EDU
+From: "Scott E. Fahlman" <Fahlman@C.CS.CMU.EDU>
+To: CL-Cleanup@SAIL.STANFORD.EDU
+Subject: IGNORE-ERRORS
+In-reply-to: Msg of 26 Feb 1987  22:43-EST from Kent M Pitman <KMP at STONY-BROOK.SCRC.Symbolics.COM>
+
+
+I agree with this proposal.
+
+I'd like to believe that an error proposal is close enough that it could
+be adopted at about the same time as the first batch of cleanup issues,
+but KMP may know of problems that I don't see.  In any event, it can't
+hurt to go ahead and adopt this, especially if this same enhancement is
+included in the error proposal so that there is no question of which
+takes precedence.
+
+-- Scott
+
+*start*
+01454 00024 USa
+Return-Path: <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Received: from STONY-BROOK.SCRC.Symbolics.COM (SCRC-STONY-BROOK.ARPA) by Xerox.COM ; 29 APR 87 13:26:26 PDT
+Received: from RIO-DE-JANEIRO.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 127482; Wed 29-Apr-87 16:25:24 EDT
+Date: Wed, 29 Apr 87 16:25 EDT
+From: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: Status of IGNORE-ERRORS
+To: Masinter.PA
+cc: KMP@STONY-BROOK.SCRC.Symbolics.COM
+In-Reply-To: <870427-130708-1239@Xerox>
+Message-ID: <870429162518.6.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+
+    Date: 27 Apr 87 13:15 PDT
+    From: Masinter.pa@Xerox.COM
+
+    ...
+    IGNORE-ERRORS
+	Discussed and agreed, final form not yet available
+	(LMM: Some objections, defer to error/signal committee?)
+	Need volunteer.
+    ...
+
+I'm not sure what remains to be done on this. The concrete
+objections (eg, Moon's concern about second return value)
+have been dealt with.
+
+The only other objection was that it seemed redundant. But
+since the CL-VALIDATION guys are using ERRSET (ick) as an
+interim thing, I think that's an existence proof that people
+really need to know what the culturally right interim thing
+to use is.
+
+I think this proposal (Version 3, 11-Mar-87) is in reasonable
+shape. I'm happy to fix any other problems with it, but I can't
+figure out what they might be. If you can't either, I suggest this
+topic be re-queued for release.
+
+*start*
+01454 00024 USm
+Return-Path: <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Received: from STONY-BROOK.SCRC.Symbolics.COM (SCRC-STONY-BROOK.ARPA) by Xerox.COM ; 29 APR 87 13:26:26 PDT
+Received: from RIO-DE-JANEIRO.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 127482; Wed 29-Apr-87 16:25:24 EDT
+Date: Wed, 29 Apr 87 16:25 EDT
+From: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: Status of IGNORE-ERRORS
+To: Masinter.PA
+cc: KMP@STONY-BROOK.SCRC.Symbolics.COM
+In-Reply-To: <870427-130708-1239@Xerox>
+Message-ID: <870429162518.6.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+
+    Date: 27 Apr 87 13:15 PDT
+    From: Masinter.pa@Xerox.COM
+
+    ...
+    IGNORE-ERRORS
+	Discussed and agreed, final form not yet available
+	(LMM: Some objections, defer to error/signal committee?)
+	Need volunteer.
+    ...
+
+I'm not sure what remains to be done on this. The concrete
+objections (eg, Moon's concern about second return value)
+have been dealt with.
+
+The only other objection was that it seemed redundant. But
+since the CL-VALIDATION guys are using ERRSET (ick) as an
+interim thing, I think that's an existence proof that people
+really need to know what the culturally right interim thing
+to use is.
+
+I think this proposal (Version 3, 11-Mar-87) is in reasonable
+shape. I'm happy to fix any other problems with it, but I can't
+figure out what they might be. If you can't either, I suggest this
+topic be re-queued for release.
+
+*start*
+01180 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:Masinter.pa@Xerox.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 30 APR 87 15:02:42 PDT
+Received: from XEROX.COM by SAIL.STANFORD.EDU with TCP; 30 Apr 87  14:59:07 PDT
+Received: from Cabernet.ms by ArpaGateway.ms ; 30 APR 87 15:00:12 PDT
+Date: 30 Apr 87 14:45 PDT
+From: Masinter.pa
+Subject: Re: Status of IGNORE-ERRORS
+In-reply-to: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>'s
+ message of Wed, 29 Apr 87 16:25 EDT
+To: KMP@STONY-BROOK.SCRC.Symbolics.COM
+cc: cl-cleanup@sail.stanford.edu, Daniels.pa
+Message-ID: <870430-150012-4352@Xerox>
+
+
+The only thing hanging up the signalling proposal is that that committee
+(and mainly Kent Pitman) needs to bring it up before the next X3J13. It
+is an excellent proposal  and we should adopt it and get on with it.
+There's no point in adopting IGNORE-ERRORS when we could get the whole
+thing.
+
+This was originally my paraphrase of Pavel's comments, but I've really
+written what I think. At the meeting before X3J13 you were pretty
+mysterious about your reasons for thinking the error proposal would take
+too long, or longer than this committee would take. 
+
+Comments?
+
+
+
+*start*
+03245 00024 US 
+Date: 29 May 87 21:20 PDT
+From: Masinter.pa
+Subject: IGNORE-ERRORS (Version 4)
+To: CL-Cleanup@SAIL.STANFORD.EDU
+cc: Masinter
+
+
+Status:   Ready for release? [Use ballot]
+
+Issue:        IGNORE-ERRORS
+References:   p428
+Category:     ENHANCEMENT
+Edit history: Revision 1 by KMP 02/26/87,
+              Revision 2 by KMP 02/26/87 (fixed typo in sample code),
+              Revision 3 by KMP 03/11/87 (change to 2nd return value).
+              Revision 4 by Masinter 29-May-87 minor formatting
+
+Problem Description:
+
+Common Lisp has no way to trap an error inhibiting entry to the debugger.
+
+Proposal (IGNORE-ERRORS:INTERIM):
+
+Remove the apology for the absence of ERRSET (as on p428 of CLtL)
+
+Introduce a new macro called IGNORE-ERRORS with the syntax
+
+(IGNORE-ERRORS {form}*)
+  IGNORE-ERRORS executes the given forms in order from left to right,
+  returning all the values returned by the last form (or NIL if there
+  are no forms).
+
+  If an error occurs while executing the forms, however, no error
+  message is printed; instead control is silently transfered to the
+  IGNORE-ERRORS form, which immediately returns a principal value of NIL.
+  (The return value convention for any other values besides the principal
+  return value in the case of an error is expressly left undefined in order
+  to leave room for the full error proposal to attach a useful meaning.)
+
+Rationale:
+
+It will make applications developers rest a bit easier to have an immediate
+ironclad guarantee that at least this level of functionality will be in the
+next CL spec.
+
+The baroque return value convention used by Maclisp's ERRSET special form
+(mentioned on p428 of CLtL) does not extend gracefully to situations multiple
+values.
+
+Current Practice:
+
+Most implementations already offer ERRSET, IGNORE-ERRORS, or something similar
+in some private package.
+
+Adoption Cost:
+
+We believe this is not difficult to implement in any current implementation.
+E.g., IGNORE-ERRORS is trivially implemented in terms of ERRSET...
+
+  (DEFMACRO IGNORE-ERRORS (&BODY FORMS)
+    (LET ((TAG (GENSYM)))
+      `(BLOCK ,TAG 
+	 (ERRSET (RETURN-FROM ,TAG (PROGN ,@FORMS)) NIL)
+	 NIL)))
+
+Benefits:
+
+An error proposal is in the works which will offer IGNORE-ERRORS and more.
+In case of delays or problems in the acceptance of the spec, applications
+developers will not have to worry that they'll end up with no way to trap
+errors.
+
+Conversion Cost:
+
+User code currently cannot trap errors at all. Almost by definition, user
+code cannot be affected adversely by this change.
+
+Aesthetics:
+
+This primitive is simple, clean, easily learnable, and hopefully very
+non-controversial.
+
+Discussion:
+
+KMP thinks that in spite of the perceived optimism about the emerging error
+proposal, it's wise to have a safe and credible interim position.
+Masinter wonders why KMP isn't spending more time on the error proposal.
+
+The cleanup committee endorses this extension.
+        TITAN          TITAN           
+TIMESROMAN 
+           ª                                                        ê              L       "      æ             I              j             $       
+       é              ~              [                   T zº*start*
+00473 00024 US 
+Date:  1 Jun 87 18:32 PDT
+From: Pavel.pa
+Subject: Re: IGNORE-ERRORS (Version 4)
+In-reply-to: Masinter.pa's message of 29 May 87 21:20 PDT
+To: Masinter.pa
+
+Typo in the proposal:
+
+``An error proposal is in the works which will offer IGNORE-ERRORS and more.'' should be ``An error proposal is in the works that will offer IGNORE-ERRORS and more.''
+        GACHA 
+          
+TIMESROMAN 
+           ´       J              I             Y zº*start*
+02802 00024 US 
+Return-Path: <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Received: from STONY-BROOK.SCRC.Symbolics.COM (SCRC-STONY-BROOK.ARPA) by Xerox.COM ; 01 JUN 87 20:46:23 PDT
+Received: from RIO-DE-JANEIRO.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 161244; Mon 1-Jun-87 23:44:37 EDT
+Date: Mon, 1 Jun 87 23:46 EDT
+From: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: IGNORE-ERRORS (Version 4)
+To: Masinter.pa
+cc: CL-Cleanup@SAIL.STANFORD.EDU
+In-Reply-To: <870529-212051-1278@Xerox>
+Message-ID: <870601234627.6.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+
+    Date: 29 May 87 21:20 PDT
+    From: Masinter.pa@Xerox.COM
+
+    ...
+    Issue:        IGNORE-ERRORS
+    ...
+    Discussion:
+
+    KMP thinks that in spite of the perceived optimism about the emerging error
+    proposal, it's wise to have a safe and credible interim position.
+    Masinter wonders why KMP isn't spending more time on the error proposal.
+    ...
+
+I'd like to encourage you to remove this somewhat random comment, which may
+be viewed by outsiders as being more critical than you hopefully meant. In 
+fact, KMP is spending a -lot- of time on the error proposal.
+
+The problem is that KMP has what he thinks is a clear understanding
+both of the length of time it takes to get things of that size through
+a political mechanism such as X3J13 even under ordinary circumstances,
+and is -very- leary about potential last-minute snags due to the 
+emergence of CLOS in parallel and the fact that people will likely 
+want last-minute "small changes" to make it take more advantage of CLOS.
+
+The presence of this item as a place-holder while all the business of
+acceptance is in progress is particularly important to me. The more vendors
+who provide this as a private extension in the very near term, the fewer
+utterly random interfaces they'll conjure instead. Like it or not, existing
+code has to interface to the private extensions until this standard is marked
+approved, but we can do a lot to improve quality of life by at least hinting
+that this is coming. In Macsyma, there's a definition of IGNORE-ERRORS that
+does:
+
+ #+LispM `(CONDITION-CASE (-ERROR-)
+ 	      (VALUES (PROGN ,@FORMS) NIL)
+            (ZL:SYS:ERROR (VALUES NIL -ERROR-)))
+ #+(OR ...other-systems...)
+         `(LET ((RESULT (ERRSET (PROGN ,@FORMS) NIL)))
+	    (IF RESULT
+		(VALUES (CAR RESULT) NIL)
+		(VALUES NIL T)))
+ #+(OR ...more-other-systems...)
+	  ...etc.
+
+Each new case added requires careful study of the host error system to
+figure out how to attach an IGNORE-ERRORS. If everyone had the idea that
+at least IGNORE-ERRORS was worth latching onto, I think they'd at least
+do that even if they weren't sure of the rest of the emerging error system,
+and I think the resulting convergence would be very useful.
+
+*start*
+01110 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 01 JUN 87 21:52:14 PDT
+Received: from SCRC-STONY-BROOK.ARPA by SAIL.STANFORD.EDU with TCP; 1 Jun 87  21:50:55 PDT
+Received: from EUPHRATES.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 161302; Tue 2-Jun-87 00:41:11 EDT
+Date: Tue, 2 Jun 87 00:41 EDT
+From: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: IGNORE-ERRORS (Version 4)
+To: CL-Cleanup@SAIL.STANFORD.EDU
+In-Reply-To: <870601234627.6.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+Message-ID: <870602004111.8.MOON@EUPHRATES.SCRC.Symbolics.COM>
+
+    From: Kent M Pitman <KMP@STONY-BROOK>    
+    The presence of this item as a place-holder while all the business of
+    acceptance is in progress is particularly important to me.
+
+In light of this, I'd like to modify my vote to say that I don't care
+whether IGNORE-ERRORS is released in its present form (minus gratuitous
+personal comments about how KMP spends his time) or withdrawn in
+deference to the error proposal.
+

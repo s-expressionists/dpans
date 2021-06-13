@@ -1,0 +1,1037 @@
+*start*
+02359 00024 USf
+Return-Path: <@SAIL.STANFORD.EDU:KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 22 APR 87 12:35:50 PDT
+Received: from SCRC-STONY-BROOK.ARPA by SAIL.STANFORD.EDU with TCP; 22 Apr 87  12:32:27 PDT
+Received: from RIO-DE-JANEIRO.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 121957; Wed 22-Apr-87 15:14:43 EDT
+Date: Wed, 22 Apr 87 15:14 EDT
+From: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: ASSOC-RASSOC-IF-KEY (Version 1)
+To: CL-Cleanup@SAIL.STANFORD.EDU
+cc: GLS@Think.COM, KMP@STONY-BROOK.SCRC.Symbolics.COM
+Message-ID: <870422151450.7.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+
+Issue:        ASSOC-RASSOC-IF-KEY
+References:   ASSOC-IF (p280), ASSOC-IF-NOT (p280), RASSOC-IF (p281),
+	      RASSOC-IF-NOT (p281)
+Category:     CLARIFICATION/ENHANCEMENT
+Edit history: 22-Apr-87, Version 1 by Pitman
+Status:       For Internal Discussion
+
+Problem Description:
+
+  The descriptions of ASSOC-IF, ASSOC-IF-NOT, RASSOC-IF, and RASSOC-IF-NOT
+  do not mention a :KEY option.
+
+Proposal (ASSOC-RASSOC-IF-KEY:YES):
+
+  Allow a :KEY keyword for ASSOC-IF, ASSOC-IF-NOT, RASSOC-IF, and RASSOC-IF-NOT.
+  If not supplied, it should default to #'IDENTITY as do the :KEY keywords
+  for other -IF and -IF-NOT functions.
+
+Rationale:
+
+  All the other -IF and -IF-NOT variations of list operations omit the
+  :TEST and :TEST-NOT keywords, but allow :KEY. For example, consider
+  the family of MEMBER, MEMBER-IF, and MEMBER-IF-NOT. The omission of
+  :KEY in this situation in CLtL was probably an oversight.
+
+Current Practice:
+
+  The Symbolics implementation went ahead and added :KEY.
+  I suspect that implementations are split down the middle on
+  whether this is offered.
+
+Adoption Cost:
+
+  A small amount of additional code is necessary to support this in 
+  implementations not already offering it as an extension.
+
+Benefits:
+
+  This would make the set of -IF and -IF-NOT functions be more regular in
+  their calling conventions.
+
+Conversion Cost:
+
+  The change is essentially upward compatible with user code.
+
+Aesthetics:
+
+  Although this introduces additional mechanism, it does so in a way that
+  probably makes it easier to think about which functions do what, so it
+  would likely be seen as a simplification.
+
+Discussion:
+
+  KMP supports this change/clarification.
+
+*start*
+00972 00024 USh
+Return-Path: <@SAIL.STANFORD.EDU:Masinter.pa@Xerox.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 05 JUN 87 18:11:32 PDT
+Received: from XEROX.COM by SAIL.STANFORD.EDU with TCP; 5 Jun 87  18:08:56 PDT
+Received: from Cabernet.ms by ArpaGateway.ms ; 05 JUN 87 15:30:08 PDT
+Date: 5 Jun 87 15:30 PDT
+From: Masinter.pa
+Subject: Re: ASSOC-RASSOC-IF-KEY (Version 1)
+In-reply-to: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>'s
+ message of Wed, 22 Apr 87 15:14 EDT
+To: CL-Cleanup@SAIL.STANFORD.EDU
+Message-ID: <870605-153008-2585@Xerox>
+
+I think the reason that ASSOC-IF, RASSOC-IF and friends do not have :KEY
+arguments is that  ASSOC-IF is equivalent to FIND-IF :KEY #'CAR and
+RASSOC-IF is FIND-IF :KEY #'CDR. That is, the way I think of these
+functions, they already have a KEY argument, it is just that the KEY is
+already implicitly specified by the function name.
+
+I don't see any substantial advantage of expressiveness in this
+proposal. 
+
+*start*
+00995 00024 USh
+Return-Path: <@SAIL.STANFORD.EDU:Masinter.pa@Xerox.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 15 JUN 87 19:21:48 PDT
+Received: from XEROX.COM by SAIL.STANFORD.EDU with TCP; 15 Jun 87  19:19:49 PDT
+Received: from Cabernet.ms by ArpaGateway.ms ; 15 JUN 87 13:23:44 PDT
+Date: 15 Jun 87 13:23 PDT
+From: Masinter.pa
+Subject: Re: ASSOC-RASSOC-IF-KEY (Version 1)
+In-reply-to: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>'s
+ message of Wed, 22 Apr 87 15:14 EDT
+To: KMP@STONY-BROOK.SCRC.Symbolics.COM
+cc: CL-Cleanup@SAIL.STANFORD.EDU
+Message-ID: <870615-132344-158@Xerox>
+
+I've been unable to find any other implementation (outside of symbolics)
+that has ASSOC-IF-KEY.  I looked at Spice, Xerox and VaxLisp. I'm uneasy
+saying that the others are "split down the middle" if they aren't. 
+
+
+I tried to generate a test case. Can you think of something more
+illuminating than
+
+(ASSOC-IF #'ZEROP '(("ABC" . 3) ("E"  . 4) ("" . 7)) :KEY #'LENGTH)
+
+  => ("" . 7)
+
+
+
+
+
+
+
+
+*start*
+04170 00024 USh
+Return-Path: <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Received: from STONY-BROOK.SCRC.Symbolics.COM (SCRC-STONY-BROOK.ARPA) by Xerox.COM ; 16 JUN 87 13:36:42 PDT
+Received: from RIO-DE-JANEIRO.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 174496; Tue 16-Jun-87 16:35:22 EDT
+Date: Tue, 16 Jun 87 16:35 EDT
+From: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: Re: ASSOC-RASSOC-IF-KEY (Version 1)
+To: Masinter.pa
+cc: KMP@STONY-BROOK.SCRC.Symbolics.COM, CL-Cleanup@SAIL.STANFORD.EDU
+In-Reply-To: <870615-132344-158@Xerox>
+Message-ID: <870616163500.6.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+
+    Date: 15 Jun 87 13:23 PDT
+    From: Masinter.pa@Xerox.COM
+
+    I've been unable to find any other implementation (outside of symbolics)
+    that has ASSOC-IF-KEY.  I looked at Spice, Xerox and VaxLisp. I'm uneasy
+    saying that the others are "split down the middle" if they aren't. 
+
+I think I didn't have access to other lisps in order to try it on the day
+I sent that message. If none of the other lisps you know do it, then I'm
+happy to say under current practice that only we are known to have implemented
+the extension.
+
+    I tried to generate a test case. Can you think of something more
+    illuminating than
+
+    (ASSOC-IF #'ZEROP '(("ABC" . 3) ("E"  . 4) ("" . 7)) :KEY #'LENGTH)
+
+      => ("" . 7)
+
+Well, I don't like to think of a non-accessor as the :KEY, though this
+is technically fine.  We should probably give some advice about this in
+the sample cleanup template; my feeling is that the test case just has
+to illustrate the feature, not motivate it. Under this criterion, the
+case above is fine.
+
+The problem with a simple test case is that the need for this only comes up
+in real program situations where objects with structured parts appear in
+alists. In that case, you might have something like:
+
+(DEFSTRUCT FOO X)
+(ASSOC-IF #'IDENTITY '((#S(FOO :X NIL) 3 4) (#S(FOO :X T) 7)) :KEY #'FOO-X)
+
+or
+
+(ASSOC-IF #'PROBE-FILE '((#S(FOO :X "FOO.LSP") 3 4) (#S(FOO :X "BAR.LSP") 7))
+	  :KEY #'FOO-X)
+
+for that matter. In a real program, the #S(...) forms would presumably not be
+constant -- they'd be pushed on by programs calling constructors -- and this
+latter example doesn't return a constant value across implementations, but it
+hopefully gives you a sense of what you can do. Another case might be:
+
+(DEFVAR *KNOWN-PACKAGES* (MAPCAR #'FIND-PACKAGE '("LISP" "KEYWORD")))
+
+(DEFUN KNOWN-PACKAGE-P (PACKAGE) (MEMBER PACKAGE *KNOWN-PACKAGES*))
+
+(ASSOC-IF #'KNOWN-PACKAGE-P '((FROB . FUNCTION) (IF . SPECIAL-FORM))
+	  :KEY #'SYMBOL-PACKAGE)
+ => (IF . SPECIAL-FORM)
+
+A situation that seems most familiar to me takes more work to set up:
+
+(DEFUN FULL-DIRECTORY-LIST (WILD-PATHNAME)
+  "Returns (wild-path (path1 :WRITE-DATE date1 :AUTHOR author1) ...)."
+  (LET* ((PATHS (DIRECTORY WILD-PATHNAME))
+         (DATES   (MAPCAR #'FILE-WRITE-DATE PATHS))
+	 (AUTHORS (MAPCAR #'FILE-WRITE-DATE PATHS)))
+    (CONS FILES
+	  (MAPCAR #'(LAMBDA (PATH DATE AUTHOR)
+		      (LIST PATH :WRITE-DATE DATE :AUTHOR AUTHOR))
+		  PATHS DATES AUTHORS))))
+
+In this case, you could imagine a variety of ASSOC-type operations that you
+might want to do on the pathname in the car of each list in the cdr of the
+result. In general, it's true that you can always write:
+
+(ASSOC-IF #'(LAMBDA (P) (MEMBER (PATHNAME-TYPE P) '("LSP" "L" "LISP")
+			     :TEST #'STRING-EQUAL))
+	  (CDR DIRECTORY-LISTING))
+
+but somehow I find it more aesthetic to see:
+
+(ASSOC-IF #'(LAMBDA (TYPE) (MEMBER TYPE '("LSP" "LISP" "L")))
+	  (CDR DIRECTORY-LISTING)
+	  :KEY #'PATHNAME-TYPE)
+
+so that the key extraction and the predication are separate. This increases
+the likelihood that the function in the predicate position will already exist
+with some known name. For example, going back to your original example,
+there is no function which does (ZEROP (LENGTH x)) but there are functions
+ZEROP and LENGTH which work together well in the place where :KEY is provided.
+
+Feel free to extract any part of this message that moves you and add it to
+the proposal if you feel it's warranted. Doubtless this text is too long
+and rambly to be included as a whole.
+
+*start*
+01408 00024 US 
+Return-Path: <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Received: from STONY-BROOK.SCRC.Symbolics.COM (SCRC-STONY-BROOK.ARPA) by Xerox.COM ; 29 OCT 87 23:02:49 PST
+Received: from RIO-DE-JANEIRO.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 267974; Fri 30-Oct-87 01:09:06 EST
+Date: Fri, 30 Oct 87 01:08 EST
+From: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: Issue Status (reply solicited)
+To: Masinter.pa
+cc: KMP@STONY-BROOK.SCRC.Symbolics.COM
+In-Reply-To: <871009-152242-1753@Xerox>
+References: <870616163500.6.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>,
+            <870615-132344-158@Xerox>,
+            <870605-153008-2585@Xerox>,
+            <870422151450.7.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+Message-ID: <871030010826.5.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+
+    Date: 9 Oct 87 15:22 PDT
+    From: Masinter.pa@Xerox.COM
+
+    ...
+    ASSOC-RASSOC-IF-KEY (Version 2/15-Jun-87)
+     (Extend ASSOC-IF, etc.  to allow :KEY)
+     Needs revision of current practice, test case, example.
+     (Only Symbolics is known to implement this feature)
+     The summary says Version 2, but I only have version 1 on file.
+     Not ready for release
+    ???? Does anyone else have a version 2? Or was this wishful thinking?
+    ...
+
+Just wishful thinking, I think. My records show only 4 messages on this
+subject, referenced. All refer to Version 1.
+
+*start*
+01598 00024 US 
+Originator: Common-Lisp-mailer%SAIL.Stanford:EDU:Xerox
+Date: 19 Nov 87 10:43
+From: vax135!lcuxle!elia%ucbvax.Berkeley:EDU:Xerox
+Subject: assoc question
+To: common-lisp%sail.stanford:EDU:Xerox
+
+GVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGV
+From: vax135!lcuxle!elia@ucbvax.Berkeley.EDU (Weixelbaum Elia)
+To: common-lisp@sail.stanford.edu
+Subject: assoc question
+Return-Path: <Common-Lisp-mailer@SAIL.Stanford.EDU>
+Redistributed: Xerox-Common-Lisp^.x
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 19 NOV 87 10:43:34 PST
+Received: from UCBVAX.Berkeley.EDU by SAIL.STANFORD.EDU with TCP; 19 Nov 87  09:58:56 PST
+Received: by ucbvax.Berkeley.EDU (5.58/1.26)	id AA26105; Thu, 19 Nov 87 10:01:43 PST
+Received: by lcuxle.UUCP (4.6/4.2)	id AA27647; Thu, 19 Nov 87 10:41:03 EST
+Original-Date: Thu, 19 Nov 87 10:41:03 EST
+Message-Id: <8711191541.AA27647@lcuxle.UUCP>
+GVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGV
+
+I don't know if this was discussed before, so please excuse the possible
+repetition.  According to CLtL (pp 279-281), assoc permits the keyword
+:key, but neither assoc-if nor assoc-if-not allow it (same for rassoc,
+rassoc-if, and rassoc-if-not).  Franz Common Lisp and Xerox Common Lisp
+follow the book and permit :key for just assoc (and rassoc), while KCL and
+TI Explorer don't allow :key at all.
+
+I think it should not be allowed at all since assoc lists are defined
+as pairs such that the keys are the cars of the respective pairs, not
+some function of the respective cars.  In any event, there should certainly
+not be an inconsistency.
+
+Elia Weixelbaum
+
+
+*start*
+01850 00024 US 
+Originator: Common-Lisp-mailer%SAIL.Stanford:EDU:Xerox
+Date: 19 Nov 87 11:51
+From: DCP%QUABBIN.SCRC.Symbolics:COM:Xerox
+Subject: assoc question
+In-Reply-to: <8711191541.AA27647@lcuxle.UUCP>
+To: vax135!lcuxle!elia%ucbvax.Berkeley:EDU:Xerox, common-lisp%sail.stanford:EDU:Xerox
+
+GVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGV
+From: David C. Plummer <DCP@QUABBIN.SCRC.Symbolics.COM>
+Subject: assoc question
+To: Weixelbaum Elia <vax135!lcuxle!elia@ucbvax.Berkeley.EDU>, common-lisp@sail.stanford.edu
+In-Reply-To: <8711191541.AA27647@lcuxle.UUCP>
+Return-Path: <Common-Lisp-mailer@SAIL.Stanford.EDU>
+Redistributed: Xerox-Common-Lisp^.x
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 19 NOV 87 11:51:39 PST
+Received: from [128.81.41.234] by SAIL.STANFORD.EDU with TCP; 19 Nov 87  11:16:26 PST
+Received: from SWAN.SCRC.Symbolics.COM by MEAD.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 112217; Thu 19-Nov-87 14:02:22 EST
+Original-Date: Thu, 19 Nov 87 14:01 EST
+Message-ID: <19871119190135.5.DCP@SWAN.SCRC.Symbolics.COM>
+GVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGV
+
+    Date: Thu, 19 Nov 87 10:41:03 EST
+    From: vax135!lcuxle!elia@ucbvax.Berkeley.EDU (Weixelbaum Elia)
+	...
+    I think it should not be allowed at all since assoc lists are defined
+    as pairs such that the keys are the cars of the respective pairs, not
+    some function of the respective cars.  In any event, there should certainly
+    not be an inconsistency.
+
+I think this is because an "Association list" is poorly defined.  It
+appears to be historically defined.  A better definition of the CLtL'84
+intent might be that the car /contains/ the key of the association, and
+by default the car /is/ the key of the association.
+
+I agree it does appear to be inconsistent (with FIND, COUNT and
+POSITION) that ASSOC-IF doesn't take a :KEY argument.
+
+
+*start*
+01722 00024 US 
+Originator: Common-Lisp-mailer%SAIL.Stanford:EDU:Xerox
+Date: 19 Nov 87 13:51
+From: Moon%STONY-BROOK.SCRC.Symbolics:COM:Xerox
+Subject: assoc question
+In-Reply-to: <8711191541.AA27647@lcuxle.UUCP>
+To: vax135!lcuxle!elia%ucbvax.Berkeley:EDU:Xerox
+cc: common-lisp%SAIL.STANFORD:EDU:Xerox
+
+GVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGV
+From: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: assoc question
+To: Weixelbaum Elia <vax135!lcuxle!elia@ucbvax.Berkeley.EDU>
+cc: common-lisp@SAIL.STANFORD.EDU
+In-Reply-To: <8711191541.AA27647@lcuxle.UUCP>
+Return-Path: <Common-Lisp-mailer@SAIL.Stanford.EDU>
+Redistributed: Xerox-Common-Lisp^.x
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 19 NOV 87 13:51:09 PST
+Received: from SCRC-STONY-BROOK.ARPA by SAIL.STANFORD.EDU with TCP; 19 Nov 87  13:09:54 PST
+Received: from EUPHRATES.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 284243; Thu 19-Nov-87 15:10:25 EST
+Original-Date: Thu, 19 Nov 87 15:10 EST
+Message-ID: <19871119201019.5.MOON@EUPHRATES.SCRC.Symbolics.COM>
+GVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGV
+
+    Date: Thu, 19 Nov 87 10:41:03 EST
+    From: vax135!lcuxle!elia@ucbvax.Berkeley.EDU (Weixelbaum Elia)
+
+    According to CLtL (pp 279-281), assoc permits the keyword
+    :key, but neither assoc-if nor assoc-if-not allow it (same for rassoc,
+    rassoc-if, and rassoc-if-not).
+
+The Cleanup subcommittee of X3J13 has addressed this issue, but apparently
+it's on hold right now while higher priority things are attended to, although
+the proposal really just needs some editorial work before it's presented to
+X3J13.
+
+My own opinion is that the -if and -if-not ones should take keys also.
+
+
+*start*
+02766 00024 USf
+Date: 20 Nov 87 12:19 PST
+From: Masinter.pa
+Subject: Issue: ASSOC-RASSOC-IF-KEY (Version 2)
+To: CL-Cleanup@SAIL.STANFORD.EDU
+line-fold: NO
+cc: vax135!lcuxle!elia@ucbvax.Berkeley.edu, DCP@QUABBIN.SCRC.Symbolics.COM, Masinter
+
+As penance for having dropped this simple issue, I offer you version 2.
+I moved some of the discussion around, added a (not very good) example.
+This issue sports the new "Cost to implementors" and "Cost to users" section
+headings. 
+
+A better or more compelling example is welcome.
+
+
+Issue:        ASSOC-RASSOC-IF-KEY
+References:   ASSOC-IF (p280), ASSOC-IF-NOT (p280), RASSOC-IF (p281),
+              RASSOC-IF-NOT (p281)
+Category:     ENHANCEMENT
+Edit history: 22-Apr-87, Version 1 by Pitman
+              20-Nov-87, Version 2 by Masinter
+
+Problem Description:
+
+The descriptions of ASSOC-IF, ASSOC-IF-NOT, RASSOC-IF, and RASSOC-IF-NOT
+do not mention a :KEY option, although ASSOC and RASSOC have one.
+
+Proposal (ASSOC-RASSOC-IF-KEY:YES):
+
+Allow a :KEY keyword for ASSOC-IF, ASSOC-IF-NOT, RASSOC-IF, and RASSOC-IF-NOT.
+If not supplied, it should default to #'IDENTITY as do the :KEY keywords
+for other -IF and -IF-NOT functions. The function, as with the :KEY argument
+for ASSOC and RASSOC, are applied to the CAR of the pair in the association
+list.
+
+Documentation impact:
+
+A better description of the intent might be to say that the car /contains/
+the key of the association, and by default the car /is/ the key of the
+association.
+
+Example:
+
+(assoc-if #'zerop pathnames :key #'pathname-version)
+
+could be used to search a list indexed by pathnames finding one
+with zero version. 
+
+Rationale:
+
+This is an inconsistency in the language which is simple to fix.
+
+Current Practice:
+
+Symbolics implements :KEY for the -IF and -IF-NOT assoc functions.
+Franz and Xerox follow the book. TI Explorer doe not allow :KEY at all.
+
+Cost to Common Lisp implementors:
+
+A small amount of additional code is necessary to support this in 
+implementations not already offering it as an extension.
+
+Cost to Common Lisp users:
+
+The change is essentially upward compatible with user code.
+
+Benefits:
+
+This would make the set of -IF and -IF-NOT functions be more regular in
+their calling conventions.
+
+Aesthetics:
+
+All the other -IF and -IF-NOT variations of list operations omit the
+:TEST and :TEST-NOT keywords, but allow :KEY. For example, consider
+the family of MEMBER, MEMBER-IF, and MEMBER-IF-NOT. 
+Although this introduces additional mechanism, it does so in a way that
+probably makes it easier to think about which functions do what, so it
+would likely be seen as a simplification.
+
+Discussion:
+
+The omission of :KEY in this situation in CLtL was probably an
+oversight.
+
+The cleanup committee supports this change/clarification.
+*start*
+03117 00024 US 
+Return-Path: <CL-Cleanup-mailer@SAIL.Stanford.EDU>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 20 NOV 87 12:25:30 PST
+Received: from XEROX.COM by SAIL.STANFORD.EDU with TCP; 20 Nov 87  12:20:18 PST
+Received: from Cabernet.ms by ArpaGateway.ms ; 20 NOV 87 12:19:18 PST
+Date: 20 Nov 87 12:19 PST
+From: Masinter.pa
+Subject: Issue: ASSOC-RASSOC-IF-KEY (Version 2)
+To: CL-Cleanup@SAIL.STANFORD.EDU
+line-fold: NO
+cc: vax135!lcuxle!elia@ucbvax.Berkeley.edu, DCP@QUABBIN.SCRC.Symbolics.COM, Masinter.pa
+Message-ID: <871120-121918-1812@Xerox>
+
+As penance for having dropped this simple issue, I offer you version 2.
+I moved some of the discussion around, added a (not very good) example.
+This issue sports the new "Cost to implementors" and "Cost to users" section
+headings. 
+
+A better or more compelling example is welcome.
+
+!
+Issue:        ASSOC-RASSOC-IF-KEY
+References:   ASSOC-IF (p280), ASSOC-IF-NOT (p280), RASSOC-IF (p281),
+              RASSOC-IF-NOT (p281)
+Category:     ENHANCEMENT
+Edit history: 22-Apr-87, Version 1 by Pitman
+              20-Nov-87, Version 2 by Masinter
+
+Problem Description:
+
+The descriptions of ASSOC-IF, ASSOC-IF-NOT, RASSOC-IF, and RASSOC-IF-NOT
+do not mention a :KEY option, although ASSOC and RASSOC have one.
+
+Proposal (ASSOC-RASSOC-IF-KEY:YES):
+
+Allow a :KEY keyword for ASSOC-IF, ASSOC-IF-NOT, RASSOC-IF, and RASSOC-IF-NOT.
+If not supplied, it should default to #'IDENTITY as do the :KEY keywords
+for other -IF and -IF-NOT functions. The function, as with the :KEY argument
+for ASSOC and RASSOC, are applied to the CAR of the pair in the association
+list.
+
+Documentation impact:
+
+A better description of the intent might be to say that the car /contains/
+the key of the association, and by default the car /is/ the key of the
+association.
+
+Example:
+
+(assoc-if #'zerop pathnames :key #'pathname-version)
+
+could be used to search a list indexed by pathnames finding one
+with zero version. 
+
+Rationale:
+
+This is an inconsistency in the language which is simple to fix.
+
+Current Practice:
+
+Symbolics implements :KEY for the -IF and -IF-NOT assoc functions.
+Franz and Xerox follow the book. TI Explorer doe not allow :KEY at all.
+
+Cost to Common Lisp implementors:
+
+A small amount of additional code is necessary to support this in 
+implementations not already offering it as an extension.
+
+Cost to Common Lisp users:
+
+The change is essentially upward compatible with user code.
+
+Benefits:
+
+This would make the set of -IF and -IF-NOT functions be more regular in
+their calling conventions.
+
+Aesthetics:
+
+All the other -IF and -IF-NOT variations of list operations omit the
+:TEST and :TEST-NOT keywords, but allow :KEY. For example, consider
+the family of MEMBER, MEMBER-IF, and MEMBER-IF-NOT. 
+Although this introduces additional mechanism, it does so in a way that
+probably makes it easier to think about which functions do what, so it
+would likely be seen as a simplification.
+
+Discussion:
+
+The omission of :KEY in this situation in CLtL was probably an
+oversight.
+
+The cleanup committee supports this change/clarification.
+
+*start*
+01468 00024 US 
+Return-Path: <DCP@ALLEGHENY.SCRC.Symbolics.COM>
+Received: from ALLEGHENY.SCRC.Symbolics.COM ([128.81.41.45]) by Xerox.COM ; 20 NOV 87 13:06:55 PST
+Received: from SWAN.SCRC.Symbolics.COM by ALLEGHENY.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 73905; Fri 20-Nov-87 15:39:28 EST
+Date: Fri, 20 Nov 87 15:39 EST
+From: David C. Plummer <DCP@QUABBIN.SCRC.Symbolics.COM>
+Subject: Issue: ASSOC-RASSOC-IF-KEY (Version 2)
+To: Masinter.pa
+In-Reply-To: <871120-121918-1812@Xerox>
+Message-ID: <19871120203912.4.DCP@SWAN.SCRC.Symbolics.COM>
+
+    Date: 20 Nov 87 12:19 PST
+    From: Masinter.pa@Xerox.COM
+
+    As penance for having dropped this simple issue, I offer you version 2.
+    I moved some of the discussion around, added a (not very good) example.
+    This issue sports the new "Cost to implementors" and "Cost to users" section
+    headings. 
+
+Small clarification.  To you only; all others removed.
+
+	...
+    Proposal (ASSOC-RASSOC-IF-KEY:YES):
+
+    Allow a :KEY keyword for ASSOC-IF, ASSOC-IF-NOT, RASSOC-IF, and RASSOC-IF-NOT.
+    If not supplied, it should default to #'IDENTITY as do the :KEY keywords
+    for other -IF and -IF-NOT functions. The function, as with the :KEY argument
+    for ASSOC and RASSOC, are applied to the CAR of the pair in the association
+    list.
+
+The :KEY argument for RASSOC should be applied to the CDR.  The last
+sentence above implies the :KEY argument is applied to the CAR for both
+ASSOC and RASSOC.
+
+	...
+
+*start*
+02680 00024 US 
+Date: 20 Nov 87 13:19 PST
+From: Masinter.pa
+Subject: Issue: ASSOC-RASSOC-IF-KEY (Version 3)
+To: CL-Cleanup@SAIL.STANFORD.EDU
+line-fold: NO
+Supercedes: <871120-121918-1812@Xerox>
+cc: vax135!lcuxle!elia@ucbvax.Berkeley.edu, DCP@QUABBIN.SCRC.Symbolics.COM, Masinter
+
+Version 2 had a mistake. The :KEY is applied to the CDR in RASSOC.
+
+
+Issue:        ASSOC-RASSOC-IF-KEY
+References:   ASSOC-IF (p280), ASSOC-IF-NOT (p280), RASSOC-IF (p281),
+              RASSOC-IF-NOT (p281)
+Category:     ENHANCEMENT
+Edit history: 22-Apr-87, Version 1 by Pitman
+              20-Nov-87, Versions 2,3 by Masinter
+
+Problem Description:
+
+The descriptions of ASSOC-IF, ASSOC-IF-NOT, RASSOC-IF, and RASSOC-IF-NOT
+do not mention a :KEY option, although ASSOC and RASSOC have one.
+
+Proposal (ASSOC-RASSOC-IF-KEY:YES):
+
+Allow a :KEY keyword for ASSOC-IF, ASSOC-IF-NOT, RASSOC-IF, and RASSOC-IF-NOT.
+If not supplied, it should default to #'IDENTITY as do the :KEY keywords
+for other -IF and -IF-NOT functions. The function, as with the :KEY argument
+for ASSOC and RASSOC, are applied to the CAR of the pair in the association
+list for ASSOC-IF and ASSOC-IF-NOT and the CDR of the pair for RASSOC-IF and
+RASSOC-IF-NOT.
+
+Documentation impact:
+
+A better description of the intent might be to say that the car /contains/
+the key of the association, and by default the car /is/ the key of the
+association.
+
+Example:
+
+(assoc-if #'zerop pathnames :key #'pathname-version)
+
+could be used to search a list indexed by pathnames finding one
+with zero version. 
+
+Rationale:
+
+This is an inconsistency in the language which is simple to fix.
+
+Current Practice:
+
+Symbolics implements :KEY for the -IF and -IF-NOT assoc functions.
+Franz and Xerox follow the book. TI Explorer doe not allow :KEY at all.
+
+Cost to Common Lisp implementors:
+
+A small amount of additional code is necessary to support this in 
+implementations not already offering it as an extension.
+
+Cost to Common Lisp users:
+
+The change is essentially upward compatible with user code.
+
+Benefits:
+
+This would make the set of -IF and -IF-NOT functions be more regular in
+their calling conventions.
+
+Aesthetics:
+
+All the other -IF and -IF-NOT variations of list operations omit the
+:TEST and :TEST-NOT keywords, but allow :KEY. For example, consider
+the family of MEMBER, MEMBER-IF, and MEMBER-IF-NOT. 
+Although this introduces additional mechanism, it does so in a way that
+probably makes it easier to think about which functions do what, so it
+would likely be seen as a simplification.
+
+Discussion:
+
+The omission of :KEY in this situation in CLtL was probably an
+oversight.
+
+The cleanup committee supports this change/clarification.
+*start*
+03031 00024 US 
+Return-Path: <CL-Cleanup-mailer@SAIL.Stanford.EDU>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 20 NOV 87 13:31:54 PST
+Received: from XEROX.COM by SAIL.STANFORD.EDU with TCP; 20 Nov 87  13:27:32 PST
+Received: from Cabernet.ms by ArpaGateway.ms ; 20 NOV 87 13:20:00 PST
+Date: 20 Nov 87 13:19 PST
+From: Masinter.pa
+Subject: Issue: ASSOC-RASSOC-IF-KEY (Version 3)
+To: CL-Cleanup@SAIL.STANFORD.EDU
+line-fold: NO
+Supercedes: <871120-121918-1812@Xerox>
+cc: vax135!lcuxle!elia@ucbvax.Berkeley.edu, DCP@QUABBIN.SCRC.Symbolics.COM, Masinter.pa
+Message-ID: <871120-132000-1924@Xerox>
+
+Version 2 had a mistake. The :KEY is applied to the CDR in RASSOC.
+
+!
+Issue:        ASSOC-RASSOC-IF-KEY
+References:   ASSOC-IF (p280), ASSOC-IF-NOT (p280), RASSOC-IF (p281),
+              RASSOC-IF-NOT (p281)
+Category:     ENHANCEMENT
+Edit history: 22-Apr-87, Version 1 by Pitman
+              20-Nov-87, Versions 2,3 by Masinter
+
+Problem Description:
+
+The descriptions of ASSOC-IF, ASSOC-IF-NOT, RASSOC-IF, and RASSOC-IF-NOT
+do not mention a :KEY option, although ASSOC and RASSOC have one.
+
+Proposal (ASSOC-RASSOC-IF-KEY:YES):
+
+Allow a :KEY keyword for ASSOC-IF, ASSOC-IF-NOT, RASSOC-IF, and RASSOC-IF-NOT.
+If not supplied, it should default to #'IDENTITY as do the :KEY keywords
+for other -IF and -IF-NOT functions. The function, as with the :KEY argument
+for ASSOC and RASSOC, are applied to the CAR of the pair in the association
+list for ASSOC-IF and ASSOC-IF-NOT and the CDR of the pair for RASSOC-IF and
+RASSOC-IF-NOT.
+
+Documentation impact:
+
+A better description of the intent might be to say that the car /contains/
+the key of the association, and by default the car /is/ the key of the
+association.
+
+Example:
+
+(assoc-if #'zerop pathnames :key #'pathname-version)
+
+could be used to search a list indexed by pathnames finding one
+with zero version. 
+
+Rationale:
+
+This is an inconsistency in the language which is simple to fix.
+
+Current Practice:
+
+Symbolics implements :KEY for the -IF and -IF-NOT assoc functions.
+Franz and Xerox follow the book. TI Explorer doe not allow :KEY at all.
+
+Cost to Common Lisp implementors:
+
+A small amount of additional code is necessary to support this in 
+implementations not already offering it as an extension.
+
+Cost to Common Lisp users:
+
+The change is essentially upward compatible with user code.
+
+Benefits:
+
+This would make the set of -IF and -IF-NOT functions be more regular in
+their calling conventions.
+
+Aesthetics:
+
+All the other -IF and -IF-NOT variations of list operations omit the
+:TEST and :TEST-NOT keywords, but allow :KEY. For example, consider
+the family of MEMBER, MEMBER-IF, and MEMBER-IF-NOT. 
+Although this introduces additional mechanism, it does so in a way that
+probably makes it easier to think about which functions do what, so it
+would likely be seen as a simplification.
+
+Discussion:
+
+The omission of :KEY in this situation in CLtL was probably an
+oversight.
+
+The cleanup committee supports this change/clarification.
+
+*start*
+00239 00024 US 
+Date: Fri, 20 Nov 87 13:39:50 PST
+From: Pavel.pa
+Subject: Re: Issue: ASSOC-RASSOC-IF-KEY (Version 3)
+In-reply-to: <871120-132000-1924@Xerox>
+To: Masinter
+
+In the Rationale section, "which" should be "that".
+
+	Pavel
+*start*
+02092 00024 US 
+Originator: Common-Lisp-mailer%SAIL.Stanford:EDU:Xerox
+Date: 20 Nov 87 15:10
+From: Cerys%XX.LCS.MIT:EDU:Xerox
+Subject: Re: assoc question
+In-Reply-to: Msg of Thu, 19 Nov 87 10:41:03 EST from vax135!lcuxle!elia@ucbvax.Berkeley.EDU (Weixelbaum Elia)
+To: vax135!lcuxle!elia%ucbvax.Berkeley:EDU:Xerox
+cc: common-lisp%sail.stanford:EDU:Xerox
+
+GVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGV
+From: "Daniel L. Cerys" <Cerys@XX.LCS.MIT.EDU>
+To: vax135!lcuxle!elia@ucbvax.Berkeley.EDU (Weixelbaum Elia)
+Cc: common-lisp@sail.stanford.edu
+Subject: Re: assoc question
+In-Reply-To: Msg of Thu, 19 Nov 87 10:41:03 EST from vax135!lcuxle!elia@ucbvax.Berkeley.EDU (Weixelbaum Elia)
+Return-Path: <Common-Lisp-mailer@SAIL.Stanford.EDU>
+Redistributed: Xerox-Common-Lisp^.x
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 20 NOV 87 15:10:08 PST
+Received: from XX.LCS.MIT.EDU by SAIL.STANFORD.EDU with TCP; 20 Nov 87  14:29:22 PST
+Received: from RTS-12.LCS.MIT.EDU by XX.LCS.MIT.EDU via Chaosnet; 20 Nov 87 17:22-EST
+Message-Id: <2773434123-6011396@RTS-12>
+Original-Date: Fri, 20 Nov 87 17:22:03 EST
+GVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGV
+
+> Franz Common Lisp and Xerox Common Lisp
+> follow the book and permit :key for just assoc (and rassoc), while KCL and
+> TI Explorer don't allow :key at all.
+
+On your Explorer, you are probably either using Zetalisp or you are
+running with very old software (Release 2).  The Common-Lisp ASSOC
+in Release 3.0 of the Explorer follows CLtL and allows for a :KEY arg.
+
+>  In any event, there should certainly
+> not be an inconsistency.
+
+I agree, but I think all of the ASSOC functions should accept a :KEY
+arg.  Alists are commonly used in Lisp.  Of the following, the ASSOC-IF
+version is much easier to read.
+
+;;ALIST is an alist where the CAR's are objects (eg persons)
+(assoc-if #'over-the-hill-p alist :key #'age)
+(find-if #'over-the-hill-p alist :key #'(lambda (x) (age (car x))))
+
+Since alists are in common use, and it would make the ASSOC functions
+consistent with FIND et al, the ASSOC functions should also accept :KEY
+args.
+
+
+*start*
+03366 00024 USm
+Date: 23 Nov 87 12:42 PST
+From: Masinter.pa
+Subject: Issue: ASSOC-RASSOC-IF-KEY (Version 4)
+To: CL-Cleanup@SAIL.STANFORD.EDU
+cc: Masinter
+line-fold: NO
+
+I should know better than to take a second-hand report on current practice.
+I removed the mention of TI. In response to a private message, I changed
+ a which to that (or was it a that to a which). Whichever thatever was,
+I fixed it, lest this turn into another which-hunt.
+Given the amount of mail on the Common Lisp mailing list, I felt justified
+in saying that this was often reported as an inconsistency... at least it
+makes it sound like a problem.
+
+
+
+Issue:        ASSOC-RASSOC-IF-KEY
+References:   ASSOC-IF (p280), ASSOC-IF-NOT (p280), RASSOC-IF (p281),
+              RASSOC-IF-NOT (p281)
+Category:     ENHANCEMENT
+Edit history: 22-Apr-87, Version 1 by Pitman
+              20-Nov-87, Versions 2,3 by Masinter
+              23-Nov-87, Version 4 by Masinter
+
+Problem Description:
+
+The descriptions of ASSOC-IF, ASSOC-IF-NOT, RASSOC-IF, and RASSOC-IF-NOT
+do not mention a :KEY option, although ASSOC and RASSOC have one. 
+
+This is often reported as an inconsistency in Common Lisp.
+
+Proposal (ASSOC-RASSOC-IF-KEY:YES):
+
+Allow a :KEY keyword for ASSOC-IF, ASSOC-IF-NOT, RASSOC-IF, and RASSOC-IF-NOT.
+If not supplied, it should default to #'IDENTITY as do the :KEY keywords
+for other -IF and -IF-NOT functions. The function, as with the :KEY argument
+for ASSOC and RASSOC, are applied to the CAR of the pair in the association
+list for ASSOC-IF and ASSOC-IF-NOT and the CDR of the pair for RASSOC-IF and
+RASSOC-IF-NOT.
+
+Documentation impact:
+
+A better description of the intent might be to say that the car /contains/
+the key of the association, and by default the car /is/ the key of the
+association.
+
+Example:
+
+(assoc-if #'zerop pathnames :key #'pathname-version)
+
+could be used to search a list indexed by pathnames finding one
+with zero version. 
+
+Rationale:
+
+This is an inconsistency in the language that is simple to fix.
+
+Current Practice:
+
+Symbolics implements :KEY for the -IF and -IF-NOT assoc functions.
+Others follow the book and allow :KEY only for ASSOC.
+
+Cost to Common Lisp implementors:
+
+A small amount of additional code is necessary to support this in 
+implementations not already offering it as an extension.
+
+Cost to Common Lisp users:
+
+The change is essentially upward compatible with user code.
+
+Benefits:
+
+This would make the set of -IF and -IF-NOT functions be more regular in
+their calling conventions.
+
+Aesthetics:
+
+All the other -IF and -IF-NOT variations of list operations omit the
+:TEST and :TEST-NOT keywords, but allow :KEY. For example, consider
+the family of MEMBER, MEMBER-IF, and MEMBER-IF-NOT. 
+Although this introduces additional mechanism, it does so in a way that
+probably makes it easier to think about which functions do what, so it
+would likely be seen as a simplification.
+
+Discussion:
+
+The omission of :KEY in this situation in CLtL was probably an
+oversight.
+
+The cleanup committee supports this proposal.
+        TITAN          TITAN           b                            [                     
+       ‚              Ê       $                    ¡       	       Œ              B              {       "       ~              >       
+       e             y              z      Á zº*start*
+00710 00024 US 
+Return-Path: <CL-Cleanup-mailer@SAIL.Stanford.EDU>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 23 NOV 87 18:19:55 PST
+Received: from SCRC-STONY-BROOK.ARPA by SAIL.STANFORD.EDU with TCP; 23 Nov 87  18:18:33 PST
+Received: from EUPHRATES.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 287398; Mon 23-Nov-87 21:18:17 EST
+Date: Mon, 23 Nov 87 21:18 EST
+From: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: Issue: ASSOC-RASSOC-IF-KEY (Version 4)
+To: CL-Cleanup@SAIL.STANFORD.EDU
+In-Reply-To: <871123-124211-2551@Xerox>
+Message-ID: <19871124021819.5.MOON@EUPHRATES.SCRC.Symbolics.COM>
+
+This looks fine.
+
+*start*
+00598 00024 US 
+Return-Path: <gls@Think.COM>
+Received: from Think.COM by Xerox.COM ; 02 DEC 87 14:22:53 PST
+Return-Path: <gls@Think.COM>
+Received: from kali.think.com by Think.COM; Wed, 2 Dec 87 17:20:55 EST
+Received: by kali.think.com; Wed, 2 Dec 87 17:20:50 EST
+Date: Wed, 2 Dec 87 17:20:50 EST
+From: gls@Think.COM
+Message-Id: <8712022220.AA04840@kali.think.com>
+To: Masinter.pa
+Cc: CL-Cleanup@sail.stanford.edu
+In-Reply-To: Masinter.pa@xerox.com's message of 23 Nov 87 12:42 PST <871123-124211-2551@Xerox>
+Subject: Issue: ASSOC-RASSOC-IF-KEY (Version 4)
+
+I am indifferent on this issue.
+*start*
+03032 00024 US 
+Date: 14 Feb 88 11:03 PST
+From: Masinter.pa
+Subject: Issue: ASSOC-RASSOC-IF-KEY (Version 4)
+To: X3J13@Sail.stanford.edu
+cc: Masinter
+reply-to: CL-CLEANUP@Sail.Stanford.EDU
+
+This issue is new.
+
+
+Issue:        ASSOC-RASSOC-IF-KEY
+References:   ASSOC-IF (p280), ASSOC-IF-NOT (p280), RASSOC-IF (p281),
+              RASSOC-IF-NOT (p281)
+Category:     ENHANCEMENT
+Edit history: 22-Apr-87, Version 1 by Pitman
+              20-Nov-87, Versions 2,3 by Masinter
+              23-Nov-87, Version 4 by Masinter
+
+Problem Description:
+
+The descriptions of ASSOC-IF, ASSOC-IF-NOT, RASSOC-IF, and RASSOC-IF-NOT do not mention a :KEY option, although ASSOC and RASSOC have one. 
+
+This is often reported as an inconsistency in Common Lisp.
+
+Proposal (ASSOC-RASSOC-IF-KEY:YES):
+
+Allow a :KEY keyword for ASSOC-IF, ASSOC-IF-NOT, RASSOC-IF, and RASSOC-IF-NOT. If not supplied, it should default to #'IDENTITY as do the :KEY keywords for other -IF and -IF-NOT functions. The function, as with the :KEY argument for ASSOC and RASSOC, is applied to the CAR of the pair in the association list for ASSOC-IF and ASSOC-IF-NOT and the CDR of the pair for RASSOC-IF and RASSOC-IF-NOT.
+
+Documentation impact:
+
+A better description of the intent might be to say that the car /contains/ the key of the association, and by default the car /is/ the key of the association.
+
+Example:
+
+(assoc-if #'zerop pathnames :key #'pathname-version)
+
+could be used to search a list indexed by pathnames finding one with zero version. 
+
+Rationale:
+
+This is an inconsistency in the language that is simple to fix.
+
+Current Practice:
+
+Symbolics implements :KEY for the -IF and -IF-NOT assoc functions. Others follow the book and allow :KEY only for ASSOC.
+
+Cost to Common Lisp implementors:
+
+A small amount of additional code is necessary to support this in implementations not already offering it as an extension.
+
+Cost to Common Lisp users:
+
+The change is essentially upward compatible with user code.
+
+Benefits:
+
+This would make the set of -IF and -IF-NOT functions be more regular in their calling conventions.
+
+Aesthetics:
+
+All the other -IF and -IF-NOT variations of list operations omit the :TEST and :TEST-NOT keywords, but allow :KEY. For example, consider the family of MEMBER, MEMBER-IF, and MEMBER-IF-NOT. Although this introduces additional mechanism, it does so in a way that probably makes it easier to think about which functions do what, so it would likely be seen as a simplification.
+
+Discussion:
+
+The omission of :KEY in this situation in CLtL was probably an oversight.
+
+The cleanup committee supports this proposal.
+
+        TITAN 
+         TITAN 
+          TITAN 
+          TITAN            \              
+       '                                   [                     
+       ‚              Ê       $      Ž              ¡       	       Œ              B              {       "       }              >       
+       e             x              z             
+  $zº

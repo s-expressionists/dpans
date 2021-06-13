@@ -1,0 +1,1252 @@
+*start*
+03082 00024 USf
+Return-Path: <@SAIL.STANFORD.EDU:KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 22 APR 87 13:47:08 PDT
+Received: from SCRC-STONY-BROOK.ARPA by SAIL.STANFORD.EDU with TCP; 22 Apr 87  13:43:20 PDT
+Received: from RIO-DE-JANEIRO.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 122090; Wed 22-Apr-87 16:42:48 EDT
+Date: Wed, 22 Apr 87 16:43 EDT
+From: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: AREF-1D
+To: CL-Cleanup@SAIL.STANFORD.EDU
+cc: KMP@STONY-BROOK.SCRC.Symbolics.COM
+Message-ID: <870422164300.0.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+
+Issue:        AREF-1D
+References:   Arrays (pp286-298)
+Category:     ENHANCEMENT
+Edit history: 22-Apr-87, Version 1 by Pitman
+Status:	      For Internal Discussion
+
+Problem Description:
+
+  It's hard to write functions like Maclisp's LISTARRAY and FILLARRAY
+  efficiently in Common Lisp because they take arguments of varying
+  arity. Currently, you have to make a displaced array to work with
+  temporarily and then throw away the displaced array when you're done.
+  In the case of FILLARRAY, I find this bothersome because there is no
+  a priori reason why FILLARRAY should have to cons at all.
+
+Proposal (AREF-1D:YES):
+
+  Introduce a new function AREF-1D which allows 1D access to the storage
+  backing up a given array assuming the normal row-major storage layout.
+
+  This accessor should be valid for use with SETF.
+
+Rationale:
+
+  We already document the row-major storage layout and have a number of
+  operators which allow users to exploit that order. This would be a 
+  useful addition.
+
+  LISTARRAY and FILLARRAY, for example, could be trivially defined by
+  loops which had the following form:
+
+    (DOTIMES (I (ARRAY-TOTAL-SIZE ARRAY))
+      ... (AREF-1D ARRAY I) ...)
+
+  Currently, the only really efficient way to write this involves
+  something like:
+
+    (ECASE (ARRAY-RANK ARRAY1)
+      ((0) (SETF (AREF ARRAY1) (AREF ARRAY2)))
+      ((1) (DOTIMES (I (ARRAY-DIMENSION ARRAY 0))
+	     (SETF (AREF ARRAY1 I) (AREF ARRAY2 I))))
+      ((2) (DOTIMES (I (ARRAY-DIMENSION ARRAY 0))
+	     (DOTIMES (I (ARRAY-DIMENSION ARRAY 1))
+	       (SETF (AREF ARRAY1 I J) (AREF ARRAY2 I J)))))
+      ...some finite number of clauses...)
+
+Current Practice:
+
+  Many implementations have this primitive under some other name
+  for use internally. In Symbolics systems, for example, it is SYS:%1D-AREF.
+
+Adoption Cost:
+
+  This change is fairly localized. In implementations which already use
+  this primitive internally, it's little more than a matter of changing the
+  name of or otherwise releasing the existing primitive. In some implementations,
+  it might involve writing a small amount of code (and associated compiler
+  optimizers).
+
+Benefits:
+
+  This gives users efficient access to something which they already have
+  inefficient access to.
+
+Conversion Cost:
+
+  This is an upward-compatible change.
+
+Aesthetics:
+
+  I think this allows certain programs to be written in a more aesthetic way.
+
+Discussion:
+
+  KMP supports this change.
+
+*start*
+01666 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Received: from SAIL.STANFORD.EDU ([10.0.0.11]) by Xerox.COM ; 23 APR 87 14:57:28 PDT
+Received: from SCRC-STONY-BROOK.ARPA by SAIL.STANFORD.EDU with TCP; 23 Apr 87  14:53:22 PDT
+Received: from EUPHRATES.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 123312; Thu 23-Apr-87 17:50:35 EDT
+Date: Thu, 23 Apr 87 17:50 EDT
+From: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: AREF-1D
+To: Guy Steele <gls@Think.COM>
+cc: KMP@STONY-BROOK.SCRC.Symbolics.COM, CL-Cleanup@sail.stanford.edu
+In-Reply-To: <870423173318.9.GLS@JOHN-THE-SCOT.THINK.COM>
+Message-ID: <870423175014.9.MOON@EUPHRATES.SCRC.Symbolics.COM>
+
+    Date: Thu, 23 Apr 87 17:33 EDT
+    From: Guy Steele <gls@Think.COM>
+
+    Note that I had proposed something like this to be called
+    AREF-ROW-MAJOR-ORDER.  It may be that that proposal had
+    some relevant material that KMP might want to take into account.
+    Then again, maybe he already did.  That name is too long,
+    but I feel that the row-majorness should be part of the name.
+    How about ROW-MAJOR-AREF?  But I don't feel strongly about it.
+    Otherwise I support the proposal.
+
+row-major-aref or aref-row-major would be good names.  I think
+KMP's suggested function is sufficiently specialized that it does
+not need an especially short name.
+
+    Ah.  I recall that perhaps I had suggested having also
+    a function ROW-MAJOR-INDEX that takes an array and a bunch
+    of subscripts, just like AREF, and returns the row-major
+    index of that element.
+
+array-row-major-index is already in the language.
+
+*start*
+01207 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:gls@Think.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 23 APR 87 16:54:57 PDT
+Received: from THINK.COM by SAIL.STANFORD.EDU with TCP; 23 Apr 87  14:32:25 PDT
+Received: from johannes-scotus-erigena by Think.COM via CHAOS; Thu, 23 Apr 87 16:36:10 EST
+Date: Thu, 23 Apr 87 17:33 EDT
+From: Guy Steele <gls@Think.COM>
+Subject: AREF-1D
+To: KMP@stony-brook.scrc.symbolics.com, CL-Cleanup@sail.stanford.edu
+Cc: gls@think.com
+In-Reply-To: <870422164300.0.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+Message-Id: <870423173318.9.GLS@JOHN-THE-SCOT.THINK.COM>
+
+Note that I had proposed something like this to be called
+AREF-ROW-MAJOR-ORDER.  It may be that that proposal had
+some relevant material that KMP might want to take into account.
+Then again, maybe he already did.  That name is too long,
+but I feel that the row-majorness should be part of the name.
+How about ROW-MAJOR-AREF?  But I don't feel strongly about it.
+Otherwise I support the proposal.
+
+Ah.  I recall that perhaps I had suggested having also
+a function ROW-MAJOR-INDEX that takes an array and a bunch
+of subscripts, just like AREF, and returns the row-major
+index of that element.
+
+--Guy
+
+*start*
+01149 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:edsel!bhopal!jonl@navajo.stanford.edu>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 23 APR 87 22:11:21 PDT
+Received: from NAVAJO.STANFORD.EDU by SAIL.STANFORD.EDU with TCP; 23 Apr 87  22:09:05 PDT
+Received: by navajo.stanford.edu; Thu, 23 Apr 87 21:08:20 PST
+Received: from bhopal.edsel.com by edsel.uucp (2.2/SMI-2.0)
+	id AA25436; Thu, 23 Apr 87 20:39:17 pst
+Received: by bhopal.edsel.com (3.2/SMI-3.2)
+	id AA06857; Thu, 23 Apr 87 21:36:52 PDT
+Date: Thu, 23 Apr 87 21:36:52 PDT
+From: edsel!bhopal!jonl@navajo.stanford.edu (Jon L White)
+Message-Id: <8704240436.AA06857@bhopal.edsel.com>
+To: navajo!gls%Think.COM@navajo.stanford.edu
+Cc: navajo!CL-Cleanup%sail@navajo.stanford.edu
+In-Reply-To: Guy Steele's message of Thu, 23 Apr 87 17:33 EDT
+Subject: AREF-1D
+
+Your "clarifications" of 6-Dec-85 (distributed at the Boston Meeting
+of what eventually became X3J13) added a function named ROW-MAJOR-AREF.
+
+Since CLtL already specified ARRAY-ROW-MAJOR-INDEX, this addition seemed 
+very natural and "called for".  So Lucid Common Lisp has had it available
+since shortly thereafter.
+
+
+-- JonL --
+
+*start*
+01929 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 23 APR 87 22:58:28 PDT
+Received: from SCRC-STONY-BROOK.ARPA by SAIL.STANFORD.EDU with TCP; 23 Apr 87  22:52:33 PDT
+Received: from RIO-DE-JANEIRO.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 123714; Fri 24-Apr-87 01:52:42 EDT
+Date: Fri, 24 Apr 87 01:52 EDT
+From: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: AREF-1D
+To: CL-Cleanup@SAIL.STANFORD.EDU
+cc: KMP@STONY-BROOK.SCRC.Symbolics.COM
+In-Reply-To: <8704240436.AA06857@bhopal.edsel.com>
+Message-ID: <870424015232.8.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+
+The reason for the name clash is that I wasn't looking at Steele's 
+corrections list at the time I generated the proposal. It was on an
+independent list of Macsyma-related issues of my own. Sorry for the
+confusion.
+
+The fact that the row-major feature is built into more functions than
+just those which have the phrase "ROW-MAJOR" in them (eg, displaced
+arrays) leads me to believe that the phrase ROW-MAJOR is just redundant. 
+Also, I don't like the phrase "ROW-MAJOR" because it feels very 2d
+because the term row seems to apply to 2d matrices. I know it's got a
+perfectly well-defined way of generalizing, but...
+
+Also, I thought a name with "1D" in it would emphasize that this was
+a non-standard access. I guess "ROW-MAJOR" does that, too, though.
+
+In any case, although I did have reasons for the choice of name, I'm
+not passionate about them. Since there's already a precedent for the
+other name, I'm happy to go with that. ROW-MAJOR-AREF is fine.
+
+By the way, I think an inverse to ARRAY-ROW-MAJOR-INDEX might nicely
+round out the set of operations which took an offset and either a list
+of dimensions or an array and returned the standard reference pattern
+might nicely round out the set of operations in this family...
+
+*start*
+00820 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:Masinter.pa@Xerox.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 27 APR 87 11:55:31 PDT
+Received: from XEROX.COM by SAIL.STANFORD.EDU with TCP; 27 Apr 87  11:51:52 PDT
+Received: from Cabernet.ms by ArpaGateway.ms ; 27 APR 87 11:43:07 PDT
+Date: 27 Apr 87 11:51 PDT
+From: Masinter.pa
+Subject: Re: AREF-1D, SEQUENCE-FUNCTIONS-EXCLUDE-ARRAYS
+In-reply-to: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>'s
+ message of Thu, 23 Apr 87 17:50 EDT
+To: CL-Cleanup@sail.stanford.edu
+Message-ID: <870427-114307-1095@Xerox>
+
+How does this (new) proposal relate to the (old) proposal by Touretsky?
+
+I'm uncomfortable leaving SEQUENCE-FUNCTIONS-EXCLUDE-ARRAYS unfinished
+while going ahead with a separate proposal which seems to relate to
+similar concerns.
+
+Comments?
+
+*start*
+02449 00024 US 
+Return-Path: <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Received: from STONY-BROOK.SCRC.Symbolics.COM (SCRC-STONY-BROOK.ARPA) by Xerox.COM ; 29 APR 87 11:31:31 PDT
+Received: from RIO-DE-JANEIRO.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 127310; Wed 29-Apr-87 14:18:24 EDT
+Date: Wed, 29 Apr 87 14:18 EDT
+From: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: Re: AREF-1D, SEQUENCE-FUNCTIONS-EXCLUDE-ARRAYS
+To: Masinter.pa
+cc: CL-Cleanup@sail.stanford.edu, Dave.Touretzky@C.CS.CMU.EDU
+In-Reply-To: <870427-114307-1095@Xerox>
+Message-ID: <870429141817.0.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+
+    Date: 27 Apr 87 11:51 PDT
+    From: Masinter.pa@Xerox.COM
+    Re:   AREF-1D, SEQUENCE-FUNCTIONS-EXCLUDE-ARRAYS
+
+    How does this (new) proposal relate to the (old) proposal by Touretsky?
+
+[For Touretzky's context, the "new" proposal being referred to was one to
+ introduce a function AREF-1D (later renamed to ROW-MAJOR-AREF to correspond
+ to a name chosen earlier by Steele in a suggested clarifications document
+ he distributed).]
+
+    I'm uncomfortable leaving SEQUENCE-FUNCTIONS-EXCLUDE-ARRAYS unfinished
+    while going ahead with a separate proposal which seems to relate to
+    similar concerns.
+
+    Comments?
+
+At first I wondered if the omission of a proposal to generalize AREF so
+that if you gave it a single index it (implicitly asserting it to be a 
+vector, and hence a sequence), then it should just do a 1-d AREF (as ELT
+would do). In fact, however, I think this would decrease error checking
+in an undesirable way and my guess is that Touretzky was being very
+deliberate in not including a proposal to do this.
+
+Moreover, although some compilers might treat
+ (ELT (THE ARRAY X) 3)
+as efficiently as
+ (ROW-MAJOR-AREF X 3)
+I don't think anyone would be willing to require such efficient treatment.
+In compilers which didn't optimize this (and in most interpreters, too)
+you'd still have to do the LISTP check before getting around to the
+implicit ROW-MAJOR-AREF. Although it isn't suggested that ROW-MAJOR-AREF
+is needed only for efficiency, it is true that most applications where it's
+likely to be used need maximal efficiency, so I think making it a separate
+primitive is appropriate.
+
+All this being said, I think it's safe to make these two proposals proceed
+in parallel without worrying that they conflict in some way. If you're not
+convinced, please let me know.
+
+*start*
+01091 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:gls@think.com>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 29 APR 87 14:08:38 PDT
+Received: from NAVAJO.STANFORD.EDU by SAIL.STANFORD.EDU with TCP; 29 Apr 87  14:05:52 PDT
+Received: from THINK.COM by navajo.stanford.edu with TCP; Wed, 29 Apr 87 14:04:23 PDT
+Received: from boethius by Think.COM via CHAOS; Wed, 29 Apr 87 15:20:50 EDT
+Date: Wed, 29 Apr 87 15:17 EDT
+From: Guy Steele <gls@think.com>
+Subject: AREF-1D
+To: edsel!bhopal!jonl@navajo.stanford.edu, navajo!gls%Think.COM@navajo.stanford.edu
+Cc: navajo!CL-Cleanup%sail@navajo.stanford.edu, gls@think.com
+In-Reply-To: <8704240436.AA06857@bhopal.edsel.com>
+Message-Id: <870429151757.5.GLS@BOETHIUS.THINK.COM>
+
+    Date: Thu, 23 Apr 87 21:36:52 PDT
+    From: edsel!bhopal!jonl@navajo.stanford.edu (Jon L White)
+
+    Since CLtL already specified ARRAY-ROW-MAJOR-INDEX, this addition seemed 
+    very natural and "called for".  So Lucid Common Lisp has had it available
+    since shortly thereafter.
+
+Foo.  It just goes to show that I can't remember what's in the book either.
+
+*start*
+01232 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:gls@Think.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 29 APR 87 14:08:47 PDT
+Received: from THINK.COM by SAIL.STANFORD.EDU with TCP; 29 Apr 87  14:04:18 PDT
+Received: from boethius by Think.COM via CHAOS; Wed, 29 Apr 87 15:19:45 EDT
+Date: Wed, 29 Apr 87 15:16 EDT
+From: Guy Steele <gls@Think.COM>
+Subject: AREF-1D
+To: CL-Cleanup@sail.stanford.edu
+In-Reply-To: <870424015232.8.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+Message-Id: <870429151657.4.GLS@BOETHIUS.THINK.COM>
+
+    Date: Fri, 24 Apr 87 01:52 EDT
+    From: Kent M Pitman <KMP@stony-brook.scrc.symbolics.com>
+
+    In any case, although I did have reasons for the choice of name, I'm
+    not passionate about them. Since there's already a precedent for the
+    other name, I'm happy to go with that. ROW-MAJOR-AREF is fine.
+
+I am not passionate either.  AREF-1D has the advantage of brevity.
+
+    By the way, I think an inverse to ARRAY-ROW-MAJOR-INDEX might nicely
+    round out the set of operations which took an offset and either a list
+    of dimensions or an array and returned the standard reference pattern
+    might nicely round out the set of operations in this family...
+
+This is a good idea.
+
+--Guy
+
+*start*
+00870 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:edsel!kent-state!eb@navajo.stanford.edu>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 01 JUN 87 14:51:23 PDT
+Received: from NAVAJO.STANFORD.EDU by SAIL.STANFORD.EDU with TCP; 1 Jun 87  14:49:34 PDT
+Received: by navajo.stanford.edu; Mon, 1 Jun 87 14:47:00 PDT
+Received: from kent-state.edsel.uucp by edsel.uucp (3.2/SMI-2.0)
+	id AA09873; Mon, 1 Jun 87 14:11:32 PDT
+Received: by kent-state.edsel.uucp (3.2/SMI-3.2)
+	id AA07192; Mon, 1 Jun 87 14:11:22 PDT
+Date: Mon, 1 Jun 87 14:11:22 PDT
+From: edsel!kent-state!eb@navajo.stanford.edu (Eric Benson)
+Message-Id: <8706012111.AA07192@kent-state.edsel.uucp>
+To: navajo!cl-cleanup%sail@navajo.stanford.edu
+Subject: AREF-1D
+
+I agree with Version 1, with one exception.  I prefer the name
+ROW-MAJOR-AREF to AREF-1D.  With this change I support releasing this
+proposal.
+
+*start*
+00556 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:Pavel.pa@Xerox.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 01 JUN 87 18:11:13 PDT
+Received: from XEROX.COM by SAIL.STANFORD.EDU with TCP; 1 Jun 87  18:09:44 PDT
+Received: from Cabernet.ms by ArpaGateway.ms ; 01 JUN 87 18:07:53 PDT
+Date: 1 Jun 87 18:07 PDT
+From: Pavel.pa
+Subject: AREF-1D
+To: cl-cleanup@sail.stanford.edu
+Message-ID: <870601-180753-3283@Xerox>
+
+I favor this proposal in principal, but would much rather use the more
+mnemonic name ROW-MAJOR-AREF instead of AREF-1D.
+
+	Pavel
+
+*start*
+00838 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 01 JUN 87 21:23:22 PDT
+Received: from SCRC-STONY-BROOK.ARPA by SAIL.STANFORD.EDU with TCP; 1 Jun 87  21:22:00 PDT
+Received: from EUPHRATES.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 161269; Tue 2-Jun-87 00:12:38 EDT
+Date: Tue, 2 Jun 87 00:12 EDT
+From: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: AREF-1D
+To: cl-cleanup@sail.stanford.edu
+In-Reply-To: <870601-180753-3283@Xerox>
+Message-ID: <870602001244.3.MOON@EUPHRATES.SCRC.Symbolics.COM>
+
+    Date: 1 Jun 87 18:07 PDT
+    From: Pavel.pa@Xerox.COM
+
+    I favor this proposal in principal, but would much rather use the more
+    mnemonic name ROW-MAJOR-AREF instead of AREF-1D.
+
+I agree.
+
+
+*start*
+03729 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 01 JUN 87 22:22:26 PDT
+Received: from SCRC-STONY-BROOK.ARPA by SAIL.STANFORD.EDU with TCP; 1 Jun 87  22:20:53 PDT
+Received: from RIO-DE-JANEIRO.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 161330; Tue 2-Jun-87 01:20:11 EDT
+Date: Tue, 2 Jun 87 01:22 EDT
+From: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: AREF-1D (Version 2)
+To: CL-Cleanup@SAIL.STANFORD.EDU
+In-Reply-To: <870422164300.0.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+Message-ID: <870602012209.2.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+
+I changed the name of the function from AREF-1D to ROW-MAJOR-AREF,
+re-filled some of the text to fit better in 80-columns, and marked
+KMP, GLS, Moon, JonL, Benson, and Pavel as supporting this amended
+version in the Discussion field. Other than that, no changes.
+
+-----Proposal Follows-----
+Issue:        AREF-1D
+References:   Arrays (pp286-298)
+Category:     ENHANCEMENT
+Edit history: 22-Apr-87, Version 1 by Pitman,
+	      02-Jun-87, Version 2 by Pitman (call it ROW-MAJOR-AREF)
+Status:	      For Internal Discussion
+
+Problem Description:
+
+  It's hard to write functions like Maclisp's LISTARRAY and FILLARRAY
+  efficiently in Common Lisp because they take arguments of varying
+  arity. Currently, you have to make a displaced array to work with
+  temporarily and then throw away the displaced array when you're done.
+  In the case of FILLARRAY, I find this bothersome because there is no
+  a priori reason why FILLARRAY should have to cons at all.
+
+Proposal (AREF-1D:ROW-MAJOR-AREF):
+
+  Introduce a new function ROW-MAJOR-AREF which allows 1D access to the
+  storage backing up a given array assuming the normal row-major storage
+  layout.
+
+  This accessor should be valid for use with SETF.
+
+Rationale:
+
+  We already document the row-major storage layout and have a number of
+  operators which allow users to exploit that order. This would be a 
+  useful addition.
+
+  LISTARRAY and FILLARRAY, for example, could be trivially defined by
+  loops which had the following form:
+
+    (DOTIMES (I (ARRAY-TOTAL-SIZE ARRAY))
+      ... (ROW-MAJOR-AREF ARRAY I) ...)
+
+  Currently, the only really efficient way to write this involves
+  something like:
+
+    (ECASE (ARRAY-RANK ARRAY1)
+      ((0) (SETF (AREF ARRAY1) (AREF ARRAY2)))
+      ((1) (DOTIMES (I (ARRAY-DIMENSION ARRAY 0))
+	     (SETF (AREF ARRAY1 I) (AREF ARRAY2 I))))
+      ((2) (DOTIMES (I (ARRAY-DIMENSION ARRAY 0))
+	     (DOTIMES (I (ARRAY-DIMENSION ARRAY 1))
+	       (SETF (AREF ARRAY1 I J) (AREF ARRAY2 I J)))))
+      ...some finite number of clauses...)
+
+Current Practice:
+
+  Many implementations have this primitive under some other name
+  for use internally. In Symbolics systems, for example, it is 
+  SYS:%1D-AREF.
+
+Adoption Cost:
+
+  This change is fairly localized. In implementations which already
+  use this primitive internally, it's little more than a matter of
+  changing the name of or otherwise releasing the existing primitive.
+  In some implementations, it might involve writing a small amount of
+  code (and associated compiler optimizers).
+
+Benefits:
+
+  This gives users efficient access to something which they already have
+  inefficient access to.
+
+Conversion Cost:
+
+  This is an upward-compatible change.
+
+Aesthetics:
+
+  I think this allows certain programs to be written in a more aesthetic way.
+
+Discussion:
+
+  KMP and GLS support this proposal.
+
+  Moon, JonL, Benson, and Pavel expressed conditional support of version 1,
+  asking that the name be changed from AREF-1D to ROW-MAJOR-AREF. KMP and
+  GLS did not oppose this change, so it was made for version 2.
+
+*start*
+03294 00024 USf
+Date:  4 Jun 87 17:25 PDT
+From: Masinter.pa
+Subject: AREF-1D (Version 3)
+To: CL-Cleanup@SAIL.STANFORD.EDU
+cc: Masinter
+
+
+Status: Ready for release. 
+
+I made the edits before seing Kent's revision, so I went ahead and merged his version and mine. I will mail this version out to X3J13 next week (unless I hear objections.)
+
+
+Issue:        AREF-1D
+References:   Arrays (pp286-298)
+Category:     ENHANCEMENT
+Edit history: 22-Apr-87, Version 1 by Pitman
+              02-Jun-87, Version 2 by Pitman (call it ROW-MAJOR-AREF)
+               4-Jun-87, Version 3 by Masinter (very minor editorial work)
+
+Problem Description:
+
+It's hard to write functions like Maclisp's LISTARRAY and FILLARRAY efficiently in Common Lisp because they take arguments of varying arity. Currently, you have to make a displaced array to work with temporarily and then throw away the displaced array when you're done. In many cases, this is bothersome because there is no a priori reason why they should have to cons at all.
+
+Proposal (AREF-1D:ROW-MAJOR-AREF):
+
+Introduce a new function ROW-MAJOR-AREF which allows one-dimensional access to the storage backing up a given array assuming the normal row-major storage layout.
+
+ROW-MAJOR-AREF is valid for use with SETF.
+
+Rationale:
+
+Common Lisp requires row-major storage layout of arrays and has a number of operators which allow users to exploit that order. ROW-MAJOR-AREF is a useful, simple addition.
+
+LISTARRAY and FILLARRAY, for example, could be trivially defined by loops which had the following form:
+
+    (DOTIMES (I (ARRAY-TOTAL-SIZE ARRAY))
+      ... (ROW-MAJOR-AREF ARRAY I) ...)
+
+Currently, the only really efficient way to write this would involve something like:
+
+    (ECASE (ARRAY-RANK ARRAY1)
+      ((0) (SETF (AREF ARRAY1) (AREF ARRAY2)))
+      ((1) (DOTIMES (I (ARRAY-DIMENSION ARRAY 0))
+	     (SETF (AREF ARRAY1 I) (AREF ARRAY2 I))))
+      ((2) (DOTIMES (I (ARRAY-DIMENSION ARRAY 0))
+	     (DOTIMES (I (ARRAY-DIMENSION ARRAY 1))
+	       (SETF (AREF ARRAY1 I J) (AREF ARRAY2 I J)))))
+      ...some finite number of clauses...)
+
+Current Practice:
+
+Many implementations have this primitive under some other name for use internally. In Symbolics systems, for example, it is SYS:%1D-AREF.
+
+Adoption Cost:
+
+This change is fairly localized. In implementations which already use this primitive internally, it's little more than a matter of changing the name of or otherwise releasing the existing primitive. In some implementations, it might involve writing a small amount of code or compiler work to make ROW-MAJOR-AREF work efficiently.
+
+Benefits:
+
+This gives users efficient access to something which they already have inefficient access to.
+
+Conversion Cost:
+
+This is an upward-compatible change; the name ROW-MAJOR-AREF is unlikely to be used by any current program.
+
+Aesthetics:
+
+This allows certain programs to be written in a more aesthetic way.
+
+Discussion:
+
+The cleanup committee supports this enhancement.
+        TITAN          TITAN           
+TIMESROMAN 
+          E                                                        ±             {       #       Ð             0              Œ             L       
+       `              n              F              2      … zº*start*
+00675 00024 US 
+Date: Thu,  4 Jun 87 18:09:57 PDT
+From: Pavel.pa
+Subject: Grammar problems in AREF-1D (Version 3)
+In-reply-to: <870604-172558-1481@Xerox>
+To: Masinter
+
+The following uses of ``which'' should be ``that'':
+
+``Introduce a new function ROW-MAJOR-AREF which allows ...''
+
+``... has a number of operators which allow users ...''
+
+``could be trivially defined by loops which had the following form ...''
+
+``In implementations which already use ...''
+
+
+``This gives users efficient access to something which they already have inefficient access to.'' should be ``This gives users efficient access to something to which they already have inefficient access.''
+*start*
+00664 00024 US 
+Return-Path: <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Received: from STONY-BROOK.SCRC.Symbolics.COM (SCRC-STONY-BROOK.ARPA) by Xerox.COM ; 04 JUN 87 19:00:51 PDT
+Received: from RIO-DE-JANEIRO.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 164445; Thu 4-Jun-87 22:00:18 EDT
+Date: Thu, 4 Jun 87 22:00 EDT
+From: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: AREF-1D (Version 3)
+To: Masinter.pa
+cc: KMP@STONY-BROOK.SCRC.Symbolics.COM
+In-Reply-To: <870604-172558-1481@Xerox>
+Message-ID: <870604220011.9.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+
+[CL-Cleanup removed.]
+
+Your version 3 looks fine to me.
+
+*start*
+00750 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 04 JUN 87 19:27:03 PDT
+Received: from SCRC-STONY-BROOK.ARPA by SAIL.STANFORD.EDU with TCP; 4 Jun 87  19:25:06 PDT
+Received: from EUPHRATES.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 164454; Thu 4-Jun-87 22:24:02 EDT
+Date: Thu, 4 Jun 87 22:23 EDT
+From: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: AREF-1D (Version 3)
+To: CL-Cleanup@SAIL.STANFORD.EDU
+In-Reply-To: <870604-172558-1481@Xerox>
+Message-ID: <870604222355.9.MOON@EUPHRATES.SCRC.Symbolics.COM>
+
+Change "arity" to "rank" to be consistent with standard Common Lisp
+terminology.  Otherwise fine.
+
+*start*
+03586 00024 US 
+Date:  5 Jun 87 21:52 PDT
+From: Masinter.pa
+Subject: AREF-1D (Version 4)
+To: CL-Cleanup@SAIL.STANFORD.EDU
+cc: Masinter
+
+Besides changing arity-> rank and various  whichs to thats, I think I probably made some other minor edits, but didn't intentionally change the meaning. However, I do remember trying to soften the feeling that you had to know and want MacLisp's LISTARRAY and FILLARRAY for this to be a good idea, and to take the blow-by-blow of who liked what in previous versions out of the discussion. Note that the issue is still called AREF-1D even those the proposal is ROW-MAJOR-AREF. 
+
+Status: Ready for release?
+ 
+
+
+Issue:        AREF-1D
+References:   Arrays (pp286-298)
+Category:     ENHANCEMENT
+Edit history: 22-Apr-87, Version 1 by Pitman
+              02-Jun-87, Version 2 by Pitman (call it ROW-MAJOR-AREF)
+               6-Jun-87, Versions 3, 4 by Masinter (editorial work)
+
+Problem Description:
+
+It's hard to write functions like Maclisp's LISTARRAY and FILLARRAY efficiently in Common Lisp because they take arguments of varying rank. Currently, you have to make a displaced array to work with temporarily and then throw away the displaced array when you're done. In many cases, this is bothersome because there is no a priori reason why they should have to cons at all.
+
+Proposal (AREF-1D:ROW-MAJOR-AREF):
+
+Introduce a new function ROW-MAJOR-AREF that allows one-dimensional access to the storage backing up a given array assuming the normal row-major storage layout.
+
+ROW-MAJOR-AREF is valid for use with SETF.
+
+Rationale:
+
+Common Lisp requires row-major storage layout of arrays and has a number of operators that allow users to exploit that order. ROW-MAJOR-AREF is a useful, simple addition.
+
+LISTARRAY and FILLARRAY, for example, could be trivially defined by loops that had the following form:
+
+    (DOTIMES (I (ARRAY-TOTAL-SIZE ARRAY))
+      ... (ROW-MAJOR-AREF ARRAY I) ...)
+
+Currently, the only really efficient way to write this would involve something like:
+
+    (ECASE (ARRAY-RANK ARRAY1)
+      ((0) (SETF (AREF ARRAY1) (AREF ARRAY2)))
+      ((1) (DOTIMES (I (ARRAY-DIMENSION ARRAY 0))
+	     (SETF (AREF ARRAY1 I) (AREF ARRAY2 I))))
+      ((2) (DOTIMES (I (ARRAY-DIMENSION ARRAY 0))
+	     (DOTIMES (I (ARRAY-DIMENSION ARRAY 1))
+	       (SETF (AREF ARRAY1 I J) (AREF ARRAY2 I J)))))
+      ...some finite number of clauses...)
+
+Current Practice:
+
+Many implementations have this primitive under some other name for use internally. In Symbolics systems, for example, it is SYS:%1D-AREF.
+
+Adoption Cost:
+
+This change is fairly localized. In implementations that already use this primitive internally, it's little more than a matter of changing the name of or otherwise releasing the existing primitive. In some implementations, it might involve writing a small amount of code or compiler work to make ROW-MAJOR-AREF work efficiently.
+
+Benefits:
+
+This gives users efficient access to something to which they already have inefficient access.
+
+Conversion Cost:
+
+This is an upward-compatible change; the name ROW-MAJOR-AREF is unlikely to be used by any current program.
+
+Aesthetics:
+
+This allows certain programs to be written in a more aesthetic way.
+
+Discussion:
+
+The cleanup committee supports this enhancement.
+        TITAN           TITAN          
+TIMESROMAN 
+          u                                                        ª             z       #       Ï             .              Œ             K       
+       `              n              F              2      © zº*start*
+00529 00024 US 
+Return-Path: <FAHLMAN@C.CS.CMU.EDU>
+Received: from C.CS.CMU.EDU by Xerox.COM ; 07 JUN 87 17:53:35 PDT
+Received: ID <FAHLMAN@C.CS.CMU.EDU>; Sun 7 Jun 87 20:53:13-EDT
+Date: Sun, 7 Jun 87 20:53 EDT
+Message-ID: <FAHLMAN.12308719055.BABYL@C.CS.CMU.EDU>
+Sender: FAHLMAN@C.CS.CMU.EDU
+From: "Scott E. Fahlman" <Fahlman@C.CS.CMU.EDU>
+To: Masinter.pa
+Cc: CL-Cleanup@SAIL.STANFORD.EDU
+Subject: AREF-1D (Version 4)
+In-reply-to: Msg of 6 Jun 1987  00:52-EDT from Masinter.pa at Xerox.COM
+
+
+Looks good to me.
+
+-- Scott
+*start*
+03450 00024 USf
+Date: 11 Jun 87 13:06 PDT
+From: Masinter.pa
+Subject: AREF-1D (Version 5)
+To: X3J13@SAIL.STANFORD.EDU
+cc: Masinter
+
+In most of these proposals, some earlier version was circulated to the committee and explicitly voted on. In cases where there have been editorial changes after the ballot, the edited version has been circulated, but not necessarily endorsed.  
+
+
+
+
+Issue:        AREF-1D
+References:   Arrays (pp286-298)
+Category:     ENHANCEMENT
+Edit history: 22-Apr-87, Version 1 by Pitman
+              02-Jun-87, Version 2 by Pitman (ROW-MAJOR-AREF)
+              6-Jun-87, Versions 3, 4 by Masinter (editorial)
+              11-Jun-87, Version 5, to X3J13 (no changes)
+
+Problem Description:
+
+It's hard to write functions like Maclisp's LISTARRAY and FILLARRAY efficiently in Common Lisp because they take arguments of varying rank. Currently, you have to make a displaced array to work with temporarily and then throw away the displaced array when you're done. In many cases, this is bothersome because there is no a priori reason why they should have to cons at all.
+
+Proposal (AREF-1D:ROW-MAJOR-AREF):
+
+Introduce a new function ROW-MAJOR-AREF that allows one-dimensional access to the storage backing up a given array assuming the normal row-major storage layout.
+
+ROW-MAJOR-AREF is valid for use with SETF.
+
+Rationale:
+
+Common Lisp requires row-major storage layout of arrays and has a number of operators that allow users to exploit that order. ROW-MAJOR-AREF is a useful, simple addition.
+
+LISTARRAY and FILLARRAY, for example, could be trivially defined by loops that had the following form:
+
+    (DOTIMES (I (ARRAY-TOTAL-SIZE ARRAY))
+      ... (ROW-MAJOR-AREF ARRAY I) ...)
+
+Currently, the only really efficient way to write this would involve something like:
+
+    (ECASE (ARRAY-RANK ARRAY1)
+      ((0) (SETF (AREF ARRAY1) (AREF ARRAY2)))
+      ((1) (DOTIMES (I (ARRAY-DIMENSION ARRAY 0))
+	     (SETF (AREF ARRAY1 I) (AREF ARRAY2 I))))
+      ((2) (DOTIMES (I (ARRAY-DIMENSION ARRAY 0))
+	     (DOTIMES (I (ARRAY-DIMENSION ARRAY 1))
+	       (SETF (AREF ARRAY1 I J) (AREF ARRAY2 I J)))))
+      ...some finite number of clauses...)
+
+Current Practice:
+
+Many implementations have this primitive under some other name for use internally. In Symbolics systems, for example, it is SYS:%1D-AREF.
+
+Adoption Cost:
+
+This change is fairly localized. In implementations that already use this primitive internally, it's little more than a matter of changing the name of or otherwise releasing the existing primitive. In some implementations, it might involve writing a small amount of code or compiler work to make ROW-MAJOR-AREF work efficiently.
+
+Benefits:
+
+This gives users efficient access to something to which they already have inefficient access.
+
+Conversion Cost:
+
+This is an upward-compatible change; the name ROW-MAJOR-AREF is unlikely to be used by any current program.
+
+Aesthetics:
+
+This allows certain programs to be written in a more aesthetic way.
+
+Discussion:
+
+The cleanup committee generally supports this enhancement. Version 2 was endorsed (assuming change to function name ROW-MAJOR-AREF.)
+        TITAN           TITAN          
+TIMESROMAN 
+          m                                                        Ö             z       #       Ï             -              Œ             K       
+       `              n              F              †      ! zº*start*
+03449 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:Masinter.pa@Xerox.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 11 JUN 87 16:41:48 PDT
+Received: from XEROX.COM by SAIL.STANFORD.EDU with TCP; 11 Jun 87  16:19:37 PDT
+Received: from Cabernet.ms by ArpaGateway.ms ; 11 JUN 87 13:07:01 PDT
+Date: 11 Jun 87 13:06 PDT
+From: Masinter.pa
+Subject: AREF-1D (Version 5)
+To: X3J13@SAIL.STANFORD.EDU
+cc: Masinter.pa
+Message-ID: <870611-130701-1603@Xerox>
+
+In most of these proposals, some earlier version was circulated to the
+committee and explicitly voted on. In cases where there have been
+editorial changes after the ballot, the edited version has been
+circulated, but not necessarily endorsed.  
+
+
+
+!
+Issue:        AREF-1D
+References:   Arrays (pp286-298)
+Category:     ENHANCEMENT
+Edit history: 22-Apr-87, Version 1 by Pitman
+              02-Jun-87, Version 2 by Pitman (ROW-MAJOR-AREF)
+              6-Jun-87, Versions 3, 4 by Masinter (editorial)
+              11-Jun-87, Version 5, to X3J13 (no changes)
+
+Problem Description:
+
+It's hard to write functions like Maclisp's LISTARRAY and FILLARRAY
+efficiently in Common Lisp because they take arguments of varying rank.
+Currently, you have to make a displaced array to work with temporarily
+and then throw away the displaced array when you're done. In many cases,
+this is bothersome because there is no a priori reason why they should
+have to cons at all.
+
+Proposal (AREF-1D:ROW-MAJOR-AREF):
+
+Introduce a new function ROW-MAJOR-AREF that allows one-dimensional
+access to the storage backing up a given array assuming the normal
+row-major storage layout.
+
+ROW-MAJOR-AREF is valid for use with SETF.
+
+Rationale:
+
+Common Lisp requires row-major storage layout of arrays and has a number
+of operators that allow users to exploit that order. ROW-MAJOR-AREF is a
+useful, simple addition.
+
+LISTARRAY and FILLARRAY, for example, could be trivially defined by
+loops that had the following form:
+
+    (DOTIMES (I (ARRAY-TOTAL-SIZE ARRAY))
+      ... (ROW-MAJOR-AREF ARRAY I) ...)
+
+Currently, the only really efficient way to write this would involve
+something like:
+
+    (ECASE (ARRAY-RANK ARRAY1)
+      ((0) (SETF (AREF ARRAY1) (AREF ARRAY2)))
+      ((1) (DOTIMES (I (ARRAY-DIMENSION ARRAY 0))
+	     (SETF (AREF ARRAY1 I) (AREF ARRAY2 I))))
+      ((2) (DOTIMES (I (ARRAY-DIMENSION ARRAY 0))
+	     (DOTIMES (I (ARRAY-DIMENSION ARRAY 1))
+	       (SETF (AREF ARRAY1 I J) (AREF ARRAY2 I J)))))
+      ...some finite number of clauses...)
+
+Current Practice:
+
+Many implementations have this primitive under some other name for use
+internally. In Symbolics systems, for example, it is SYS:%1D-AREF.
+
+Adoption Cost:
+
+This change is fairly localized. In implementations that already use
+this primitive internally, it's little more than a matter of changing
+the name of or otherwise releasing the existing primitive. In some
+implementations, it might involve writing a small amount of code or
+compiler work to make ROW-MAJOR-AREF work efficiently.
+
+Benefits:
+
+This gives users efficient access to something to which they already
+have inefficient access.
+
+Conversion Cost:
+
+This is an upward-compatible change; the name ROW-MAJOR-AREF is unlikely
+to be used by any current program.
+
+Aesthetics:
+
+This allows certain programs to be written in a more aesthetic way.
+
+Discussion:
+
+The cleanup committee generally supports this enhancement. Version 2 was
+endorsed (assuming change to function name ROW-MAJOR-AREF.)
+
+*start*
+01424 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:edsel!bhopal!jonl@navajo.stanford.edu>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 11 JUN 87 20:47:44 PDT
+Received: from NAVAJO.STANFORD.EDU by SAIL.STANFORD.EDU with TCP; 11 Jun 87  20:45:45 PDT
+Received: by navajo.stanford.edu; Thu, 11 Jun 87 20:42:32 PDT
+Received: from bhopal.edsel.uucp by edsel.uucp (3.2/SMI-2.0)
+	id AA26428; Thu, 11 Jun 87 18:26:44 PDT
+Received: by bhopal.edsel.uucp (3.2/SMI-3.2)
+	id AA14620; Thu, 11 Jun 87 18:28:39 PDT
+Date: Thu, 11 Jun 87 18:28:39 PDT
+From: edsel!bhopal!jonl@navajo.stanford.edu (Jon L White)
+Message-Id: <8706120128.AA14620@bhopal.edsel.uucp>
+To: navajo!KMP%STONY-BROOK.SCRC.Symbolics.COM@navajo.stanford.edu
+Cc: navajo!CL-Cleanup%SAIL@navajo.stanford.edu
+In-Reply-To: Kent M Pitman's message of Tue, 2 Jun 87 01:22 EDT <870602012209.2.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+Subject: AREF-1D (Version 2)
+
+
+Your note of 2-Jun says that I "supported" the ammended version.  I don't
+remember voting any issue, or even particularly arguing for one point of
+view or the other.  The relevant comment from me was merely that GLS's
+"clarifications" of 6-Dec-86 used ROW-MAJOR-AREF for the same thing your
+proposal was using AREF-1D for, and that Lucid had already implemented it
+under the 6-Dec-86 name.  Wouldn't it be better to mention the 6-Dec-86
+"Clarifications" rather than deduce my (non-voting) support?
+
+-- JonL --
+
+*start*
+01408 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:edsel!bhopal!jonl@navajo.stanford.edu>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 13 JUN 87 00:43:41 PDT
+Received: from NAVAJO.STANFORD.EDU by SAIL.STANFORD.EDU with TCP; 13 Jun 87  00:42:20 PDT
+Received: by navajo.stanford.edu; Sat, 13 Jun 87 00:39:53 PDT
+Received: from bhopal.edsel.uucp by edsel.uucp (3.2/SMI-2.0)
+	id AA02160; Fri, 12 Jun 87 23:04:06 PDT
+Received: by bhopal.edsel.uucp (3.2/SMI-3.2)
+	id AA01882; Fri, 12 Jun 87 23:06:05 PDT
+Date: Fri, 12 Jun 87 23:06:05 PDT
+From: edsel!bhopal!jonl@navajo.stanford.edu (Jon L White)
+Message-Id: <8706130606.AA01882@bhopal.edsel.uucp>
+To: navajo!Masinter.pa%Xerox.COM@navajo.stanford.edu
+Cc: navajo!RPG%SAIL.STANFORD.EDU@navajo.stanford.edu, navajo!cl-cleanup%sail.stanford.edu@navajo.stanford.edu
+In-Reply-To: navajo!Masinter.pa@Xerox.COM's message of 12 Jun 87 09:37 PDT <870612-093806-1562@Xerox>
+Subject: Hm  
+
+
+Goodness no, by no means do I want to raise an objection to the AREF-1D
+proposal.  I only wanted to make it perfectly clear that my interest
+was not so much "support" or "criticism" of the overall proposal, but
+a reminder that the 6-Dec-85 "Clarifications" had already addressed the 
+functional issue, and had already picked the name ROW-MAJOR-AREF.  I guess 
+I wasn't so "perfectly clear".
+
+Eric Benson has already cast the Lucid vote in support of the proposal.
+
+-- JonL --
+
+*start*
+04263 00024 USf
+Date:  6 Jul 87 16:45 PDT
+From: Masinter.pa
+Subject: AREF-1D (Version 6)
+To: cl-cleanup@SAIL.STANFORD.EDU
+cc: Masinter
+
+This revision clarifies the proposal by giving arguments and some equivalence relations. I added that row-major-aref was usable with SETF (which did not appear in the original proposal although it was implied in one of the examples.)
+
+Issue:        AREF-1D
+References:   Arrays (pp286-298)
+Category:     ENHANCEMENT
+Edit history: 22-Apr-87, Version 1 by Pitman
+              02-Jun-87, Version 2 by Pitman (ROW-MAJOR-AREF)
+              6-Jun-87, Versions 3, 4 by Masinter (editorial)
+              11-Jun-87, Version 5, to X3J13 (no changes)
+               6-Jul-87, Version 6, by Masinter
+
+Problem Description:
+
+It's hard to write functions like Maclisp's LISTARRAY and FILLARRAY efficiently in Common Lisp because they take arguments of varying rank. Currently, you have to make a displaced array to work with temporarily and then throw away the displaced array when you're done. In many cases, this is bothersome because there is no a priori reason why they should have to cons at all.
+
+Proposal (AREF-1D:ROW-MAJOR-AREF):
+
+Introduce a new function ROW-MAJOR-AREF that allows one-dimensional access to the storage backing up a given array assuming the normal row-major storage layout.
+
+ROW-MAJOR-AREF is valid for use with SETF.
+
+row-major-aref array index              [Function]
+
+This accesses and returns the element of array specified by index when the elements of array are considered in row-major order. Array may be an array of any dimensionality. row-major-aref may be used with setf. For reference, the following sets of expressions are equivalent:
+
+(row-major-aref array index) ==
+    (aref (make-array (array-total-size array)
+                      :displaced-to array
+                      :element-type (array-element-type array))
+          index)
+
+and
+
+(aref array .. subscripts ..) ==
+    (row-major-aref array (array-row-major-index array .. subscripts ..))
+
+Rationale:
+
+Common Lisp requires row-major storage layout of arrays and has a number of operators that allow users to exploit that order. ROW-MAJOR-AREF is a useful, simple addition.
+
+LISTARRAY and FILLARRAY, for example, could be trivially defined by loops that had the following form:
+
+    (DOTIMES (I (ARRAY-TOTAL-SIZE ARRAY))
+      ... (ROW-MAJOR-AREF ARRAY I) ...)
+
+Currently, the only really efficient way to write this would involve something like:
+
+    (ECASE (ARRAY-RANK ARRAY1)
+      ((0) (SETF (AREF ARRAY1) (AREF ARRAY2)))
+      ((1) (DOTIMES (I (ARRAY-DIMENSION ARRAY 0))
+	     (SETF (AREF ARRAY1 I) (AREF ARRAY2 I))))
+      ((2) (DOTIMES (I (ARRAY-DIMENSION ARRAY 0))
+	     (DOTIMES (I (ARRAY-DIMENSION ARRAY 1))
+	       (SETF (AREF ARRAY1 I J) (AREF ARRAY2 I J)))))
+      ...some finite number of clauses...)
+
+Current Practice:
+
+Many implementations have this primitive under some other name for use internally. In Symbolics systems, for example, it is SYS:%1D-AREF.
+
+Adoption Cost:
+
+This change is fairly localized. In implementations that already use this primitive internally, it's little more than a matter of changing the name of or otherwise releasing the existing primitive. In some implementations, it might involve writing a small amount of code or compiler work to make ROW-MAJOR-AREF work efficiently.
+
+Benefits:
+
+This gives users efficient access to something to which they already have inefficient access.
+
+Conversion Cost:
+
+This is an upward-compatible change; the name ROW-MAJOR-AREF is unlikely to be used by any current program.
+
+Aesthetics:
+
+This allows certain programs to be written in a more aesthetic way.
+
+Discussion:
+
+The cleanup committee generally supports this enhancement. Version 2 was endorsed (assuming change to function name ROW-MAJOR-AREF.)
+
+     ----- End Forwarded Messages -----
+        TITAN          TITAN           TITAN          
+TIMESROMAN 
+          
+TIMESROMAN 
+          d                                                                    z       #       Þ                           T             -              Œ             K       
+       `              n              F              †       )      ö  zº*start*
+04017 00024 USm
+Date: 14 Nov 87 15:58 PST
+From: Masinter.pa
+to: Masinter
+Subject: Issue: AREF-1D (Version 7)
+
+I merely updated the discussion to include the history that this had been passed...
+
+Issue:        AREF-1D
+References:   Arrays (pp286-298)
+Category:     ENHANCEMENT
+Edit history: 22-Apr-87, Version 1 by Pitman
+              02-Jun-87, Version 2 by Pitman (ROW-MAJOR-AREF)
+              6-Jun-87, Versions 3, 4 by Masinter (editorial)
+              11-Jun-87, Version 5, to X3J13 (no changes)
+               6-Jul-87, Version 6, by Masinter
+              14-Nov-87, Version 7, by Masinter (update discussion)
+
+Problem Description:
+
+It's hard to write functions like Maclisp's LISTARRAY and FILLARRAY efficiently in Common Lisp because they take arguments of varying rank. Currently, you have to make a displaced array to work with temporarily and then throw away the displaced array when you're done. In many cases, this is bothersome because there is no a priori reason why they should have to cons at all.
+
+Proposal (AREF-1D:ROW-MAJOR-AREF):
+
+Introduce a new function ROW-MAJOR-AREF that allows one-dimensional access to the storage backing up a given array assuming the normal row-major storage layout.
+
+ROW-MAJOR-AREF is valid for use with SETF.
+
+row-major-aref array index              [Function]
+
+This accesses and returns the element of array specified by index when the elements of array are considered in row-major order. Array may be an array of any dimensionality. row-major-aref may be used with setf. For reference, the following sets of expressions are equivalent:
+
+(row-major-aref array index) ==
+    (aref (make-array (array-total-size array)
+                      :displaced-to array
+                      :element-type (array-element-type array))
+          index)
+
+and
+
+(aref array .. subscripts ..) ==
+    (row-major-aref array (array-row-major-index array .. subscripts ..))
+
+Rationale:
+
+Common Lisp requires row-major storage layout of arrays and has a number of operators that allow users to exploit that order. ROW-MAJOR-AREF is a useful, simple addition.
+
+LISTARRAY and FILLARRAY, for example, could be trivially defined by loops that had the following form:
+
+    (DOTIMES (I (ARRAY-TOTAL-SIZE ARRAY))
+      ... (ROW-MAJOR-AREF ARRAY I) ...)
+
+Currently, the only really efficient way to write this would involve something like:
+
+    (ECASE (ARRAY-RANK ARRAY1)
+      ((0) (SETF (AREF ARRAY1) (AREF ARRAY2)))
+      ((1) (DOTIMES (I (ARRAY-DIMENSION ARRAY 0))
+	     (SETF (AREF ARRAY1 I) (AREF ARRAY2 I))))
+      ((2) (DOTIMES (I (ARRAY-DIMENSION ARRAY 0))
+	     (DOTIMES (I (ARRAY-DIMENSION ARRAY 1))
+	       (SETF (AREF ARRAY1 I J) (AREF ARRAY2 I J)))))
+      ...some finite number of clauses...)
+
+Current Practice:
+
+Many implementations have this primitive under some other name for use internally. In Symbolics systems, for example, it is SYS:%1D-AREF.
+
+Adoption Cost:
+
+This change is fairly localized. In implementations that already use this primitive internally, it's little more than a matter of changing the name of or otherwise releasing the existing primitive. In some implementations, it might involve writing a small amount of code or compiler work to make ROW-MAJOR-AREF work efficiently.
+
+Benefits:
+
+This gives users efficient access to something to which they already have inefficient access.
+
+Conversion Cost:
+
+This is an upward-compatible change; the name ROW-MAJOR-AREF is unlikely to be used by any current program.
+
+Aesthetics:
+
+This allows certain programs to be written in a more aesthetic way.
+
+Discussion:
+
+This issue was conditionally passed at X3J13/June 1987, pending clarification of some details. Those clarifications have been made in this version.
+        TITAN           TITAN           ´                                                       J             z       #      T             -              Œ             K       
+       `              n              F              •      p zº*start*
+04238 00024 US 
+Date: 14 Feb 88 10:57 PST
+From: Masinter.pa
+Subject: Issue: AREF-1D (Version 7)
+To: X3J13@Sail.stanford.edu
+cc: Masinter
+reply-to: CL-CLEANUP@Sail.Stanford.EDU
+
+This issue passed conditionally at the June 1987 meeting of X3J13. This version, distributed in hardcopy at the November 1987 meeting, clarified some of the details of the proposal.
+
+
+Issue:        AREF-1D
+References:   Arrays (pp286-298)
+Category:     ENHANCEMENT
+Edit history: 22-Apr-87, Version 1 by Pitman
+              02-Jun-87, Version 2 by Pitman (ROW-MAJOR-AREF)
+              6-Jun-87, Versions 3, 4 by Masinter (editorial)
+              11-Jun-87, Version 5, to X3J13 (no changes)
+               6-Jul-87, Version 6, by Masinter
+              14-Nov-87, Version 7, by Masinter (update discussion)
+
+Problem Description:
+
+It's hard to write functions like Maclisp's LISTARRAY and FILLARRAY efficiently in Common Lisp because they take arguments of varying rank. Currently, you have to make a displaced array to work with temporarily and then throw away the displaced array when you're done. In many cases, this is bothersome because there is no a priori reason why they should have to cons at all.
+
+Proposal (AREF-1D:ROW-MAJOR-AREF):
+
+Introduce a new function ROW-MAJOR-AREF that allows one-dimensional access to the storage backing up a given array assuming the normal row-major storage layout.
+
+ROW-MAJOR-AREF is valid for use with SETF.
+
+row-major-aref array index              [Function]
+
+This accesses and returns the element of array specified by index when the elements of array are considered in row-major order. Array may be an array of any dimensionality. row-major-aref may be used with setf. For reference, the following sets of expressions are equivalent:
+
+(row-major-aref array index) ==
+    (aref (make-array (array-total-size array)
+                      :displaced-to array
+                      :element-type (array-element-type array))
+          index)
+
+and
+
+(aref array .. subscripts ..) ==
+    (row-major-aref array (array-row-major-index array .. subscripts ..))
+
+Rationale:
+
+Common Lisp requires row-major storage layout of arrays and has a number of operators that allow users to exploit that order. ROW-MAJOR-AREF is a useful, simple addition.
+
+LISTARRAY and FILLARRAY, for example, could be trivially defined by loops that had the following form:
+
+    (DOTIMES (I (ARRAY-TOTAL-SIZE ARRAY))
+      ... (ROW-MAJOR-AREF ARRAY I) ...)
+
+Currently, the only really efficient way to write this would involve something like:
+
+    (ECASE (ARRAY-RANK ARRAY1)
+      ((0) (SETF (AREF ARRAY1) (AREF ARRAY2)))
+      ((1) (DOTIMES (I (ARRAY-DIMENSION ARRAY 0))
+	     (SETF (AREF ARRAY1 I) (AREF ARRAY2 I))))
+      ((2) (DOTIMES (I (ARRAY-DIMENSION ARRAY 0))
+	     (DOTIMES (I (ARRAY-DIMENSION ARRAY 1))
+	       (SETF (AREF ARRAY1 I J) (AREF ARRAY2 I J)))))
+      ...some finite number of clauses...)
+
+Current Practice:
+
+Many implementations have this primitive under some other name for use internally. In Symbolics systems, for example, it is SYS:%1D-AREF.
+
+Adoption Cost:
+
+This change is fairly localized. In implementations that already use this primitive internally, it's little more than a matter of changing the name of or otherwise releasing the existing primitive. In some implementations, it might involve writing a small amount of code or compiler work to make ROW-MAJOR-AREF work efficiently.
+
+Benefits:
+
+This gives users efficient access to something to which they already have inefficient access.
+
+Conversion Cost:
+
+This is an upward-compatible change; the name ROW-MAJOR-AREF is unlikely to be used by any current program.
+
+Aesthetics:
+
+This allows certain programs to be written in a more aesthetic way.
+
+Discussion:
+
+This issue was conditionally passed at X3J13/June 1987, pending clarification of some details. Those clarifications have been made in this version.
+        TITAN 
+         TITAN 
+          TITAN 
+           P              
+       '       º                                                       J             z       #      T             -              Œ             K       
+       `              n              F              •       zº

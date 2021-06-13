@@ -1,0 +1,948 @@
+*start*
+00721 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:gls@Think.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 03 MAR 87 11:53:23 PST
+Received: from THINK.COM by SAIL.STANFORD.EDU with TCP; 3 Mar 87  11:51:43 PST
+Received: from boethius by Think.COM via CHAOS; Tue, 3 Mar 87 14:50:58 EST
+Date: Tue, 3 Mar 87 14:52 EST
+From: Guy Steele <gls@Think.COM>
+Subject: SHARPSIGN-PLUS-MINUS-PACKAGE:KEYWORD
+To: cl-cleanup@sail.stanford.edu
+In-Reply-To: <870303125939.7.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+Message-Id: <870303145255.4.GLS@BOETHIUS.THINK.COM>
+
+KMP has pointed out that I was not clear which of
+two proposals I supported.  I prefer that symbols
+following #+/#- be in th ekeyword package by default.
+--Guy
+
+*start*
+01989 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 03 MAR 87 12:36:17 PST
+Received: from SCRC-STONY-BROOK.ARPA by SAIL.STANFORD.EDU with TCP; 3 Mar 87  12:34:05 PST
+Received: from RIO-DE-JANEIRO.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL Date: Tue, 3 Mar 87 15:33 EST
+From: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: SHARPSIGN-PLUS-MINUS-PACKAGE
+To: edsel!bhopal!jonl@navajo.stanford.edu
+cc: CL-Cleanup@SAIL.STANFORD.EDU, KMP@STONY-BROOK.SCRC.Symbolics.COM
+In-Reply-To: <8703031639.AA00314@bhopal.edsel.com>
+Message-ID: <870303153323.4.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+
+The whole point to all this is that a feature is a packaged symbol.
+#+ and #- use *FEATURES* but other things may as well. Since string
+comparison is not used, it's important that the package be specified
+or the symbol may not be found by all programs.
+
+There are four possible cases:
+ * #+/#- read forms with default current package. IEEE-... on LISP package.
+   This means you write #+IEEE-... or (MEMBER 'IEEE-... *FEATURES*).
+ * #+/#- read forms with default current package. IEEE-... on KEYWORD package.
+   This means you write #+:IEEE-... or (MEMBER ':IEEE-... *FEATURES*).
+ * #+/#- read forms with default KEYWORD package. IEEE-... on LISP package.
+   This means you write #+LISP:IEEE-... or (MEMBER 'IEEE-... *FEATURES*).
+ * #+/#- read forms with default KEYWORD package. IEEE-... on KEYWORD package.
+   This means you write #+IEEE-... or (MEMBER ':IEEE-... *FEATURES*).
+
+I believe that items 1 and 4 above are most internally consistent.
+Since people are leaning toward default keyword package, This selects
+item 4 as the obvious intended behavior. The clarification is intended
+to preclude an interpretation such as item 3, which is technically
+consistent with the current wording even after the proposed change 
+unless the package clarification is included.
+
+*start*
+01758 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 03 MAR 87 17:13:55 PST
+Received: from SCRC-STONY-BROOK.ARPA by SAIL.STANFORD.EDU with TCP; 3 Mar 87  17:10:47 PST
+Received: from EUPHRATES.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 83Date: Tue, 3 Mar 87 20:09 EST
+From: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: SHARPSIGN-PLUS-MINUS-PACKAGE
+To: CL-Cleanup@SAIL.STANFORD.EDU
+In-Reply-To: <870303020058.3.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+Message-ID: <870303200935.7.MOON@EUPHRATES.SCRC.Symbolics.COM>
+
+    Date: Tue, 3 Mar 87 02:00 EST
+    From: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+
+    I agree with your premise that minimal error checking is warranted and
+    think that the extension of that the proper extension is (regrettably)
+    that improperly referencing a symbol as exported should not signal an
+    error. For example, our package SYSTEM is locked, so 
+     #+SYSTEM:FOO
+    might signal an error on our system yet be important on someone else's.
+
+I'm forced to conclude that you're right.  So any time the symbol following
+#+ (or #-) cannot be interned, for whatever reason, the feature is deemed
+to be not present and no error is signalled.
+
+    This is rightly independent of the question of what package is the 
+    default, though, so maybe yet another ballot item is in order.
+
+I have no opinion about whether it is better to bundle together closely
+related issues or to keep them separate.  One way keeps us more consistent,
+the other way makes it look like we're accomplishing more (and we really
+do accomplish more if one issue is controversial and the other isn't).
+
+*start*
+01142 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:FAHLMAN@C.CS.CMU.EDU>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 08 MAR 87 14:51:50 PST
+Received: from C.CS.CMU.EDU by SAIL.STANFORD.EDU with TCP; 8 Mar 87  14:48:36 PST
+Received: ID <FAHLMAN@C.CS.CMU.EDU>; Sun 8 Mar 87 17:49:12-EST
+Date: Sun, 8 Mar 87 17:49 EST
+Message-ID: <FAHLMAN.12284841369.BABYL@C.CS.CMU.EDU>
+Sender: FAHLMAN@C.CS.CMU.EDU
+From: "Scott E. Fahlman" <Fahlman@C.CS.CMU.EDU>
+To: CL-Cleanup@SAIL.STANFORD.EDU
+Subject: SHARPSIGN-PLUS-MINUS-PACKAGE
+In-reply-to: Msg of 1 Mar 1987  17:35-EST from Kent M Pitman <KMP at STONY-BROOK.SCRC.Symbolics.COM>
+
+
+I support SHARPSIGN-PLUS-MINUS-PACKAGE:KEYWORD.
+
+I'd like to see a revised version, clarifying exactly what KMP and MOON
+have decided should happen in the case of non-existent packages and
+non-exported symbols.  I agree in general with the view that read errors
+that occur within a #+ or #- should be treated as "feature not present".
+
+I was going to ask what it means for a package such as SYSTEM to be
+"locked" in the Symbolics system, but I suspect that I'd rather not
+know.  Sounds like Ada-stuff.
+
+-- Scott
+
+*start*
+01348 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 08 MAR 87 15:19:39 PST
+Received: from SCRC-STONY-BROOK.ARPA by SAIL.STANFORD.EDU with TCP; 8 Mar 87  15:16:35 PST
+Received: from EUPHRATES.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 87Date: Sun, 8 Mar 87 18:09 EST
+From: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: SHARPSIGN-PLUS-MINUS-PACKAGE
+To: CL-Cleanup@SAIL.STANFORD.EDU
+In-Reply-To: <FAHLMAN.12284841369.BABYL@C.CS.CMU.EDU>
+Message-ID: <870308180900.5.MOON@EUPHRATES.SCRC.Symbolics.COM>
+
+    Date: Sun, 8 Mar 1987  17:49 EST
+    From: "Scott E. Fahlman" <Fahlman@C.CS.CMU.EDU>
+
+    I was going to ask what it means for a package such as SYSTEM to be
+    "locked" in the Symbolics system, but I suspect that I'd rather not
+    know.  Sounds like Ada-stuff.
+
+I don't know why Kent phrased it that way; maybe because an error message
+that should have been rewritten in English phrased it that way.
+
+At least for purposes of this discussion it means that the package
+behaves according to the way CLtL says packages should behave, rather
+than some other way that Symbolics also supports.  Specifically,
+reading the syntax FOO:BAR (one colon) signals an error unless BAR has
+been exported from FOO.
+
+*start*
+07211 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 09 MAR 87 12:06:44 PST
+Received: from SCRC-STONY-BROOK.ARPA by SAIL.STANFORD.EDU with TCP; 9 Mar 87  12:03:49 PST
+Received: from RIO-DE-JANEIRO.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL Date: Mon, 9 Mar 87 15:03 EST
+From: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: SHARPSIGN-PLUS-MINUS-PACKAGE (revision 2)
+To: CL-Cleanup@SAIL.STANFORD.EDU
+cc: KMP@STONY-BROOK.SCRC.Symbolics.COM
+References: <870308180900.5.MOON@EUPHRATES.SCRC.Symbolics.COM>,
+            <FAHLMAN.12284841369.BABYL@C.CS.CMUMessage-ID: <870309150315.1.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+
+Issue:        SHARPSIGN-PLUS-MINUS-PACKAGE
+References:   #+ (p358), #- (p359), *features* (p448)
+Category:     CLARIFICATION/CHANGE
+Edit history: Revision 1 by KMP 03/01/87,
+	      Revision 2 by KMP 03/09/87 (clarify package errors)
+Problem Description:
+
+  No information is provided in the description of #+ and
+  #- (pp358-359) about what package the features are read on.
+
+  In some systems, the current package is used. Since there
+  is no wording to the contrary, it's reasonable to assume that 
+  this would be done, but a consequence of this is that you
+  must be much more sensitive to the package you're in at any
+  given time when using #+ or #- even for system-provided 
+  features. (This will be a big problem if we decide to require
+  that the LISP package can contain only the symbols in CLtL
+  because system-provided features will likely not have the
+  names of symbols on LISP and hence will require package 
+  prefixes. Having a symbol named LISP:SYMBOLICS or LISP:LUCID 
+  would not be possible, so something like #+Symbolics would 
+  not be possible; you'd have to write #+SYSTEM:SYMBOLICS or 
+  some such, which might get a read error in a non-Symbolics
+  implementation that didn't export SYMBOLICS from SYSTEM...)
+
+  In some systems, a canonical package (such as KEYWORD) is 
+  used. This means that package prefixes are rarely necessary 
+  in sharpsign conditionals for system-provided features 
+  regardless of the current package or restrictions about what
+  may be in LISP. (For example, the KEYWORD package can have
+  any symbol so it's not a problem to push :SYMBOLICS or :LUCID 
+  on *FEATURES*).
+
+  This has implications about what goes on the *FEATURES* 
+  list (p448).
+
+Voting Notes:
+
+  Choose only one of these proposals.
+
+Proposal (SHARPSIGN-PLUS-MINUS-PACKAGE:KEYWORD):
+
+  Change the wording on pp358-359 so that it says that the 
+  default package while reading feature specs is the keyword
+  package. Emphasize that other packages may be designated by 
+  use of explicit package prefixes.
+
+  Add slightly redundant wording on page 448 to emphasize 
+  that the symbols on *FEATURES* may be in any package but 
+  that in practice they will mostly be on the keyword package
+  because that's the package #+/#- uses by default. If symbols
+  in a package other than keyword appear on *FEATURES*, they
+  will be seen by #+/#- only if marked by explicit package 
+  prefixes in the written feature-spec.
+
+  Clarify that the package of the IEEE-FLOATING-POINT symbol 
+  mentioned on p448 is KEYWORD.
+
+  Define that while reading the feature spec, no read error 
+  will be signalled if reference is made to a symbol on a 
+  non-existent package or an external reference is made to
+  a symbol in a package which does not export that symbol.
+  Instead, the behavior shall be as if a symbol was named
+  which was not present on *FEATURES*. For example,
+  #+LISP:NOT-EXPORTED and #+#:NOT-EXPORTED are treated
+  equivalently -- each reads and discards the subsequent form.
+
+Proposal (SHARPSIGN-PLUS-MINUS-PACKAGE:CURRENT):
+
+  Change the wording on pp358-359 so that it says that the 
+  current package is used to read feature specs.
+
+  Add redundant wording on page 448 to emphasize that the 
+  symbols on *FEATURES* may be in more than one package and
+  that #+/#- will read symbols in the current package and 
+  use EQL to search *FEATURES*.
+
+  Clarify that the package of the IEEE-FLOATING-POINT symbol
+  mentioned on p448 is LISP.
+
+  Define that while reading the feature spec, no read error 
+  will be signalled if reference is made to a symbol on a 
+  non-existent package or an external reference is made to
+  a symbol in a package which does not export that symbol.
+  Instead, the behavior shall be as if a symbol was named
+  which was not present on *FEATURES*. For example,
+  #+LISP:NOT-EXPORTED and #+#:NOT-EXPORTED are treated
+  equivalently -- each reads and discards the subsequent form.
+
+Rationale:
+
+  Since it's clear that Common Lisp is not going to handle all
+  of everyone's needs, one of the most important things we can
+  provide is a well-defined conditionalization system to allow
+  people to escape to native code where Common Lisp is deemed
+  inadequate.
+
+Current Practice:
+
+  Some implementations bind *PACKAGE* while reading feature 
+  specs and others do not.
+
+Adoption Cost:
+
+  Changes to implementations to make them conform to either 
+  of these should be fairly minor if not trivial.
+
+Benefits:
+
+  #+/#- are not currently very portable. As such, there's 
+  almost a bootstrapping problem where you need to #+/#- 
+  conditionalize the setup of features since different systems 
+  take them in different ways. Either of these changes would 
+  make #+/#- work in a more portable way.
+
+Conversion Cost:
+
+  Code which is implementation-conditionalized enough for this
+  to make a difference may require some changes. Even if those
+  changes turned out not to be completely trivial, my guess 
+  from past experience in my own code is that maintainers of 
+  such code would happily pay the cost of such changes in order
+  to have something which is more regular and predictably portable.
+
+Aesthetics:
+
+  Most users would perceive this as a bug fix either to CLtL 
+  or to certain implementations.
+
+Discussion:
+
+  KMP thinks that nailing this down as soon as possible 
+  is essential.
+
+  KMP's strong preference is for SHARPSIGN-PLUS-MINUS-PACKAGE:KEYWORD.
+
+  Even if KEYWORD were chosen as the default package for
+  system-supplied symbols, it would be quite reasonable to 
+  suggest that only vendors should add keyword symbols to
+  the *features* list, suggesting that users should add 
+  features on their personal packages so that collisions due
+  to user applications were less likely. This idea might be 
+  a subject of controversy though, so is definitely not part 
+  of the proposal currently up for consideration.
+
+  Moon asked what should happen with symbols in non-existent 
+  packages and symbols in existing packages that are referenced
+  as if external but which are not external. After some 
+  discussion between KMP and Moon, it was agreed that the only
+  rational interpretation of this is that `there exists some
+  implementation somewhere in which this symbol reference is
+  valid, and other implementations should treat this as a 
+  missing feature without complaining about read syntax.'
+
+  Steele and Fahlman expressed support for version 1 of the
+  SHARPSIGN-PLUS-MINUS-PACKAGE:KEYWORD.
+
+*start*
+01316 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 02 MAR 87 21:35:38 PST
+Received: from SCRC-STONY-BROOK.ARPA by SAIL.STANFORD.EDU with TCP; 2 Mar 87  21:33:04 PST
+Received: from EUPHRATES.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 82Date: Tue, 3 Mar 87 00:31 EST
+From: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: SHARPSIGN-PLUS-MINUS-PACKAGE
+To: CL-Cleanup@SAIL.STANFORD.EDU
+cc: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+In-Reply-To: <870301173547.4.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+Message-ID: <870303003144.0.MOON@EUPHRATES.SCRC.Symbolics.COM>
+
+I think I have voted on this about six times now over the years.
+I continue to support SHARPSIGN-PLUS-MINUS-PACKAGE:KEYWORD.
+
+One note: It is important that #+foo:bar, when foo is not a recognized
+package, not signal an error.  Instead it should recognize that the
+feature is not present.  Without this robustness, it is difficult to
+take advantage of the ability to use package prefixes with #+.  Less
+clear is the case where foo exists but does not export a symbol named
+bar.  I advocate signalling an error in this case, since it probably
+indicates either a spelling error or a package-name conflict.
+
+*start*
+01215 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 02 MAR 87 23:04:19 PST
+Received: from SCRC-STONY-BROOK.ARPA by SAIL.STANFORD.EDU with TCP; 2 Mar 87  23:02:01 PST
+Received: from RIO-DE-JANEIRO.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL Date: Tue, 3 Mar 87 02:00 EST
+From: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: SHARPSIGN-PLUS-MINUS-PACKAGE
+To: Moon@STONY-BROOK.SCRC.Symbolics.COM
+cc: CL-Cleanup@SAIL.STANFORD.EDU, KMP@STONY-BROOK.SCRC.Symbolics.COM
+In-Reply-To: <870303003144.0.MOON@EUPHRATES.SCRC.Symbolics.COM>
+Message-ID: <870303020058.3.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+
+I agree with your premise that minimal error checking is warranted and
+think that the extension of that the proper extension is (regrettably)
+that improperly referencing a symbol as exported should not signal an
+error. For example, our package SYSTEM is locked, so 
+ #+SYSTEM:FOO
+might signal an error on our system yet be important on someone else's.
+
+This is rightly independent of the question of what package is the 
+default, though, so maybe yet another ballot item is in order.
+
+*start*
+00583 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:gls@Think.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 03 MAR 87 08:49:49 PST
+Received: from THINK.COM by SAIL.STANFORD.EDU with TCP; 3 Mar 87  08:47:50 PST
+Received: from boethius by Think.COM via CHAOS; Tue, 3 Mar 87 11:46:46 EST
+Date: Tue, 3 Mar 87 11:48 EST
+From: Guy Steele <gls@Think.COM>
+Subject: SHARPSIGN-PLUS-MINUS-PACKAGE
+To: CL-Cleanup@sail.stanford.edu
+In-Reply-To: <870301173547.4.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+Message-Id: <870303114830.1.GLS@BOETHIUS.THINK.COM>
+
+I support this change.  --Guy
+
+*start*
+05506 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 02 MAR 87 07:22:44 PST
+Received: from SCRC-STONY-BROOK.ARPA by SAIL.STANFORD.EDU with TCP; 2 Mar 87  07:18:33 PST
+Received: from RIO-DE-JANEIRO.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL Date: Sun, 1 Mar 87 17:35 EST
+From: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: SHARPSIGN-PLUS-MINUS-PACKAGE
+To: CL-Cleanup@SAIL.STANFORD.EDU
+cc: KMP@STONY-BROOK.SCRC.Symbolics.COM
+Message-ID: <870301173547.4.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+
+Issue:        SHARPSIGN-PLUS-MINUS-PACKAGE
+References:   #+ (p358), #- (p359), *features* (p448)
+Category:     CLARIFICATION/CHANGE
+Edit history: Revision 1 by KMP 03/01/87
+Problem Description:
+
+  No information is provided in the description of #+ and
+  #- (pp358-359) about what package the features are read on.
+
+  In some systems, the current package is used. Since there
+  is no wording to the contrary, it's reasonable to assume that 
+  this would be done, but a consequence of this is that you
+  must be much more sensitive to the package you're in at any
+  given time when using #+ or #- even for system-provided 
+  features. (This will be a big problem if we decide to require
+  that the LISP package can contain only the symbols in CLtL
+  because system-provided features will likely not have the
+  names of symbols on LISP and hence will require package 
+  prefixes. Having a symbol named LISP:SYMBOLICS or LISP:LUCID 
+  would not be possible, so something like #+Symbolics would 
+  not be possible; you'd have to write #+SYSTEM:SYMBOLICS or 
+  some such, which might get a read error in a non-Symbolics
+  implementation that didn't export SYMBOLICS from SYSTEM...)
+
+  In some systems, a canonical package (such as KEYWORD) is 
+  used. This means that package prefixes are rarely necessary 
+  in sharpsign conditionals for system-provided features 
+  regardless of the current package or restrictions about what
+  may be in LISP. (For example, the KEYWORD package can have
+  any symbol so it's not a problem to push :SYMBOLICS or :LUCID 
+  on *FEATURES*).
+
+  This has implications about what goes on the *FEATURES* 
+  list (p448).
+
+Voting Notes:
+
+  Choose only one of these proposals.
+
+Proposal (SHARPSIGN-PLUS-MINUS-PACKAGE:KEYWORD):
+
+  Change the wording on pp358-359 so that it says that the 
+  default package while reading feature specs is the keyword
+  package. Emphasize that other packages may be designated by 
+  use of explicit package prefixes.
+
+  Add slightly redundant wording on page 448 to emphasize 
+  that the symbols on *FEATURES* may be in any package but 
+  that in practice they will mostly be on the keyword package
+  because that's the package #+/#- uses by default. If symbols
+  in a package other than keyword appear on *FEATURES*, they
+  will be seen by #+/#- only if marked by explicit package 
+  prefixes in the written feature-spec.
+
+  Clarify that the package of the IEEE-FLOATING-POINT symbol 
+  mentioned on p448 is KEYWORD.
+
+Proposal (SHARPSIGN-PLUS-MINUS-PACKAGE:CURRENT):
+
+  Change the wording on pp358-359 so that it says that the 
+  current package is used to read feature specs.
+
+  Add redundant wording on page 448 to emphasize that the 
+  symbols on *FEATURES* may be in more than one package and
+  that #+/#- will read symbols in the current package and 
+  use EQL to search *FEATURES*.
+
+  Clarify that the package of the IEEE-FLOATING-POINT symbol
+  mentioned on p448 is LISP.
+
+Rationale:
+
+  Since it's clear that Common Lisp is not going to handle all
+  of everyone's needs, one of the most important things we can
+  provide is a well-defined conditionalization system to allow
+  people to escape to native code where Common Lisp is deemed
+  inadequate.
+
+Current Practice:
+
+  Some implementations bind *PACKAGE* while reading feature 
+  specs and others do not.
+
+Adoption Cost:
+
+  Changes to implementations to make them conform to either 
+  of these should be fairly minor if not trivial.
+
+Benefits:
+
+  #+/#- are not currently very portable. As such, there's 
+  almost a bootstrapping problem where you need to #+/#- 
+  conditionalize the setup of features since different systems 
+  take them in different ways. Either of these changes would 
+  make #+/#- work in a more portable way.
+
+Conversion Cost:
+
+  Code which is implementation-conditionalized enough for this
+  to make a difference may require some changes. Even if those
+  changes turned out not to be completely trivial, my guess 
+  from past experience in my own code is that maintainers of 
+  such code would happily pay the cost of such changes in order
+  to have something which is more regular and predictably portable.
+
+Aesthetics:
+
+  Most users would perceive this as a bug fix either to CLtL 
+  or to certain implementations.
+
+Discussion:
+
+  KMP thinks that nailing this down as soon as possible 
+  is essential.
+
+  KMP's strong preference is for SHARPSIGN-PLUS-MINUS-PACKAGE:KEYWORD.
+
+  Even if KEYWORD were chosen as the default package for
+  system-supplied symbols, it would be quite reasonable to 
+  suggest that only vendors should add keyword symbols to
+  the *features* list, suggesting that users should add 
+  features on their personal packages so that collisions due
+  to user applications were less likely. This idea might be 
+  a subject of controversy though, so is definitely not part 
+  of the proposal currently up for consideration.
+
+*start*
+00990 00024 USf
+Return-Path: <@SAIL.STANFORD.EDU:Masinter.pa@Xerox.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 11 JUN 87 18:44:55 PDT
+Received: from XEROX.COM by SAIL.STANFORD.EDU with TCP; 11 Jun 87  18:42:36 PDT
+Received: from Cabernet.ms by ArpaGateway.ms ; 11 JUN 87 15:45:14 PDT
+Date: 11 Jun 87 15:43 PDT
+From: Masinter.pa
+Subject: Re: SHARPSIGN-PLUS-MINUS-NUMBER, -PACKAGE
+cc: CL-Cleanup@SAIL.STANFORD.EDU
+Message-ID: <870611-154514-183@Xerox>
+
+At an earlier meeting, there was some discussion over registering the
+list of "public" features and "system" packages so that different
+implementations would not step over each other in their use of them.
+(For example, Xerox uses XCL:, as did one of the X-in-Common-Lisp
+modules. User code that explicitly referenced XCL:DRAW would have to be
+edited explicitly.)
+
+This seems actually to get more at the heart of the matter than the
+current proposals for #+- and the like. 
+
+Perhaps we could discuss this at our meeting?
+
+
+*start*
+01309 00024 US 
+Return-Path: <@SAIL.Stanford.EDU:Masinter.pa@Xerox.COM>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 23 OCT 87 14:13:28 PDT
+Received: from XEROX.COM by SAIL.STANFORD.EDU with TCP; 23 Oct 87  14:11:08 PDT
+Received: from Cabernet.ms by ArpaGateway.ms ; 23 OCT 87 14:01:49 PDT
+Date: 23 Oct 87 14:01 PDT
+From: Masinter.pa
+Subject: registry of *features* names
+To: cl-cleanup@Sail.stanford.edu
+Message-ID: <871023-140149-1365@Xerox>
+
+I got no response on this message before. Perhaps we could bring the issue up again?
+
+     ----- Begin Forwarded Messages -----
+
+Date: 11 Jun 87 15:43 PDT
+From: Masinter.pa
+Subject: Re: SHARPSIGN-PLUS-MINUS-NUMBER, -PACKAGE
+to: CL-Cleanup@SAIL.STANFORD.EDU
+Message-ID: <870611-154514-183@Xerox>
+
+At an earlier meeting, there was some discussion over registering the
+list of "public" features and "system" packages so that different
+implementations would not step over each other in their use of them.
+(For example, Xerox uses XCL:, as did one of the X-in-Common-Lisp
+modules. User code that explicitly referenced XCL:DRAW would have to be
+edited explicitly.)
+
+This seems actually to get more at the heart of the matter than the
+current proposals for #+- and the like. 
+
+Perhaps we could discuss this at our meeting?
+
+*start*
+01297 00024 US 
+Return-Path: <@SAIL.Stanford.EDU:Masinter.pa@Xerox.COM>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 26 OCT 87 14:16:50 PST
+Received: from XEROX.COM by SAIL.STANFORD.EDU with TCP; 26 Oct 87  14:13:30 PST
+Received: from Cabernet.ms by ArpaGateway.ms ; 26 OCT 87 14:09:03 PST
+Date: 26 Oct 87 14:57 PDT
+From: Masinter.pa
+Subject: Re: registry of *features* names
+In-reply-to: "Scott E. Fahlman" <Fahlman@C.CS.CMU.EDU>'s message of Sun,
+ 25 Oct 87 19:40 EST
+To: Fahlman@C.CS.CMU.EDU
+cc: cl-cleanup@SAIL.STANFORD.EDU
+Message-ID: <871026-140903-2062@Xerox>
+
+Perhaps we could ask ISI to do this task. 
+
+Perhaps the list need not be exclusive. I.e., you would have to provide
+the name of the feature/package and a one-paragraph description of what
+the name stood for and a name and address. The registry organization
+would not attempt to allocate exlusive use. You could pick somebody
+else's feature name if you liked; it would just be an information-only
+registrar.
+
+I believe that people will naturally try to avoid feature names in use
+by others and that any obvious attempt to "corner the market" will be
+ignored.
+
+This isn't really an issue for CL-CLEANUP, except as it affects
+SHARPSIGN-PLUS-MINUS-PACKAGE, which is hardly at all.
+
+ 
+
+
+*start*
+01959 00024 US 
+Return-Path: <FAHLMAN@C.CS.CMU.EDU>
+Received: from C.CS.CMU.EDU by Xerox.COM ; 25 OCT 87 16:41:24 PST
+Received: ID <FAHLMAN@C.CS.CMU.EDU>; Sun 25 Oct 87 19:40:14-EST
+Date: Sun, 25 Oct 87 19:40 EST
+Message-ID: <FAHLMAN.12345416850.BABYL@C.CS.CMU.EDU>
+Sender: FAHLMAN@C.CS.CMU.EDU
+From: "Scott E. Fahlman" <Fahlman@C.CS.CMU.EDU>
+To: Masinter.pa
+Cc: cl-cleanup@SAIL.STANFORD.EDU
+Subject: registry of *features* names
+In-reply-to: Msg of 23 Oct 1987  17:01-EDT from Masinter.pa at Xerox.COM
+
+
+    At an earlier meeting, there was some discussion over registering the
+    list of "public" features and "system" packages so that different
+    implementations would not step over each other in their use of them.
+    (For example, Xerox uses XCL:, as did one of the X-in-Common-Lisp
+    modules. User code that explicitly referenced XCL:DRAW would have to be
+    edited explicitly.)
+    ...
+    Perhaps we could discuss this at our meeting?
+
+Since I won't be able to get to the Colorado meeting, I'll throw in my
+two cents' worth now.
+
+A registry would have to be set up as a part of X3J13 or some other
+"neutral" group in order to keep the registrar safe from big nasty
+companies and their lawyers.  I'm sure you've seen the kinds of hassles
+that break out over trademarks and corporation names.  We would have to
+think carefully about what the rules should be for claiming a package
+name.  Otherwise some group will grab off all the good names and sell
+them to the companies that have a real use for them.
+
+In my view, companies and groups producing packages for widespread
+distribution should be allowed to claim long package names that are not
+likely to collide (e.g. XEROX-COMMON-LISP), but nobody should be allowed
+to grab off short names like XCL.  If you want to make XCL a local
+nickname for Xerox Common Lisp, fine; I might want to use XCL as a
+nickname for BERKELEY-X-IN-COMMON-LISP or for soemthing as yet undreamed
+of.
+
+-- Scott
+*start*
+05002 00024 USf
+Date: 10 Nov 87 23:48 PST
+From: Masinter.pa
+Subject: Issue: SHARPSIGN-PLUS-MINUS-PACKAGE (Version 2)
+To: CL-Cleanup@SAIL.STANFORD.EDU
+cc: masinter
+
+I rewrote this proposal with only the :KEYWORD option. I added an endorsement. I added mention of the possibility of a registry in the discussion. I rewrote some sections to avoid Kent's original first-person phrasing. I reworded the proposal as a change to the language rather than a change to CLtL.
+
+I removed the wording in the Rationale which said "Since it's clear that Common Lisp is not going to handle all of everyone's needs, one of the most important things we can provide is a well-defined conditionalization system to allow people to escape to native code." since I disagree; I think of our work in CL-Cleanup as primarily oriented toward minimizing the amount of #+ and #- that users need to perform.  Whether you agree or not, I think the proposal stands without it.
+
+
+Issue:        SHARPSIGN-PLUS-MINUS-PACKAGE
+References:   #+ (p. 358), #- (p. 359), *FEATURES* (p. 448)
+Category:     CLARIFICATION/CHANGE
+Edit history: Version 1 by Pitman 03/01/87
+              Version 2 by Masinter 10-Nov-87
+
+Problem Description:
+
+No information is provided in the description of #+ and #- (pp. 358-359) about what package the features are read on.
+
+In some systems, the current package is used. Since there is no wording in CLtL to the contrary, it's reasonable to assume that this would be done, but a consequence of this is that you must be much more sensitive to the package you're in at any given time when using #+ or #- even for system-provided features. (This is a problem if the LISP package can contain only the symbols in CLtL because system-provided features will likely not have the names of symbols on LISP and hence will require package prefixes. Having a symbol named LISP:SYMBOLICS or LISP:LUCID would not be possible, so something like #+Symbolics would not be possible; you'd have to write #+SYSTEM:SYMBOLICS or some such, which might get a read error in a non-Symbolics implementation that didn't export SYMBOLICS from SYSTEM...)
+
+In some systems, a canonical package (such as KEYWORD) is used. This means that package prefixes are rarely necessary in sharpsign conditionals for system-provided features regardless of the current package or restrictions about what may be in LISP. (For example, the KEYWORD package can have any symbol so it's not a problem to push :SYMBOLICS or :LUCID on *FEATURES*).
+
+This has implications about what goes on the *FEATURES*  list (p. 448).
+
+
+Proposal (SHARPSIGN-PLUS-MINUS-PACKAGE:KEYWORD):
+
+Specify that the default package while reading feature specs is the keyword package. Other packages may be designated by use of explicit package prefixes.
+
+Symbols on *FEATURES* may be in any package but  that in practice they will mostly be on the keyword package because that's the package #+/#- uses by default. If symbols in a package other than keyword appear on *FEATURES*, they  will be seen by #+/#- only if marked by explicit package  prefixes in the written feature-spec.
+
+Clarify that the package of the IEEE-FLOATING-POINT symbol mentioned on p. 448 is KEYWORD.
+
+Rationale:
+
+Making the behavior of #+ and #- well defined is important for people writing portable code that manipulate *FEATURES* directly.
+
+Current Practice:
+
+Some implementations bind *PACKAGE* while reading feature specs and others do not.
+
+Adoption Cost:
+
+Changes to implementations to make them conform to either of these should be fairly minor if not trivial.
+
+Benefits:
+
+As currently specified, using #+ and #- in truly portable code can have bootstrapping problems, since it is sometimes required to conditionally set up *FEATURES* in different ways for different systems.
+
+Conversion Cost:
+
+Few changes to user code will be required; code that uses #+ and #- will continue to work, although code that manipulates *FEATURES* directly may require editing. 
+
+Aesthetics:
+
+Most users would perceive this as a bug fix either to CLtL or to certain implementations.
+
+Discussion:
+
+The cleanup committee supports this proposal.
+
+It might be reasonable to suggest that only vendors should add keyword symbols to the *features* list, and that users should add features on their personal packages so that collisions due to user applications were less likely. This idea might be a subject of controversy though, so is not part of this proposal.
+
+It would be useful to create a non-binding registry of feature names (and package names) already in use, so that Lisp implementors could pick otherwise unused feature names, and users who wanted to write portable code could know what feature names were preferred.
+
+        TITAN          TITAN           ¤                            .                     
+       M             W       1      @              ƒ              U              l       
+       Í              ¦              \             r      I zº*start*
+01693 00024 US 
+Return-Path: <@SAIL.Stanford.EDU:Masinter.pa@Xerox.COM>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 26 OCT 87 17:24:07 PST
+Received: from XEROX.COM by SAIL.STANFORD.EDU with TCP; 26 Oct 87  17:21:38 PST
+Received: from Cabernet.ms by ArpaGateway.ms ; 26 OCT 87 17:22:23 PST
+Date: 26 Oct 87 17:22 PST
+From: Masinter.pa
+Subject: *FEATURES*, system package name
+To: cl-cleanup@Sail.stanford.edu
+Message-ID: <871026-172223-2395@Xerox>
+
+OK, I'll send out a message asking people to send in a list of feature
+names and package names, and write a little hack to generate a sorted
+list.
+
+This is the format (this is just an example, of course):
+
+
+
+(system "Xerox Common Lisp" From "Masinter.PA@Xerox.COM" 
+
+(Feature  :COMMON Description "Common Lisp available")
+
+(Feature  :XEROX Description "Running in Xerox Common Lisp.")
+
+(Feature  :INTERLISP Description "The Interlisp programming language and
+environment are available")
+
+(Package "INTERLISP" nicknames ("IL") Description "Interlisp programming
+language and environment")
+
+(Package "XEROX-COMMON-LISP" nicknames ("XCL") Description "Xerox
+extensions to Common Lisp")
+
+(Package "XCL-USER" Description "Default package for Common Lisp windows
+in Xerox Common Lisp environment")
+
+(Package "LISP" nicknames ("COMMON-LISP" "CL") Description  "As in CLtL,
+package containing all Common Lisp symbols")
+
+(Package "SYSTEM" nicknames ("SYS" "SI") Description  "as in CLtL,
+system internals")
+
+(Package  "D-ASSEM"  Description  "Xerox D-machine assembler")
+
+(Package "FASL" Description "Xerox fast-loader")
+
+(Package "COMPILER" nicknames ("XCLC") Description "Xerox Common Lisp
+Compiler")
+
+)
+
+*start*
+00971 00024 US 
+Return-Path: <CL-Cleanup-mailer@SAIL.Stanford.EDU>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 12 NOV 87 18:47:24 PST
+Received: from SCRC-RIVERSIDE.ARPA by SAIL.STANFORD.EDU with TCP; 12 Nov 87  18:45:11 PST
+Received: from EUPHRATES.SCRC.Symbolics.COM by Riverside.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 187832; Thu 12-Nov-87 19:34:50 EST
+Date: Thu, 12 Nov 87 19:34 EST
+From: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: Issue: SHARPSIGN-PLUS-MINUS-PACKAGE (Version 2)
+To: CL-Cleanup@SAIL.STANFORD.EDU
+In-Reply-To: <871110-234924-6361@Xerox>
+Message-ID: <19871113003437.5.MOON@EUPHRATES.SCRC.Symbolics.COM>
+
+This looks ready to release to me, except for the following typo:
+
+    Adoption Cost:
+    
+    Changes to implementations to make them conform to either of these
+    should be fairly minor if not trivial.
+
+"either of these" is left over from when there were two proposals.
+
+*start*
+04297 00024 USm
+Date:  5 Feb 88 17:00 PST
+From: Masinter.pa
+Issue: SHARPSIGN-PLUS-MINUS-PACKAGE (Version 3)
+to: Masinter
+
+
+
+Issue:        SHARPSIGN-PLUS-MINUS-PACKAGE
+References:   #+ (p. 358), #- (p. 359), *FEATURES* (p. 448)
+Category:     CLARIFICATION/CHANGE
+Edit history: Version 1 by Pitman 03/01/87
+              Version 2 by Masinter 10-Nov-87
+              Version 3 by Masinter 14-Nov-87
+
+Problem Description:
+
+No information is provided in the description of #+ and #- (pp. 358-359) about what package the features are read on.
+
+In some systems, the current package is used. Since there is no wording in CLtL to the contrary, it's reasonable to assume that this would be done, but a consequence of this is that you must be much more sensitive to the package you're in at any given time when using #+ or #- even for system-provided features. (This is a problem if the LISP package can contain only the symbols in CLtL because system-provided features will likely not have the names of symbols on LISP and hence will require package prefixes. Having a symbol named LISP:SYMBOLICS or LISP:LUCID would not be possible, so something like #+Symbolics would not be possible; you'd have to write #+SYSTEM:SYMBOLICS or some such, which might get a read error in a non-Symbolics implementation that didn't export SYMBOLICS from SYSTEM...)
+
+In some systems, a canonical package (such as KEYWORD) is used. This means that package prefixes are rarely necessary in sharpsign conditionals for system-provided features regardless of the current package or restrictions about what may be in LISP. (For example, the KEYWORD package can have any symbol so it's not a problem to push :SYMBOLICS or :LUCID on *FEATURES*).
+
+This has implications about what goes on the *FEATURES*  list (p. 448).
+
+
+Proposal (SHARPSIGN-PLUS-MINUS-PACKAGE:KEYWORD):
+
+Specify that the default package while reading feature specs is the keyword package. Other packages may be designated by use of explicit package prefixes.
+
+Symbols on *FEATURES* may be in any package but  that in practice they will mostly be on the keyword package because that's the package #+/#- uses by default. If symbols in a package other than keyword appear on *FEATURES*, they  will be seen by #+/#- only if marked by explicit package  prefixes in the written feature-spec.
+
+Clarify that the package of the IEEE-FLOATING-POINT symbol mentioned on p. 448 is KEYWORD.
+
+Rationale:
+
+Making the behavior of #+ and #- well defined is important for people writing portable code that manipulate *FEATURES* directly.
+
+Current Practice:
+
+Some implementations bind *PACKAGE* while reading feature specs and others do not.
+
+Adoption Cost:
+
+Changes to implementations to make them conform should be fairly minor if not trivial.
+
+Benefits:
+
+As currently specified, using #+ and #- in truly portable code can have bootstrapping problems, since it is sometimes required to conditionally set up *FEATURES* in different ways for different systems.
+
+Conversion Cost:
+
+Few changes to user code will be required; code that uses #+ and #- will continue to work, although code that manipulates *FEATURES* directly may require editing. 
+
+Aesthetics:
+
+Most users would perceive this as a bug fix either to CLtL or to certain implementations.
+
+Discussion:
+
+The cleanup committee supports this proposal.
+
+It might be reasonable to suggest that only vendors should add keyword symbols to the *FEATURES* list, and that users should add features on their personal packages so that collisions due to user applications were less likely. This idea might be a subject of controversy though, so is not part of this proposal.
+
+It would be useful to create a non-binding registry of feature names (and package names) already in use, so that Lisp implementors could pick otherwise unused feature names, and users who wanted to write portable code could know what feature names were preferred.
+
+     ----- End Forwarded Messages -----
+        TITAN           TITAN          
+TIMESROMAN 
+           3              
+                            .                     
+       {             W       1      @              ƒ              U              Y       
+       Í              ¦              \             q       )      U zº*start*
+04319 00024 US 
+Date: 14 Feb 88 14:08 PST
+From: Masinter.pa
+Issue: SHARPSIGN-PLUS-MINUS-PACKAGE (Version 3)
+To: X3J13@Sail.stanford.edu
+cc: Masinter
+reply-to: CL-CLEANUP@Sail.Stanford.EDU
+
+This issue had not been distributed before.
+
+
+Issue:        SHARPSIGN-PLUS-MINUS-PACKAGE
+References:   #+ (p. 358), #- (p. 359), *FEATURES* (p. 448)
+Category:     CLARIFICATION/CHANGE
+Edit history: Version 1 by Pitman   01-Mar-87
+              Version 2 by Masinter 10-Nov-87
+              Version 3 by Masinter 14-Nov-87
+
+Problem Description:
+
+No information is provided in the description of #+ and #- (pp. 358-359) about what package the features are read on.
+
+In some systems, the current package is used. Since there is no wording in CLtL to the contrary, it's reasonable to assume that this would be done, but a consequence of this is that you must be much more sensitive to the package you're in at any given time when using #+ or #- even for system-provided features. (This is a problem if the LISP package can contain only the symbols in CLtL because system-provided features will likely not have the names of symbols on LISP and hence will require package prefixes. Having a symbol named LISP:SYMBOLICS or LISP:LUCID would not be possible, so something like #+Symbolics would not be possible; you'd have to write #+SYSTEM:SYMBOLICS or some such, which might get a read error in a non-Symbolics implementation that didn't export SYMBOLICS from SYSTEM...)
+
+In some systems, a canonical package (such as KEYWORD) is used. This means that package prefixes are rarely necessary in sharpsign conditionals for system-provided features regardless of the current package or restrictions about what may be in LISP. (For example, the KEYWORD package can have any symbol so it's not a problem to push :SYMBOLICS or :LUCID on *FEATURES*).
+
+This has implications about what goes on the *FEATURES*  list (p. 448).
+
+
+Proposal (SHARPSIGN-PLUS-MINUS-PACKAGE:KEYWORD):
+
+Specify that the default package while reading feature specs is the keyword package. Other packages may be designated by use of explicit package prefixes.
+
+Symbols on *FEATURES* may be in any package but  that in practice they will mostly be on the keyword package because that's the package #+/#- uses by default. If symbols in a package other than keyword appear on *FEATURES*, they  will be seen by #+/#- only if marked by explicit package  prefixes in the written feature-spec.
+
+Clarify that the package of the IEEE-FLOATING-POINT symbol mentioned on p. 448 is KEYWORD.
+
+Rationale:
+
+Making the behavior of #+ and #- well defined is important for people writing portable code that manipulate *FEATURES* directly.
+
+Current Practice:
+
+Some implementations bind *PACKAGE* while reading feature specs and others do not.
+
+Adoption Cost:
+
+Changes to implementations to make them conform should be fairly minor if not trivial.
+
+Benefits:
+
+As currently specified, using #+ and #- in truly portable code can have bootstrapping problems, since it is sometimes required to conditionally set up *FEATURES* in different ways for different systems.
+
+Conversion Cost:
+
+Few changes to user code will be required; code that uses #+ and #- will continue to work, although code that manipulates *FEATURES* directly may require editing. 
+
+Aesthetics:
+
+Most users would perceive this as a bug fix either to CLtL or to certain implementations.
+
+Discussion:
+
+The cleanup committee supports this proposal.
+
+It might be reasonable to suggest that only vendors should add keyword symbols to the *FEATURES* list, and that users should add features on their personal packages so that collisions due to user applications were less likely. This idea might be a subject of controversy though, so is not part of this proposal.
+
+It would be useful to create a non-binding registry of feature names (and package names) already in use, so that Lisp implementors could pick otherwise unused feature names, and users who wanted to write portable code could know what feature names were preferred.
+        TITAN 
+          TITAN 
+          Ü                            .                     
+       ~             W       1      @              ƒ              U              Y       
+       Í              ¦              \             q      ž zº

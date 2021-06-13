@@ -1,0 +1,1072 @@
+*start*
+03095 00024 USf
+Return-Path: <@SAIL.STANFORD.EDU:Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 11 MAY 87 15:03:50 PDT
+Received: from SCRC-STONY-BROOK.ARPA by SAIL.STANFORD.EDU with TCP; 11 May 87  15:02:46 PDT
+Received: from EUPHRATES.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 137213; Mon 11-May-87 18:01:19 EDT
+Date: Mon, 11 May 87 18:01 EDT
+From: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: Issue: PATHNAME-SYMBOL
+To: CL-Cleanup@sail.stanford.edu
+Message-ID: <870511180110.7.MOON@EUPHRATES.SCRC.Symbolics.COM>
+
+Issue:		PATHNAME-SYMBOL
+		[Note that this is not the same issue as PATHNAME-STREAM]
+
+Status:		New issue
+
+References:   	PATHNAME (p.413), also the introductory text right above
+		it on the same page.
+		Derived references: PARSE-NAMESTRING (p.414),
+		MERGE-PATHNAMES (p.415), PATHNAME-HOST etc. (p.417),
+		NAMESTRING etc. (p.417).
+
+Category:     	INCOMPATIBLE CHANGE
+
+Problem Description:
+
+Some Common Lisp functions are specified to accept a symbol where a 
+pathname is expected.  Some others (OPEN, WITH-OPEN-FILE, DELETE-FILE,
+and RENAME-FILE) are not specified to accept a symbol.
+
+Proposal PATHNAME-SYMBOL:NO
+
+Never allow symbols where pathnames are expected.
+
+Rationale:
+
+The feature of accepting a symbol was copied by Common Lisp from Zetalisp,
+which in turn copied it from Maclisp.  The reason Maclisp allowed a symbol
+here was that it did not have strings at all.  However, the feature has been
+long since removed from Zetalisp, since it was found to be a source of bugs
+and not to be useful.  I suspect this feature was removed from Zetalisp
+before Common Lisp was defined, but due to the poor state of Zetalisp
+documentation at the time the change was overlooked by the designers of
+Common Lisp.
+
+One example of the type of bug caused by this occurs when NIL is erroneously
+substituted for a pathname, perhaps because GETHASH or ASSOC didn't find a
+table entry that was expected to exist and returned -false-.  In systems
+that accept symbols as pathnames, this causes a reference to a file named
+"nil" on some perhaps unexpected directory.
+
+Current Practice:
+
+Varies.  Some implementations allow symbols here, some don't.  Symbolics
+doesn't allow symbols except in PARSE-NAMESTRING and MERGE-PATHNAMES,
+and allowing them there is probably a bug in the implementation.
+
+Adoption Cost:
+
+It's easy to change implementations to stop accepting symbols.  Since this
+appears to be an "is an error" rather than "signals an error" situation,
+no implementation change is actually necessary.
+
+Benefits:
+
+Pathname functions will be more consistent.  In implementations that check
+the type of this argument, program error checking will be improved.
+
+Conversion Cost:
+
+Some users might be using symbols as pathnames, in implementations where
+that works, and they would have to switch to using strings.
+
+Aesthetics: Improved by the change.
+
+Discussion:
+
+The only user feedback on this issue I've seen was a bug report that
+MERGE-PATHNAMES was in error because it accepted symbols.
+
+*start*
+00916 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:FAHLMAN@C.CS.CMU.EDU>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 11 MAY 87 18:04:15 PDT
+Received: from C.CS.CMU.EDU by SAIL.STANFORD.EDU with TCP; 11 May 87  18:03:08 PDT
+Received: ID <FAHLMAN@C.CS.CMU.EDU>; Mon 11 May 87 21:02:25-EDT
+Date: Mon, 11 May 87 21:02 EDT
+Message-ID: <FAHLMAN.12301642842.BABYL@C.CS.CMU.EDU>
+Sender: FAHLMAN@C.CS.CMU.EDU
+From: "Scott E. Fahlman" <Fahlman@C.CS.CMU.EDU>
+To: CL-Cleanup@SAIL.STANFORD.EDU
+Subject: Issue: PATHNAME-SYMBOL
+In-reply-to: Msg of 11 May 1987  18:01-EDT from David A. Moon <Moon at STONY-BROOK.SCRC.Symbolics.COM>
+
+
+I favor PATHNAME-SYMBOL:NIL.
+
+It would be nice if someone would undertake a complete review of the
+pathname situation.  Seems to me that many problems lurk in here.  But
+the desire for a comprehensive solution shouldn't prevent us from
+patching things that need to be patched.
+
+-- Scott
+
+*start*
+00945 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 11 MAY 87 19:07:55 PDT
+Received: from SCRC-STONY-BROOK.ARPA by SAIL.STANFORD.EDU with TCP; 11 May 87  19:07:06 PDT
+Received: from EUPHRATES.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 137493; Mon 11-May-87 22:05:42 EDT
+Date: Mon, 11 May 87 22:05 EDT
+From: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: Issue: PATHNAME-SYMBOL
+To: Scott E. Fahlman <Fahlman@C.CS.CMU.EDU>
+cc: CL-Cleanup@SAIL.STANFORD.EDU
+In-Reply-To: <FAHLMAN.12301642842.BABYL@C.CS.CMU.EDU>
+Message-ID: <870511220522.5.MOON@EUPHRATES.SCRC.Symbolics.COM>
+
+    Date: Mon, 11 May 1987  21:02 EDT
+    From: "Scott E. Fahlman" <Fahlman@C.CS.CMU.EDU>
+
+    I favor PATHNAME-SYMBOL:NIL.
+
+To avoid any confusion: do you mean PATHNAME-SYMBOL:NO, or is
+PATHNAME-SYMBOL:NIL a different proposal?
+
+*start*
+00683 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:FAHLMAN@C.CS.CMU.EDU>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 11 MAY 87 19:41:19 PDT
+Received: from C.CS.CMU.EDU by SAIL.STANFORD.EDU with TCP; 11 May 87  19:40:23 PDT
+Received: ID <FAHLMAN@C.CS.CMU.EDU>; Mon 11 May 87 22:39:37-EDT
+Date: Mon, 11 May 87 22:39 EDT
+Message-ID: <FAHLMAN.12301660525.BABYL@C.CS.CMU.EDU>
+Sender: FAHLMAN@C.CS.CMU.EDU
+From: "Scott E. Fahlman" <Fahlman@C.CS.CMU.EDU>
+To: CL-Cleanup@SAIL.STANFORD.EDU
+Subject: Issue: PATHNAME-SYMBOL
+In-reply-to: Msg of 11 May 1987  22:05-EDT from David A. Moon <Moon at STONY-BROOK.SCRC.Symbolics.COM>
+
+
+Clarification:
+
+I favor PATHNAME-SYMBOL:NO.
+
+-- Scott
+
+*start*
+00574 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:gls@Think.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 12 MAY 87 14:57:06 PDT
+Received: from THINK.COM by SAIL.STANFORD.EDU with TCP; 12 May 87  14:56:02 PDT
+Received: from boethius by Think.COM via CHAOS; Tue, 12 May 87 17:58:18 EDT
+Date: Tue, 12 May 87 17:58 EDT
+From: Guy Steele <gls@Think.COM>
+Subject: Issue: PATHNAME-SYMBOL
+To: CL-Cleanup@sail.stanford.edu
+In-Reply-To: <870511180110.7.MOON@EUPHRATES.SCRC.Symbolics.COM>
+Message-Id: <870512175812.2.GLS@BOETHIUS.THINK.COM>
+
+I favor PATHNAME-SYMBOL:NO.
+
+*start*
+01474 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 14 MAY 87 10:47:32 PDT
+Received: from SCRC-STONY-BROOK.ARPA by SAIL.STANFORD.EDU with TCP; 14 May 87  10:45:08 PDT
+Received: from TSUKUBA.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 140100; Thu 14-May-87 13:43:48 EDT
+Date: Thu, 14 May 87 13:43 EDT
+From: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: Issue: PATHNAME-SYMBOL
+To: Moon@STONY-BROOK.SCRC.Symbolics.COM
+cc: CL-Cleanup@SAIL.STANFORD.EDU
+In-Reply-To: <870511180110.7.MOON@EUPHRATES.SCRC.Symbolics.COM>
+Message-ID: <870514134332.1.KMP@TSUKUBA.SCRC.Symbolics.COM>
+
+I support PATHNAME-SYMBOL:NO, but I have the following comments:
+
+ * Please change the reference to filename "nil" to filename "NIL"
+   since (STRING NIL) returns "NIL" and not "nil". This is a minor
+   point, but I think worth doing.
+
+ * Note that the biggest impact of this change on users is that
+   they will not be able to say (LOAD'FOO) which they commonly type
+   interactively to mean (LOAD "FOO"). One advantage, of course, is
+   that in case-sensitive file systems, people won't do
+   (load'foo) and wonder why file "FOO" (rather than "foo") is not
+   found. Still, I think the fact that we're going to make it an
+   error for people to type (LOAD 'FOO) is worth documenting as part
+   of the cost of this proposal so that no one ends up surprised.
+
+*start*
+03279 00024 USf
+Date: 29 May 87 21:23 PDT
+From: Masinter.pa
+Subject: Issue: PATHNAME-SYMBOL (Version 2)
+To: CL-Cleanup@sail.stanford.edu
+CC: Masinter
+
+Status:		Merged comments in. Ready for release? [Use ballot]
+
+Issue:		PATHNAME-SYMBOL
+
+References:   	PATHNAME (p.413),
+                Derived references: PARSE-NAMESTRING (p.414),
+                MERGE-PATHNAMES (p.415), PATHNAME-HOST etc. (p.417),
+                NAMESTRING etc. (p.417).
+
+Edit History:  Version 1 by Moon 11-May-87
+               Version 2 by Masinter 29-May-87
+
+
+Category:     	(Incompatible) CHANGE
+
+Problem Description:
+
+Some Common Lisp functions are specified to accept a symbol where a 
+pathname is expected.  Some others (OPEN, WITH-OPEN-FILE, DELETE-FILE,
+and RENAME-FILE) are not specified to accept a symbol.
+
+
+Proposal PATHNAME-SYMBOL:NO
+
+Never allow symbols where pathnames are expected.
+
+Rationale:
+
+The feature of accepting a symbol was copied by Common Lisp from Zetalisp,
+which in turn copied it from Maclisp.  The reason Maclisp allowed a symbol
+here was that it did not have strings at all.  However, the feature has been
+long since removed from Zetalisp, since it was found to be a source of bugs
+and not to be useful.  I suspect this feature was removed from Zetalisp
+before Common Lisp was defined, but due to the poor state of Zetalisp
+documentation at the time the change was overlooked by the designers of
+Common Lisp.
+
+One example of the type of bug caused by this occurs when NIL is erroneously
+substituted for a pathname, perhaps because GETHASH or ASSOC didn't find a
+table entry that was expected to exist and returned -false-.  In systems
+that accept symbols as pathnames, this causes a reference to a file named
+"NIL" on some perhaps unexpected directory.
+
+Current Practice:
+
+Varies.  Some implementations allow symbols here, some don't.  Symbolics
+doesn't allow symbols except in PARSE-NAMESTRING and MERGE-PATHNAMES,
+and allowing them there is probably a bug in the implementation.
+
+Adoption Cost:
+
+It's easy to change implementations to stop accepting symbols.  Since this
+appears to be an "is an error" rather than "signals an error" situation,
+no implementation change is actually necessary.
+
+Benefits:
+
+Pathname functions will be more consistent.  In implementations that check the type of this argument, program error checking will be improved. In dealing with case-sensitive file systems, users won't do (load'foo) and wonder why file "FOO" (rather than "foo") is not found.
+
+Conversion Cost:
+
+Some users might be using symbols as pathnames, in implementations where
+that works, and they would have to switch to using strings. For example, some users are used to type interactively (LOAD 'FOO) to mean (LOAD "FOO").
+
+Aesthetics: Improved by the change.
+
+Discussion:
+
+Some users have reported the "fact" that MERGE-PATHNAMES was in error because it accepted symbols.
+
+The Cleanup committee supports this change.
+
+        TITAN           TITAN          
+TIMESROMAN 
+           Å                            ¿              K                                          Æ              4             l              Ò              Æ       
+                    à                            ‘             [ zº*start*
+01188 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:edsel!kent-state!eb@navajo.stanford.edu>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 01 JUN 87 14:51:34 PDT
+Received: from NAVAJO.STANFORD.EDU by SAIL.STANFORD.EDU with TCP; 1 Jun 87  14:50:09 PDT
+Received: by navajo.stanford.edu; Mon, 1 Jun 87 14:47:14 PDT
+Received: from kent-state.edsel.uucp by edsel.uucp (3.2/SMI-2.0)
+	id AA09918; Mon, 1 Jun 87 14:27:22 PDT
+Received: by kent-state.edsel.uucp (3.2/SMI-3.2)
+	id AA07224; Mon, 1 Jun 87 14:27:11 PDT
+Date: Mon, 1 Jun 87 14:27:11 PDT
+From: edsel!kent-state!eb@navajo.stanford.edu (Eric Benson)
+Message-Id: <8706012127.AA07224@kent-state.edsel.uucp>
+To: navajo!cl-cleanup%sail@navajo.stanford.edu
+Subject: PATHNAME-SYMBOL
+
+If a symbol can be coerced into a string, and a string can be coerced
+into a pathname, I see no reason why a symbol should not be coerced
+into a pathname.  It has limited usefulness, but I believe that
+coercions should be transitive.  I believe that the aesthetics of the
+language will be harmed by disallowing symbols as pathnames.
+
+I'm not going to put up a fight to stop this change, but I would like
+to see the minority view stated in the proposal.
+
+*start*
+01157 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:gls@think.com>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 03 JUN 87 08:10:57 PDT
+Received: from NAVAJO.STANFORD.EDU by SAIL.STANFORD.EDU with TCP; 3 Jun 87  08:09:29 PDT
+Received: from THINK.COM by navajo.stanford.edu with TCP; Wed, 3 Jun 87 08:06:27 PDT
+Received: from boethius by Think.COM via CHAOS; Wed, 3 Jun 87 11:11:12 EDT
+Date: Wed, 3 Jun 87 11:09 EDT
+From: Guy Steele <gls@think.com>
+Subject: Transitivity of coercions
+To: edsel!kent-state!eb@navajo.stanford.edu, navajo!cl-cleanup%sail@navajo.stanford.edu
+Cc: gls@think.com
+In-Reply-To: <8706012127.AA07224@kent-state.edsel.uucp>
+Message-Id: <870603110900.0.GLS@BOETHIUS.THINK.COM>
+
+Note that an explicit decision was made early in the design of CL
+not to make all coercions transitive.  For example, symbols
+coerce to strings (for string functions), and strings are sequences
+(and so can be mixed with other sequence types), but symbols are
+not sequences.
+
+If we cannot have consistency, let us then have consistency of
+inconsistency.  (Also known as, "This screw-up was good enough
+for grampa, and it's good enough for me!")
+
+--Guy
+
+*start*
+02511 00024 US 
+Return-Path: <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Received: from STONY-BROOK.SCRC.Symbolics.COM (SCRC-STONY-BROOK.ARPA) by Xerox.COM ; 01 JUN 87 20:48:41 PDT
+Received: from EUPHRATES.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 161246; Mon 1-Jun-87 23:45:22 EDT
+Date: Mon, 1 Jun 87 23:45 EDT
+From: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: PATHNAME-SYMBOL
+To: Eric Benson <edsel!kent-state!eb@navajo.stanford.edu>, Masinter.pa
+cc: cl-cleanup@sail.stanford.edu
+In-Reply-To: <8706012127.AA07224@kent-state.edsel.uucp>
+Message-ID: <870601234525.1.MOON@EUPHRATES.SCRC.Symbolics.COM>
+Line-fold: No
+
+    Date: Mon, 1 Jun 87 14:27:11 PDT
+    From: edsel!kent-state!eb@navajo.stanford.edu (Eric Benson)
+
+    If a symbol can be coerced into a string, and a string can be coerced
+    into a pathname, I see no reason why a symbol should not be coerced
+    into a pathname.  It has limited usefulness, but I believe that
+    coercions should be transitive.  I believe that the aesthetics of the
+    language will be harmed by disallowing symbols as pathnames.
+
+    I'm not going to put up a fight to stop this change, but I would like
+    to see the minority view stated in the proposal.
+
+Stating minority views in proposals is a good idea, but don't forget the
+following point KMP made a couple of weeks ago.  I only mention this
+because the point about alphabetic case doesn't appear explicitly in the
+version 2 writeup.  I'd say the succinct form of this point is that
+strings preserve the case that you type in, but symbols don't, they
+force to uppercase.  This doesn't affect me, since I don't enjoy a file
+system with case-sensitive file names, but it affects a lot of people.
+
+ * Note that the biggest impact of this change on users is that
+   they will not be able to say (LOAD'FOO) which they commonly type
+   interactively to mean (LOAD "FOO"). One advantage, of course, is
+   that in case-sensitive file systems, people won't do
+   (load'foo) and wonder why file "FOO" (rather than "foo") is not
+   found. Still, I think the fact that we're going to make it an
+   error for people to type (LOAD 'FOO) is worth documenting as part
+   of the cost of this proposal so that no one ends up surprised.
+
+One note I had about KMP's remark:
+Nothing in CLtL says that a symbol is allowed as an argument to LOAD,
+unless we take all occurrences of the string "filename" in italics
+to be typos for "pathname" in italics.  See pp.413,418,426.
+
+*start*
+01847 00024 US 
+Return-Path: <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Received: from STONY-BROOK.SCRC.Symbolics.COM (SCRC-STONY-BROOK.ARPA) by Xerox.COM ; 01 JUN 87 21:20:53 PDT
+Received: from RIO-DE-JANEIRO.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 161264; Tue 2-Jun-87 00:09:32 EDT
+Date: Tue, 2 Jun 87 00:11 EDT
+From: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: Issue: PATHNAME-SYMBOL (Version 2)
+To: Masinter.pa
+cc: CL-Cleanup@sail.stanford.edu
+In-Reply-To: <870529-212341-1290@Xerox>
+Message-ID: <870602001130.9.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+
+The grinding of the PATHNAME-SYMBOL proposal needs to be cleaned up.
+
+It came through looking like this to me:
+
+ ...
+ Rationale:
+
+ The feature of accepting a symbol was copied by Common Lisp from
+ Zetalisp,
+ which in turn copied it from Maclisp.  The reason Maclisp allowed a
+ symbol
+ here was that it did not have strings at all.  However, the feature has
+ been
+ long since removed from Zetalisp, since it was found to be a source of
+ bugs
+ ...
+
+Also, I find the treatment of LOAD is not uniformly carried through.
+For example, the proposal mentions LOAD at one point under conversion
+cost. It may want to mention it under aesthetics, too. But in any case,
+it should surely state definitively that LOAD is affected in the Proposal
+and the References.
+
+By the way, in the Symbolics release I'm using (7.1) allows (LOAD 'symbol)
+so the comment saying we've long since flushed the feature is not completely
+accurate. It may be that Moon didn't mean to include LOAD, in which case
+the discussion should be phrased to make it clear that LOAD is not intended.
+
+I think this will be a likely source of grumbling at X3J13; we might as
+well head it off early. I won't vote to release this until the wording is
+made to treat LOAD clearly.
+
+*start*
+02316 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 01 JUN 87 21:54:17 PDT
+Received: from SCRC-STONY-BROOK.ARPA by SAIL.STANFORD.EDU with TCP; 1 Jun 87  21:52:14 PDT
+Received: from EUPHRATES.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 161307; Tue 2-Jun-87 00:51:50 EDT
+Date: Tue, 2 Jun 87 00:51 EDT
+From: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: Issue: PATHNAME-SYMBOL (Version 2)
+To: CL-Cleanup@sail.stanford.edu
+In-Reply-To: <870602001130.9.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+Message-ID: <870602005157.9.MOON@EUPHRATES.SCRC.Symbolics.COM>
+
+    Date: Tue, 2 Jun 87 00:11 EDT
+    From: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+
+    The grinding of the PATHNAME-SYMBOL proposal needs to be cleaned up.
+
+This happens to most mail that passes through Xerox.  I don't think they
+see it in their own mail reader, but in the outside world it gets
+reformatted as alternating long and short lines if the lines are longer
+than a small maximum.
+
+    By the way, in the Symbolics release I'm using (7.1) allows (LOAD 'symbol)
+    so the comment saying we've long since flushed the feature is not completely
+    accurate. 
+
+Try ZL:LOAD if you want to see what it does in Zetalisp.  But CL:LOAD doesn't
+allow symbols in 7.1 for me, so maybe you've "fixed" it in your init file?
+I don't think I've "fixed" it in mine.
+
+	      It may be that Moon didn't mean to include LOAD, in which case
+    the discussion should be phrased to make it clear that LOAD is not intended.
+
+CLtL already does not say that LOAD accepts symbols as arguments, unless we
+are to think that when it says "filename" it means "pathname", and when it
+discusses what arguments named "pathname" mean 13 pages earlier, it means to
+include LOAD.
+
+I certainly didn't mean to propose to change the language to make LOAD allow
+symbols.
+
+Does this mean that we need to withdraw PATHNAME-SYMBOL in favor of a more
+comprehensive proposal to fix all the ambiguities and incomplete specifications
+in chapter 23?  That would be nice, but it's a big job.  Maybe we could just
+cover every argument that is called pathname, filename, file, or new-name
+and leave the rest of the ambiguities for another proposal?
+
+*start*
+01797 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:edsel!kent-state!eb@navajo.stanford.edu>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 02 JUN 87 12:21:00 PDT
+Received: from NAVAJO.STANFORD.EDU by SAIL.STANFORD.EDU with TCP; 2 Jun 87  12:19:07 PDT
+Received: by navajo.stanford.edu; Tue, 2 Jun 87 12:14:59 PDT
+Received: from kent-state.edsel.uucp by edsel.uucp (3.2/SMI-2.0)
+	id AA13431; Tue, 2 Jun 87 11:53:27 PDT
+Received: by kent-state.edsel.uucp (3.2/SMI-3.2)
+	id AA08307; Tue, 2 Jun 87 11:53:18 PDT
+Date: Tue, 2 Jun 87 11:53:18 PDT
+From: edsel!kent-state!eb@navajo.stanford.edu (Eric Benson)
+Message-Id: <8706021853.AA08307@kent-state.edsel.uucp>
+To: navajo!cl-cleanup%sail@navajo.stanford.edu
+In-Reply-To: David A. Moon's message of Mon, 1 Jun 87 23:45 EDT <870601234525.1.MOON@EUPHRATES.SCRC.Symbolics.COM>
+Subject: PATHNAME-SYMBOL
+
+   Date: Mon, 1 Jun 87 23:45 EDT
+   From: David A. Moon <navajo!Moon@STONY-BROOK.SCRC.Symbolics.COM>
+   Line-Fold: No
+
+   I'd say the succinct form of this point is that
+   strings preserve the case that you type in, but symbols don't, they
+   force to uppercase.  This doesn't affect me, since I don't enjoy a file
+   system with case-sensitive file names, but it affects a lot of people.
+
+I don't enjoy a file system with case-sensitive names, but I seem to
+be stuck with it!  Our VMS users like to be able to type (load 'foo),
+though.
+
+I think you've made a better case for eliminating the coercion of
+symbols to strings, rather than making a special case restriction
+against using a symbol as a string to be coerced to a pathname.  You
+have also made a case for making the boolean falsehood value be
+something other than a symbol.  Making this special case restriction
+against symbols as pathnames is treating the symptom and not the
+disease.
+
+*start*
+01294 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:FAHLMAN@C.CS.CMU.EDU>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 03 JUN 87 20:39:11 PDT
+Received: from C.CS.CMU.EDU by SAIL.STANFORD.EDU with TCP; 3 Jun 87  20:38:15 PDT
+Received: ID <FAHLMAN@C.CS.CMU.EDU>; Wed 3 Jun 87 23:37:15-EDT
+Date: Wed, 3 Jun 87 23:37 EDT
+Message-ID: <FAHLMAN.12307700341.BABYL@C.CS.CMU.EDU>
+Sender: FAHLMAN@C.CS.CMU.EDU
+From: "Scott E. Fahlman" <Fahlman@C.CS.CMU.EDU>
+To:   edsel!kent-state!eb@navajo.stanford.edu (Eric Benson)
+Cc: cl-cleanup@SAIL.STANFORD.EDU
+Subject: PATHNAME-SYMBOL
+In-reply-to: Msg of 2 Jun 1987  14:53-EDT from edsel!kent-state!eb at navajo.stanford.edu (Eric Benson)
+
+
+    I think you've made a better case for eliminating the coercion of
+    symbols to strings, rather than making a special case restriction
+    against using a symbol as a string to be coerced to a pathname.  You
+    have also made a case for making the boolean falsehood value be
+    something other than a symbol.  Making this special case restriction
+    against symbols as pathnames is treating the symptom and not the
+    disease.
+
+Treating the symptom rather than the disease is often the best way to
+keep the patient alive.  Let's fix what we can and think about more
+extensive redesigns later.
+
+-- Scott
+
+*start*
+05266 00024 USf
+Date: 23 Oct 87 16:32 PDT
+From: Masinter.pa
+Subject: Issue: PATHNAME-SYMBOL (Version 3)
+To: CL-Cleanup@sail.stanford.edu
+CC: Masinter
+line-fold: 80
+
+This hasn't been discussed since last June. Has anyone any further thoughts? I moved some of the discussion around in this version, and summarized some of the banter in the previous mail. I made the proposal more explicit by mentioning all of the affected functions.
+
+Since CLtL is fairly specific about "filename ... may be a stream, a pathname, or a string" I said merely to reiterate it in this proposal.
+
+
+Issue:		PATHNAME-SYMBOL
+
+References:   	PATHNAME (p.413),
+                Derived references: PARSE-NAMESTRING (p.414),
+                MERGE-PATHNAMES (p.415), PATHNAME-HOST etc. (p.417),
+                NAMESTRING etc. (p.417), LOAD (p. 426)
+                Cleanup issue PATHNAME-STREAM
+
+Edit History:  Version 1 by Moon 11-May-87
+               Version 2 by Masinter 29-May-87
+               Version 3 by Masinter 23-Oct-87
+
+
+Category:     	(Incompatible) CHANGE
+
+Problem Description:
+
+Some Common Lisp functions are specified to accept a symbol where a 
+pathname is expected.  Some others (OPEN, WITH-OPEN-FILE, DELETE-FILE,
+and RENAME-FILE) are not specified to accept a symbol.
+
+
+Proposal PATHNAME-SYMBOL:NO
+
+Never allow symbols where pathnames are expected. More specifically, PATHNAME, TRUENAME, PARSE-NAMESTRING, MERGE-PATHNAMES, PATHNAME-HOST, PATHNAME-DEVICE, PATHNAME-DIRECTORY, PATHNAME-NAME, PATHNAME-TYPE, PATHNAME-VERSION, NAMESTRING, FILE-NAMESTRING, DIRECTORY-NAMESTRING, HOST-NAMESTRING, ENOUGH-NAMESTRING are changed to not allow symbols
+for their pathname argument.
+
+Reiterate that (as implied by their respective descriptions in CLtL)
+OPEN, WITH-OPEN-FILE, LOAD, COMPILE-FILE, RENAME-FILE, DELETE-FILE,
+FILE-WRITE-DATE, FILE-AUTHOR do not allow symbols for their file or
+filename argument, and that DIRECTORY does not allow a symbol for its
+pathname argument. 
+
+Rationale:
+
+Allowing symbols for pathnames was based on an obsolete practice in
+MacLisp (which did not have strings) and causes much error-prone behavior.
+
+Current Practice:
+
+Varies.  Some implementations allow symbols here, some don't.  Symbolics
+doesn't allow symbols except in PARSE-NAMESTRING and MERGE-PATHNAMES,
+and allowing them there is probably a bug in the implementation.
+
+Adoption Cost:
+
+It's easy to change implementations to stop accepting symbols.  Since this
+appears to be an "is an error" rather than "signals an error" situation,
+no implementation change is actually necessary.
+
+Benefits:
+
+Pathname functions will be more consistent.  In implementations that check the type of this argument, program error checking will be improved. In dealing with case-sensitive file systems, users won't do (load 'foo) and wonder why file "FOO" (rather than "foo") is not found.
+
+One example of the type of bug caused by this occurs when NIL is erroneously
+substituted for a pathname, perhaps because GETHASH or ASSOC didn't find a
+table entry that was expected to exist and returned -false-.  In systems
+that accept symbols as pathnames, this causes a reference to a file named
+"NIL" on some perhaps unexpected directory.
+
+Conversion Cost:
+
+Some users might be using symbols as pathnames, in implementations where
+that works, and they would have to switch to using strings. For example, some users are used to type interactively (LOAD 'FOO) to mean (LOAD "FOO"). This is not explicitly allowed in CLtL, so such behavior has not been portable.
+
+Aesthetics:
+
+Improved by the change.
+
+Discussion:
+
+Some users have reported that they thought MERGE-PATHNAMES was in error because it accepted symbols.
+
+The feature of accepting a symbol was copied by Common Lisp from Zetalisp,
+which in turn copied it from Maclisp.  The reason Maclisp allowed a symbol
+here was that it did not have strings at all.  However, the feature has been
+long since removed from Zetalisp, since it was found to be a source of bugs
+and not to be useful.  I suspect this feature was removed from Zetalisp
+before Common Lisp was defined, but due to the poor state of Zetalisp
+documentation at the time the change was overlooked by the designers of
+Common Lisp.
+
+
+"If a symbol can be coerced into a string, and a string can be coerced
+into a pathname, I see no reason why a symbol should not be coerced
+into a pathname.  It has limited usefulness, but I believe that
+coercions should be transitive."
+       - Eric Benson
+
+"Note that an explicit decision was made early in the design of CL
+not to make all coercions transitive.  For example, symbols
+coerce to strings (for string functions), and strings are sequences
+(and so can be mixed with other sequence types), but symbols are
+not sequences.
+
+If we cannot have consistency, let us then have consistency of
+inconsistency.  (Also known as, "This screw-up was good enough
+for grampa, and it's good enough for me!")
+     -- Guy Steele
+
+
+        TITAN           TITAN          
+TIMESROMAN 
+          0                            û              z                                          Æ             ž              ‘              Ò              Æ       
+      m             0       
+                    O      ' zº*start*
+00754 00024 US 
+Return-Path: <CL-Cleanup-mailer@SAIL.Stanford.EDU>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 09 NOV 87 10:50:06 PST
+Received: from SCRC-STONY-BROOK.ARPA by SAIL.STANFORD.EDU with TCP; 9 Nov 87  10:45:24 PST
+Received: from EUPHRATES.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 275360; Mon 9-Nov-87 13:43:00 EST
+Date: Mon, 9 Nov 87 13:43 EST
+From: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: Issue: PATHNAME-SYMBOL (Version 3)
+To: CL-Cleanup@SAIL.STANFORD.EDU
+In-Reply-To: <871023-163235-1628@Xerox>
+Message-ID: <19871109184315.5.MOON@EUPHRATES.SCRC.Symbolics.COM>
+
+This document looks ready for release.
+
+I favor PATHNAME-SYMBOL:NO.
+
+*start*
+00899 00024 USa
+Return-Path: <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Received: from STONY-BROOK.SCRC.Symbolics.COM (SCRC-STONY-BROOK.ARPA) by Xerox.COM ; 09 NOV 87 17:39:24 PST
+Received: from RIO-DE-JANEIRO.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 275913; Mon 9-Nov-87 20:39:22 EST
+Date: Mon, 9 Nov 87 20:39 EST
+From: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: Issue: PATHNAME-SYMBOL (Version 3)
+To: Masinter.pa
+cc: CL-Cleanup@SAIL.Stanford.EDU
+In-Reply-To: <871023-163235-1628@Xerox>
+Message-ID: <871109203911.5.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+
+I support PATHNAME-SYMBOL:NO (Version 3).
+
+I did notice the following (non-preemptive) problem, which should
+be fixed if convenient before the proposal goes out:
+
+ "... some users are used to type interactively ..."
+ should be
+ "... some users are used to typing interactively ..."
+
+*start*
+01923 00024 US 
+Return-Path: <CL-Cleanup-mailer@SAIL.Stanford.EDU>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 10 NOV 87 12:58:29 PST
+Received: from XEROX.COM by SAIL.STANFORD.EDU with TCP; 10 Nov 87  12:55:52 PST
+Received: from Salvador.ms by ArpaGateway.ms ; 10 NOV 87 12:54:13 PST
+Date: 10 Nov 87 12:53 PST
+From: Masinter.pa
+Subject: Re: Issue: PATHNAME-SYMBOL (Version 3)
+In-reply-to: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>'s
+ message of Mon, 9 Nov 87 20:39 EST
+To: CL-Cleanup@SAIL.Stanford.EDU
+Message-ID: <871110-125413-5509@Xerox>
+
+I don't want to appear capricious, but I'm finding that
+PATHNAME-SYMBOL:NO fails to have sufficient reason for introducing an
+incompatible change. Certainly, the original design of coercing symbols
+as well as strings into pathnames is questionable, but, as long as we
+are retaining some coercion, why change the coercions that are allowed?
+
+This issue contrasts in an interesting way with FUNCTION-TYPE, where I
+prefer removing all coercions; in this case, since some coercions are
+being left (in particular, coercing from a string to a pathname),
+shouldn't all "reasonable" coercions be allowed? 
+
+One definition for a "reasonable" coercion is one where there is a
+simple way to convert from one type to another and alternative
+conversions are considerably more complex. I think this holds for
+symbol->pathname, symbol->string, string->pathname. The reason why
+coercions need not be transitive is that following a->b->c is more
+complex than either a->b or b->c. 
+
+(I'd also prefer to see that COERCE do explicitly what other functions
+allow implicitly, e.g., (coerce "abc" 'pathname) = (pathname "abc"), but
+that is certainly is another cleanup issue.
+
+Version 3 of the proposal did not include an endorsement summary. So
+far, Steele, Pitman, Moon explicitly endorsed PATHNAME-SYMBOL:NO, Eric
+Benson argued against it.
+
+
+
+
+*start*
+01968 00024 US 
+Return-Path: <CL-Cleanup-mailer@SAIL.Stanford.EDU>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 12 NOV 87 18:46:30 PST
+Received: from SCRC-RIVERSIDE.ARPA by SAIL.STANFORD.EDU with TCP; 12 Nov 87  18:45:26 PST
+Received: from EUPHRATES.SCRC.Symbolics.COM by Riverside.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 187838; Thu 12-Nov-87 19:43:27 EST
+Date: Thu, 12 Nov 87 19:43 EST
+From: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: Re: Issue: PATHNAME-SYMBOL (Version 3)
+To: CL-Cleanup@SAIL.STANFORD.EDU
+In-Reply-To: <871110-125413-5509@Xerox>
+Message-ID: <19871113004315.6.MOON@EUPHRATES.SCRC.Symbolics.COM>
+
+    Date: 10 Nov 87 12:53 PST
+    From: Masinter.pa@Xerox.COM
+
+    I don't want to appear capricious, but I'm finding that
+    PATHNAME-SYMBOL:NO fails to have sufficient reason for introducing an
+    incompatible change. Certainly, the original design of coercing symbols
+    as well as strings into pathnames is questionable, but, as long as we
+    are retaining some coercion, why change the coercions that are allowed?
+
+Three comments: CLtL is inconsistent, specifying symbol->pathname coercion
+in some places but not in others.  symbol->pathname coercion and
+stream->pathname coercion cannot coexist, since CLtL pp.33-4 does not
+require symbol and stream to be disjoint.  Until we fix that, we can't
+require both stream->pathname and symbol->pathname coercions in any
+single function, and after we fix that, I don't see much advantage to
+putting symbol->pathname coercion back in.
+
+We could just drop the issue, of course; it's not like fixing this one
+thing would make the pathname and stream portion of CLtL wonderfully
+clear and unambiguous.
+
+    ....
+    (I'd also prefer to see that COERCE do explicitly what other functions
+    allow implicitly, e.g., (coerce "abc" 'pathname) = (pathname "abc"), but
+    that is certainly is another cleanup issue.
+
+I like this idea.
+
+*start*
+05734 00024 USf
+Date: 23 Nov 87 17:39 PST
+From: Masinter.pa
+Subject: Issue: PATHNAME-SYMBOL (Version 4)
+To: CL-Cleanup@sail.stanford.edu
+CC: Masinter
+
+I added a reference (Wilensky) and cleaned up the discussion and mentioned some of the other points that came up in the discussion but haven't been addressed separately. I suppose I need to assign issue names for extending COERCE to PATHNAME and requiring STREAM to be disjoint, although I'm not sure if we want to generalize those to extending COERCE in lots of ways, and requiring more than STREAM to be disjoint.
+
+
+Issue:		PATHNAME-SYMBOL
+
+References:   	PATHNAME (p.413),
+                Derived references: PARSE-NAMESTRING (p.414),
+                MERGE-PATHNAMES (p.415), PATHNAME-HOST etc. (p.417),
+                NAMESTRING etc. (p.417), LOAD (p. 426)
+                Cleanup issue PATHNAME-STREAM
+                Common LispCraft, Wilensky 1986, p 51
+
+
+Edit History:  Version 1 by Moon 11-May-87
+               Version 2 by Masinter 29-May-87
+               Version 3 by Masinter 23-Oct-87
+               Version 4 by Masinter 23-Nov-87
+
+
+Category:     	CHANGE
+
+Problem Description:
+
+Some Common Lisp functions are specified to accept a symbol where a pathname is expected.  Some others (OPEN, WITH-OPEN-FILE, DELETE-FILE, and RENAME-FILE) are not specified to accept a symbol.
+
+Proposal PATHNAME-SYMBOL:NO
+
+Never allow symbols where pathnames are expected. More specifically, PATHNAME, TRUENAME, PARSE-NAMESTRING, MERGE-PATHNAMES, PATHNAME-HOST, PATHNAME-DEVICE, PATHNAME-DIRECTORY, PATHNAME-NAME, PATHNAME-TYPE, PATHNAME-VERSION, NAMESTRING, FILE-NAMESTRING, DIRECTORY-NAMESTRING, HOST-NAMESTRING, ENOUGH-NAMESTRING are changed by this proposal to not allow symbols for their pathname argument.
+
+Reiterate that OPEN, WITH-OPEN-FILE, LOAD, COMPILE-FILE, RENAME-FILE, DELETE-FILE, FILE-WRITE-DATE, FILE-AUTHOR do not allow symbols for their file or filename argument, and that DIRECTORY does not allow a symbol for its pathname argument. This is implied by the respective descriptions of those functions in CLtL, but as explicitly stated.
+
+Rationale:
+
+Allowing symbols for pathnames was based on an obsolete practice in MacLisp (which did not have strings) and causes much error-prone behavior.
+
+Current Practice:
+
+Varies.  Some implementations allow symbols here, some don't.  Symbolics doesn't allow symbols except in PARSE-NAMESTRING and MERGE-PATHNAMES, and allowing them there is probably a bug in the implementation. 
+
+Cost to implementors:
+
+It's easy to change implementations to stop accepting symbols.  Since this appears to be an "is an error" rather than "signals an error" situation, no implementation change is actually necessary.
+
+Cost to users:
+
+Some users might be using symbols as pathnames, in implementations where that works, and they would have to switch to using strings. For example, some users are used to typing interactively (LOAD 'FOO) to mean (LOAD "FOO"). This is not explicitly allowed in CLtL, so such behavior has not been portable. However, such use is probably widespread among users of implementations that allow it (e.g., Common LISPCraft gives this form in an example.)
+
+Benefits:
+
+Pathname functions will be more consistent.  In implementations that check the type of this argument, program error checking will be improved. In dealing with case-sensitive file systems, users won't do (load 'foo) and wonder why file "FOO" (rather than "foo") is not found.
+
+One example of the type of bug caused by this occurs when NIL is erroneously substituted for a pathname, perhaps because GETHASH or ASSOC didn't find a table entry that was expected to exist and returned -false-.  In systems that accept symbols as pathnames, this causes a reference to a file named "NIL" on some perhaps unexpected directory.
+
+Aesthetics:
+
+Improved by the change.
+
+Discussion:
+
+Some users have reported that they thought MERGE-PATHNAMES was in error because it accepted symbols.
+
+We believe that this feature was accidentally introduced as a historical artifact and that it has limited utility. It is likely that the feature of accepting a symbol was copied by Common Lisp from Zetalisp, which in turn copied it from Maclisp.  The reason Maclisp allowed a symbol here was that it did not have strings at all.  While the feature was removed from Zetalisp before Common Lisp was defined due to the poor state of Zetalisp documentation at the time the change was overlooked by the designers of Common Lisp.
+
+If a symbol can be coerced into a string, and a string can be coerced into a pathname, why can't a symbol be coerced into a pathname? An explicit decision was made early in the design of CL not to make all coercions transitive.  For example, symbols coerce to strings (for string functions), and strings are sequences (and so can be mixed with other sequence types), but symbols are not sequences.
+
+There is some sentiment for extending COERCE to allow explicit coersion of STRINGs to PATHNAMEs, as a separate cleanup item.
+
+A careful reading of CLtL indicates that it is possible for an implementation to allow a symbol to be a STREAM (there is no requirement that STREAM and SYMBOL be disjoint.) While there is some sentiment for making this requirement in a separate cleanup issue, it would otherwise prevent both symbol->pathname and stream->pathname to have consistent meaning.
+
+
+
+
+
+
+        TITAN           TITAN          
+TIMESROMAN 
+           †             £                           2              ©                                          Ä             Ý              ‘              Ó              Æ             À       
+      m       
+                    í      é zº*start*
+01139 00024 US 
+Return-Path: <CL-Cleanup-mailer@SAIL.Stanford.EDU>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 23 NOV 87 18:32:09 PST
+Received: from SCRC-STONY-BROOK.ARPA by SAIL.STANFORD.EDU with TCP; 23 Nov 87  18:30:31 PST
+Received: from EUPHRATES.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 287416; Mon 23-Nov-87 21:30:14 EST
+Date: Mon, 23 Nov 87 21:30 EST
+From: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: Issue: PATHNAME-SYMBOL (Version 4)
+To: CL-Cleanup@SAIL.STANFORD.EDU
+In-Reply-To: <871123-174007-3050@Xerox>
+Message-ID: <19871124023017.8.MOON@EUPHRATES.SCRC.Symbolics.COM>
+
+Typo:
+  Reiterate that OPEN, WITH-OPEN-FILE, LOAD, COMPILE-FILE, RENAME-FILE,
+  DELETE-FILE, FILE-WRITE-DATE, FILE-AUTHOR do not allow symbols for their
+  file or filename argument, and that DIRECTORY does not allow a symbol
+  for its pathname argument. This is implied by the respective
+  descriptions of those functions in CLtL, but as explicitly stated.
+The word "as" in the last line is probably supposed to be "not".
+
+Otherwise this looks fine.
+
+*start*
+00574 00024 US 
+Return-Path: <chapman%aitg.DEC@decwrl.dec.com>
+Received: from decwrl.dec.com by Xerox.COM ; 01 DEC 87 12:17:13 PST
+Received: by decwrl.dec.com (5.54.4/4.7.34)
+	id AA21764; Tue, 1 Dec 87 11:29:14 PST
+Date: Tue, 1 Dec 87 11:29:14 PST
+Message-Id: <8712011929.AA21764@decwrl.dec.com>
+From: chapman%aitg.DEC@decwrl.dec.com
+To: masinter.pa
+Subject: comments from Beryl
+
+Larry, Beryl asked that I pass the following comment on to you.
+kc
+
+>By the way, the pathname-symbol proposal should probably have a mention
+>of the require function's second argument.
+
+*start*
+05362 00024 USm
+Date:  5 Feb 88 15:52 PST
+From: Masinter.pa
+Subject: Issue: PATHNAME-SYMBOL (Version 5)
+To: Masinter
+
+
+
+Issue:		PATHNAME-SYMBOL
+
+References:   	PATHNAME (p.413),
+                Derived references: PARSE-NAMESTRING (p.414),
+                MERGE-PATHNAMES (p.415), PATHNAME-HOST etc. (p.417),
+                NAMESTRING etc. (p.417), LOAD (p. 426), REQUIRE 
+                Cleanup issue PATHNAME-STREAM
+                Common LispCraft, Wilensky 1986, p 51
+
+
+Edit History:  Version 1 by Moon 11-May-87
+               Version 2 by Masinter 29-May-87
+               Version 3 by Masinter 23-Oct-87
+               Version 4 by Masinter 23-Nov-87
+               Version 5 by Masinter  5-Feb-88, fix minor typo
+
+
+Category:     	CHANGE
+
+Problem Description:
+
+Some Common Lisp functions are specified to accept a symbol where a pathname is expected.  Some others (OPEN, WITH-OPEN-FILE, DELETE-FILE, and RENAME-FILE) are not specified to accept a symbol.
+
+Proposal PATHNAME-SYMBOL:NO
+
+Never allow symbols where pathnames are expected. More specifically, PATHNAME, TRUENAME, PARSE-NAMESTRING, MERGE-PATHNAMES, PATHNAME-HOST, PATHNAME-DEVICE, PATHNAME-DIRECTORY, PATHNAME-NAME, PATHNAME-TYPE, PATHNAME-VERSION, NAMESTRING, FILE-NAMESTRING, DIRECTORY-NAMESTRING, HOST-NAMESTRING, ENOUGH-NAMESTRING, REQUIRE are changed by this proposal to not allow symbols for their pathname argument.
+
+Reiterate that OPEN, WITH-OPEN-FILE, LOAD, COMPILE-FILE, RENAME-FILE, DELETE-FILE, FILE-WRITE-DATE, FILE-AUTHOR do not allow symbols for their file or filename argument, and that DIRECTORY does not allow a symbol for its pathname argument. This is implied by the respective descriptions of those functions in CLtL, but not explicitly stated.
+
+Rationale:
+
+Allowing symbols for pathnames was based on an obsolete practice in MacLisp (which did not have strings) and causes much error-prone behavior.
+
+Current Practice:
+
+Varies.  Some implementations allow symbols here, some don't.  Symbolics doesn't allow symbols except in PARSE-NAMESTRING and MERGE-PATHNAMES, and allowing them there is probably a bug in the implementation. 
+
+Cost to implementors:
+
+It's easy to change implementations to stop accepting symbols.  Since this appears to be an "is an error" rather than "signals an error" situation, no implementation change is actually necessary.
+
+Cost to users:
+
+Some users might be using symbols as pathnames, in implementations where that works, and they would have to switch to using strings. For example, some users are used to typing interactively (LOAD 'FOO) to mean (LOAD "FOO"). This is not explicitly allowed in CLtL, so such behavior has not been portable. However, such use is probably widespread among users of implementations that allow it (e.g., Common LISPCraft gives this form in an example.)
+
+Benefits:
+
+Pathname functions will be more consistent.  In implementations that check the type of this argument, program error checking will be improved. In dealing with case-sensitive file systems, users won't do (load 'foo) and wonder why file "FOO" (rather than "foo") is not found.
+
+One example of the type of bug caused by this occurs when NIL is erroneously substituted for a pathname, perhaps because GETHASH or ASSOC didn't find a table entry that was expected to exist and returned -false-.  In systems that accept symbols as pathnames, this causes a reference to a file named "NIL" on some perhaps unexpected directory.
+
+Aesthetics:
+
+Improved by the change.
+
+Discussion:
+
+Some users have reported that they thought MERGE-PATHNAMES was in error because it accepted symbols.
+
+We believe that this feature was accidentally introduced as a historical artifact and that it has limited utility. It is likely that the feature of accepting a symbol was copied by Common Lisp from Zetalisp, which in turn copied it from Maclisp.  The reason Maclisp allowed a symbol here was that it did not have strings at all.  While the feature was removed from Zetalisp before Common Lisp was defined due to the poor state of Zetalisp documentation at the time the change was overlooked by the designers of Common Lisp.
+
+If a symbol can be coerced into a string, and a string can be coerced into a pathname, why can't a symbol be coerced into a pathname? An explicit decision was made early in the design of CL not to make all coercions transitive.  For example, symbols coerce to strings (for string functions), and strings are sequences (and so can be mixed with other sequence types), but symbols are not sequences.
+
+There is some sentiment for extending COERCE to allow explicit coersion of STRINGs to PATHNAMEs, as a separate cleanup item.
+
+A careful reading of CLtL indicates that it is possible for an implementation to allow a symbol to be a STREAM (there is no requirement that STREAM and SYMBOL be disjoint.) While there is some sentiment for making this requirement in a separate cleanup issue, it would otherwise prevent both symbol->pathname and stream->pathname to have consistent meaning.
+        TITAN          TITAN           
+TIMESROMAN 
+           e                                         <              è                                          Ä             ç              ‘              Ó              Æ             À       
+      m       
+                    ç      u zº*start*
+05459 00024 US 
+Date: 14 Feb 88 13:26 PST
+From: Masinter.pa
+Subject: Issue: PATHNAME-SYMBOL (Version 5)
+To: X3J13@Sail.stanford.edu
+cc: Masinter
+reply-to: CL-CLEANUP@Sail.Stanford.EDU
+
+My notes are unclear. This issue may have been distributed before.
+
+Issue:		PATHNAME-SYMBOL
+
+References:   	PATHNAME (p.413),
+                Derived references: PARSE-NAMESTRING (p.414),
+                MERGE-PATHNAMES (p.415), PATHNAME-HOST etc. (p.417),
+                NAMESTRING etc. (p.417), LOAD (p. 426), REQUIRE 
+                Cleanup issue PATHNAME-STREAM
+                Common LispCraft, Wilensky 1986, p 51
+
+
+Edit History:  Version 1 by Moon 11-May-87
+               Version 2 by Masinter 29-May-87
+               Version 3 by Masinter 23-Oct-87
+               Version 4 by Masinter 23-Nov-87
+               Version 5 by Masinter  5-Feb-88, fix minor typo
+
+
+Category:     	CHANGE
+
+Problem Description:
+
+Some Common Lisp functions are specified to accept a symbol where a pathname is expected.  Some others (OPEN, WITH-OPEN-FILE, DELETE-FILE, and RENAME-FILE) are not specified to accept a symbol.
+
+Proposal PATHNAME-SYMBOL:NO
+
+Never allow symbols where pathnames are expected. More specifically, PATHNAME, TRUENAME, PARSE-NAMESTRING, MERGE-PATHNAMES, PATHNAME-HOST, PATHNAME-DEVICE, PATHNAME-DIRECTORY, PATHNAME-NAME, PATHNAME-TYPE, PATHNAME-VERSION, NAMESTRING, FILE-NAMESTRING, DIRECTORY-NAMESTRING, HOST-NAMESTRING, ENOUGH-NAMESTRING, REQUIRE are changed by this proposal to not allow symbols for their pathname argument.
+
+Reiterate that OPEN, WITH-OPEN-FILE, LOAD, COMPILE-FILE, RENAME-FILE, DELETE-FILE, FILE-WRITE-DATE, FILE-AUTHOR do not allow symbols for their file or filename argument, and that DIRECTORY does not allow a symbol for its pathname argument. This is implied by the respective descriptions of those functions in CLtL, but not explicitly stated.
+
+Rationale:
+
+Allowing symbols for pathnames was based on an obsolete practice in MacLisp (which did not have strings) and causes much error-prone behavior.
+
+Current Practice:
+
+Varies.  Some implementations allow symbols here, some don't.  Symbolics doesn't allow symbols except in PARSE-NAMESTRING and MERGE-PATHNAMES, and allowing them there is probably a bug in the implementation. 
+
+Cost to implementors:
+
+It's easy to change implementations to stop accepting symbols.  Since this appears to be an "is an error" rather than "signals an error" situation, no implementation change is actually necessary.
+
+Cost to users:
+
+Some users might be using symbols as pathnames, in implementations where that works, and they would have to switch to using strings. For example, some users are used to typing interactively (LOAD 'FOO) to mean (LOAD "FOO"). This is not explicitly allowed in CLtL, so such behavior has not been portable. However, such use is probably widespread among users of implementations that allow it (e.g., Common LISPCraft gives this form in an example.)
+
+Benefits:
+
+Pathname functions will be more consistent.  In implementations that check the type of this argument, program error checking will be improved. In dealing with case-sensitive file systems, users won't do (load 'foo) and wonder why file "FOO" (rather than "foo") is not found.
+
+One example of the type of bug caused by this occurs when NIL is erroneously substituted for a pathname, perhaps because GETHASH or ASSOC didn't find a table entry that was expected to exist and returned -false-.  In systems that accept symbols as pathnames, this causes a reference to a file named "NIL" on some perhaps unexpected directory.
+
+Aesthetics:
+
+Improved by the change.
+
+Discussion:
+
+Some users have reported that they thought MERGE-PATHNAMES was in error because it accepted symbols.
+
+We believe that this feature was accidentally introduced as a historical artifact and that it has limited utility. It is likely that the feature of accepting a symbol was copied by Common Lisp from Zetalisp, which in turn copied it from Maclisp.  The reason Maclisp allowed a symbol here was that it did not have strings at all.  While the feature was removed from Zetalisp before Common Lisp was defined due to the poor state of Zetalisp documentation at the time the change was overlooked by the designers of Common Lisp.
+
+If a symbol can be coerced into a string, and a string can be coerced into a pathname, why can't a symbol be coerced into a pathname? An explicit decision was made early in the design of CL not to make all coercions transitive.  For example, symbols coerce to strings (for string functions), and strings are sequences (and so can be mixed with other sequence types), but symbols are not sequences.
+
+There is some sentiment for extending COERCE to allow explicit coersion of STRINGs to PATHNAMEs, as a separate cleanup item.
+
+A careful reading of CLtL indicates that it is possible for an implementation to allow a symbol to be a STREAM (there is no requirement that STREAM and SYMBOL be disjoint.) While there is some sentiment for making this requirement in a separate cleanup issue, it would otherwise prevent both symbol->pathname and stream->pathname to have consistent meaning.
+        TITAN 
+          TITAN 
+         
+TIMESROMAN 
+           î                           <              ê                            Ä             ç              ‘              Ó              Æ             À       
+      m       
+                    ç      ú zº
