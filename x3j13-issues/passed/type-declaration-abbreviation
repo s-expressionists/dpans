@@ -1,6 +1,3 @@
-TYPE-DECLARATION-ABBREVIATION:ALLOW-ALL was passed 11-0 at the June 1990 meeting.
-TYPE-DECLARATION-ABBREVIATION:FORBID-ALL failed 5-8 at the June 1990 meeting.
-
 Issue:         TYPE-DECLARATION-ABBREVIATION
 
 References:    CLtL p.158, and CLtL Table 4-1 (p.43)

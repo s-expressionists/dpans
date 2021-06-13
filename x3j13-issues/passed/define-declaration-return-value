@@ -1,20 +1,3 @@
-% Date: Tue, 10 Jul 90 22:04 EDT
-% From: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>
-% Subject: Issue: DEFINE-DECLARATION-RETURN-VALUE
-% To: KMP@STONY-BROOK.SCRC.Symbolics.COM, Barmar@Think.com,
-%         Sandra@jensen.utah.edu, KAB@CHARON.MIT.EDU, masinter@parc.xerox.com
-% File-References: 
-%  SCRC|S:>KMP>lisp>x3j13>cleanup>define-declaration-return-value.text.newest
-% 
-% Here is Kent's copy of this issue.  There appears to be no copy on Arisia.
-% Kent's notes say the status of this is unknown, mine say that it was accepted
-% unanimously at the November meeting.  My notes say Barry proposed returning
-% an alist instead of multiple values, but don't indicate whether that was a
-% friendly amendment that was accepted, or just something that was mentioned in
-% passing and didn't affect anything.  The minutes that Larry mailed out mention
-% this being passed but don't mention the amendment.  So I don't know the real
-% status of this.
-
 Forum:		Cleanup
 Issue:		DEFINE-DECLARATION-RETURN-VALUE
 References:	DEFINE-DECLARATION (issue SYNTACTIC-ENVIRONMENT-ACCESS)
