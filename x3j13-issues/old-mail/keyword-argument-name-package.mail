@@ -1,0 +1,2893 @@
+*start*
+03701 00024 USa
+Return-Path: <@SAIL.STANFORD.EDU:Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 20 APR 87 14:23:08 PDT
+Received: from SCRC-STONY-BROOK.ARPA by SAIL.STANFORD.EDU with TCP; 20 Apr 87  14:20:29 PDT
+Received: from EUPHRATES.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 120087; Mon 20-Apr-87 17:20:41 EDT
+Date: Mon, 20 Apr 87 17:20 EDT
+From: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: Issue: KEYWORD-ARGUMENT-NAME-PACKAGE (Revision 1)
+To: CL-Cleanup@sail.stanford.edu
+cc: Patrick H Dussud <DUSSUD%Jenner@ti-csl.CSNET>
+Message-ID: <870420172029.5.MOON@EUPHRATES.SCRC.Symbolics.COM>
+
+Status: New (but see "adoption cost" below) issue.
+
+Issue:        KEYWORD-ARGUMENT-NAME-PACKAGE
+References:   Middle of p.60
+	      First complete sentence on p.62
+Category:     CLARIFICATION/CHANGE
+Edit history: Revision 1 is the initial version. (Moon 4/20/87)
+
+Problem Description:
+
+CLtL says that only keyword symbols can be used as keyword names in &key
+parameter specifiers.  This seems to imply (although it is not actually
+a logical consequence) that only keyword symbols can be used as keyword
+names in calls to functions that take keyword arguments.  (It is not a
+logical consequence because the called function might have been
+implemented a different way than with &key.)
+
+Proposal (KEYWORD-ARGUMENT-NAME-PACKAGE:ANY)
+
+Remove restrictions on the package of keyword argument names; allow
+any symbol, including NIL."
+
+In the middle of p.60, change "each -keyword- must be a keyword symbol,
+such as :start" to "each -keyword- must be a symbol, such as :start".
+Add these sentences: "Keyword symbols are most commonly used, but any
+symbol is valid.  Non-keyword symbols are sometimes used to provide
+isolation between packages, but unlike keywords they must be quoted by
+callers of the function, making the syntax slightly less convenient.
+NIL is a valid -keyword-, although it is unlikely that a stylish
+programmer would choose to use it."  Be careful about where the italics
+go in those sentences.
+
+Change the last word in the first complete sentence on p.62 from
+"keyword" to "symbol".
+
+On p.64, add the following two examples to illustrate the explicit
+keyword syntax:
+((lambda (a b &key ((:sea c)) d) (list a b c d)) 1 2 :sea 6)
+ => (1 2 6 NIL)
+((lambda (a b &key ((c c)) d) (list a b c d)) 1 2 'c 6)
+ => (1 2 6 NIL)
+
+Rationale:
+
+If Common Lisp truly has a restriction that only keyword symbols can be
+used as keyword names in calls to functions that take keyword arguments,
+it will be more difficult to come up with an object-oriented programming
+standard that fits within Common Lisp.
+
+Current Practice:
+
+Some implementations do not have the restriction that I propose to remove.
+I don't know of any implementations that enforce the restriction, but
+there might be one.
+
+Some implementations have bugs that prevent NIL from working as a keyword
+argument name, but allow all non-NIL symbols.  One Symbolics version that
+I checked had this bug.
+
+Adoption Cost:
+
+No existing programs will stop working.  Some implementors might have to
+rearrange their error checking slightly, but it should be very easy.
+
+I was under the impression that this proposal was actually adopted
+around December 1985 (although no formal mechanism for adopting
+proposals existed at that time), but I may be wrong.
+
+Benefits:
+
+This will help with the object-oriented programming standard.
+
+Conversion Cost:
+
+None.
+
+Aesthetics:
+
+There will probably be an argument about whether the restriction is
+more esthetic or less esthetic than the freedom, but in either case
+the aesthetic effect is slight.
+
+Discussion:
+
+None yet.
+
+*start*
+01319 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:Masinter.pa@Xerox.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 20 APR 87 14:50:40 PDT
+Received: from XEROX.COM by SAIL.STANFORD.EDU with TCP; 20 Apr 87  14:48:33 PDT
+Received: from Cabernet.ms by ArpaGateway.ms ; 20 APR 87 14:39:25 PDT
+Date: 20 Apr 87 14:39 PDT
+From: Masinter.pa
+Subject: Re: Issue: KEYWORD-ARGUMENT-NAME-PACKAGE (Revision 1)
+In-reply-to: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>'s
+ message of Mon, 20 Apr 87 17:20 EDT
+To: Moon@STONY-BROOK.SCRC.Symbolics.COM
+cc: CL-Cleanup@sail.stanford.edu, DUSSUD%Jenner@ti-csl.CSNET
+Message-ID: <870420-143925-1269@Xerox>
+
+David,
+
+
+Two things:
+
+I can't imagine this proposal being adopted by X3J13 without some more
+explaination, within the proposal itself, of how this proposal makes
+CLOS easier. As it stands, it doesn't make the connection at all clear.
+
+Second,  since there will be a technical editor and an oversight
+committee concerned with exact wording, I think that there will be
+objections to a vote on any proposal which mandates exact wording. Thus,
+although your description is coherent, I think it needs to be explained
+in terms of what happens to Common Lisp, rather than the words in which
+it is described.  
+
+I have no objection to the proposal itself. 
+
+Thanks,
+
+Larry
+
+*start*
+02032 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 21 APR 87 10:55:02 PDT
+Received: from SCRC-STONY-BROOK.ARPA by SAIL.STANFORD.EDU with TCP; 21 Apr 87  10:51:23 PDT
+Received: from EUPHRATES.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 120687; Tue 21-Apr-87 13:50:53 EDT
+Date: Tue, 21 Apr 87 13:50 EDT
+From: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: Re: Issue: KEYWORD-ARGUMENT-NAME-PACKAGE (Revision 1)
+To: CL-Cleanup@sail.stanford.edu
+In-Reply-To: <870420-143925-1269@Xerox>
+Message-ID: <870421135040.8.MOON@EUPHRATES.SCRC.Symbolics.COM>
+
+    Date: 20 Apr 87 14:39 PDT
+    From: Masinter.pa@Xerox.COM
+
+    I can't imagine this proposal being adopted by X3J13 without some more
+    explanation, within the proposal itself, of how this proposal makes
+    CLOS easier. As it stands, it doesn't make the connection at all clear.
+
+Do you really think that's appropriate?  If you do, I'll try to write some,
+but I didn't think cleanup proposals were supposed to contain that sort of
+discussion.  Maybe it would be better to remove all reference to CLOS and
+simply say that there are applications both existing and proposed that use
+packaged (i.e. non-keyword) symbols as &key argument names?  Or would it
+be better to leave in the specific reference to CLOS?
+
+    Second,  since there will be a technical editor and an oversight
+    committee concerned with exact wording, I think that there will be
+    objections to a vote on any proposal which mandates exact wording. Thus,
+    although your description is coherent, I think it needs to be explained
+    in terms of what happens to Common Lisp, rather than the words in which
+    it is described.  
+
+I didn't mean to imply that that was mandated wording, only sample wording.
+What I was really trying to do was to enumerate the places in the book
+that would have to change.
+
+I'll send out a revision 2 after this discussion converges.
+
+*start*
+01848 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:FAHLMAN@C.CS.CMU.EDU>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 21 APR 87 12:24:29 PDT
+Received: from C.CS.CMU.EDU by SAIL.STANFORD.EDU with TCP; 21 Apr 87  12:21:53 PDT
+Received: ID <FAHLMAN@C.CS.CMU.EDU>; Tue 21 Apr 87 15:22:46-EDT
+Date: Tue, 21 Apr 87 15:22 EDT
+Message-ID: <FAHLMAN.12296338085.BABYL@C.CS.CMU.EDU>
+Sender: FAHLMAN@C.CS.CMU.EDU
+From: "Scott E. Fahlman" <Fahlman@C.CS.CMU.EDU>
+To: "David A. Moon" <Moon@SCRC-STONY-BROOK.ARPA>
+Cc: CL-Cleanup@SAIL.STANFORD.EDU
+Subject: Issue: KEYWORD-ARGUMENT-NAME-PACKAGE (Revision 1)
+In-reply-to: Msg of 21 Apr 1987  13:50-EDT from David A. Moon <Moon at STONY-BROOK.SCRC.Symbolics.COM>
+
+
+        I can't imagine this proposal being adopted by X3J13 without some more
+        explanation, within the proposal itself, of how this proposal makes
+        CLOS easier. As it stands, it doesn't make the connection at all clear.
+
+    Do you really think that's appropriate?  If you do, I'll try to write some,
+    but I didn't think cleanup proposals were supposed to contain that sort of
+    discussion.  Maybe it would be better to remove all reference to CLOS and
+    simply say that there are applications both existing and proposed that use
+    packaged (i.e. non-keyword) symbols as &key argument names?  Or would it
+    be better to leave in the specific reference to CLOS?
+
+Whether you reference CLOS or just give a random example, I think some
+sort of example is needed.  I couldn't imagine a good reason for this
+change.  Keywords don't interfere with one another, so modularity is not
+the issue in any obvious way, and I'm not sympathetic to making a change
+just because some people would rather type 'FOO than :FOO.  I'm sure
+you've got a good reason for proposing this, and I'd like some
+indication of what it is.
+
+-- Scott
+
+*start*
+01195 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 21 APR 87 12:56:21 PDT
+Received: from SCRC-STONY-BROOK.ARPA by SAIL.STANFORD.EDU with TCP; 21 Apr 87  12:53:28 PDT
+Received: from RIO-DE-JANEIRO.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 120916; Tue 21-Apr-87 15:52:23 EDT
+Date: Tue, 21 Apr 87 15:51 EDT
+From: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: Issue: KEYWORD-ARGUMENT-NAME-PACKAGE (Revision 1)
+To: Fahlman@C.CS.CMU.EDU, Moon@STONY-BROOK.SCRC.Symbolics.COM
+cc: CL-Cleanup@SAIL.STANFORD.EDU
+In-Reply-To: <FAHLMAN.12296338085.BABYL@C.CS.CMU.EDU>
+Message-ID: <870421155153.3.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+
+I have had applications which for various reasons I can't go
+into in detail where I needed to have a keyword which no one
+but myself would use. That is,
+
+ (DEFUN FOO (&KEY ((PRIVATE-KEYWORD VAR) default) ...)
+   ...)
+
+I'm much happier about this than about
+
+ (DEFUN FOO (&KEY ANYONE-OTHER-THAN-KMP-WHO-USES-THIS-KEYWORD-DESERVES-TO-LOSE)
+   ...)
+
+I support allowing keyword designators to be in other than the keyword package.
+
+*start*
+01322 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:FAHLMAN@C.CS.CMU.EDU>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 01 MAY 87 19:35:20 PDT
+Received: from C.CS.CMU.EDU by SAIL.STANFORD.EDU with TCP; 1 May 87  19:33:01 PDT
+Received: ID <FAHLMAN@C.CS.CMU.EDU>; Fri 1 May 87 22:34:05-EDT
+Date: Fri, 1 May 87 22:34 EDT
+Message-ID: <FAHLMAN.12299038089.BABYL@C.CS.CMU.EDU>
+Sender: FAHLMAN@C.CS.CMU.EDU
+From: "Scott E. Fahlman" <Fahlman@C.CS.CMU.EDU>
+To: Kent M Pitman <KMP@SCRC-STONY-BROOK.ARPA>
+Cc: CL-Cleanup@SAIL.STANFORD.EDU
+Subject: Issue: KEYWORD-ARGUMENT-NAME-PACKAGE (Revision 1)
+In-reply-to: Msg of 21 Apr 1987  15:51-EDT from Kent M Pitman <KMP at STONY-BROOK.SCRC.Symbolics.COM>
+
+
+    I have had applications which for various reasons I can't go
+    into in detail where I needed to have a keyword which no one
+    but myself would use.
+
+Come on, doesn't anyone have a short, coherent example that demonstrates
+the need for a non-keyword as a "keyword" argument?  If the goal is to
+have publically accessible functions that take hidden arguments, I'd
+like to see an explanation of the need for this.  Seems to me like a
+pretty bogus way to do encapsulation, but maybe I'm missing something.
+
+Testimonials are fine, but it's going to be hard to sell this proposal
+without a coherent explanation.
+
+-- Scott
+
+*start*
+02143 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 01 MAY 87 20:31:55 PDT
+Received: from SCRC-STONY-BROOK.ARPA by SAIL.STANFORD.EDU with TCP; 1 May 87  20:29:55 PDT
+Received: from RIO-DE-JANEIRO.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 130098; Fri 1-May-87 23:30:18 EDT
+Date: Fri, 1 May 87 23:30 EDT
+From: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: Issue: KEYWORD-ARGUMENT-NAME-PACKAGE (Revision 1)
+To: Fahlman@C.CS.CMU.EDU
+cc: KMP@STONY-BROOK.SCRC.Symbolics.COM, Moon@STONY-BROOK.SCRC.Symbolics.COM, CL-Cleanup@SAIL.STANFORD.EDU
+In-Reply-To: <FAHLMAN.12299038089.BABYL@C.CS.CMU.EDU>
+Message-ID: <870501233004.7.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+
+I have a Version 2 of this issue waiting for Moon to look it over before sending it
+out. The following text is excerpted from that proposal. Does it look any better
+to you?
+
+Rationale:
+
+  By allowing symbols other than keyword symbols as keywords, we provide
+  a more private communication channel between functions.
+
+  Also, applications such as the emerging object-oriented standard which
+  must reliably merge keywords coming from different sources (some internal
+  and some user-supplied) can work more reliably by exploting this new
+  partitioning of keyword names. For example, a public routine MAKE-FOO
+  might need to accept arbitrary keywords from the caller and might want
+  to pass those keywords along to an internal routine using keywords of
+  its own.
+
+  For example,
+   (IN-PACKAGE 'SYSTEM)
+   (DEFUN MAKE-INSTANCE (TYPE &REST KEYWORD-VALUE-PAIRS &KEY &ALLOW-OTHER-KEYS)
+     (APPLY #'MAKE-INSTANCE-INTERNAL TYPE 'EXPLICIT T KEYWORD-VALUE-PAIRS))
+  This could be done without fear that the use of EXPLICIT T would override
+  some keyword in keyword-value-pairs since the only way that could happen
+  is if someone had done (MAKE-INSTANCE 'ZEBRA 'SYSTEM::EXPLICIT NIL), or
+  if the user was programming explicitly in the SYSTEM package, either of 
+  which is an implicit admission of willingness to violate SYSTEM's modularity.
+
+*start*
+01466 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:FAHLMAN@C.CS.CMU.EDU>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 01 MAY 87 21:18:02 PDT
+Received: from C.CS.CMU.EDU by SAIL.STANFORD.EDU with TCP; 1 May 87  21:15:42 PDT
+Received: ID <FAHLMAN@C.CS.CMU.EDU>; Sat 2 May 87 00:16:48-EDT
+Date: Sat, 2 May 87 00:16 EDT
+Message-ID: <FAHLMAN.12299056786.BABYL@C.CS.CMU.EDU>
+Sender: FAHLMAN@C.CS.CMU.EDU
+From: "Scott E. Fahlman" <Fahlman@C.CS.CMU.EDU>
+To: Kent M Pitman <KMP@SCRC-STONY-BROOK.ARPA>
+Cc: CL-Cleanup@SAIL.STANFORD.EDU
+Subject: Issue: KEYWORD-ARGUMENT-NAME-PACKAGE (Revision 1)
+In-reply-to: Msg of 1 May 1987  23:30-EDT from Kent M Pitman <KMP at STONY-BROOK.SCRC.Symbolics.COM>
+
+
+Yeah, that's the sort of example I was looking for.  I see what you're
+driving at now, but the example of Make-Instance doesn't seem terribly
+compelling.  One might question whether this is the best way, or even a
+reasonable way, to pass this collection of stuff on to
+Make-Instance-Internal.  Why pass Explicit as a keyword at all?  Why not
+as a required arg, since the target function has to be ready to handle
+Explicit in any event.  Seems like you're just muddling things together
+and that the callee will have to un-muddle them again.
+
+In any event, I suppose that this is a legitimate style, even though I
+think it is ugly and probably inefficient.  Since the proposed change is
+fairly harmless, this example probably provides enough motivation for it.
+
+-- Scott
+
+*start*
+02158 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 01 MAY 87 21:47:16 PDT
+Received: from SCRC-STONY-BROOK.ARPA by SAIL.STANFORD.EDU with TCP; 1 May 87  21:44:57 PDT
+Received: from RIO-DE-JANEIRO.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 130133; Sat 2-May-87 00:45:09 EDT
+Date: Sat, 2 May 87 00:44 EDT
+From: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: Issue: KEYWORD-ARGUMENT-NAME-PACKAGE (Revision 1)
+To: Fahlman@C.CS.CMU.EDU
+cc: KMP@STONY-BROOK.SCRC.Symbolics.COM, CL-Cleanup@SAIL.STANFORD.EDU
+In-Reply-To: <FAHLMAN.12299056786.BABYL@C.CS.CMU.EDU>
+Message-ID: <870502004454.8.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+
+    Date: Sat, 2 May 1987  00:16 EDT
+    From: "Scott E. Fahlman" <Fahlman@C.CS.CMU.EDU>
+
+    ... One might question whether this is the best way, or even a
+    reasonable way, to pass this collection of stuff on to 
+    Make-Instance-Internal.  Why pass Explicit as a keyword at all?  Why not
+    as a required arg ...
+
+What if MAKE-INSTANCE-INTERNAL takes 47 such internal keywords? Just
+because I only used one in the call doesn't mean that's all it receives.
+Would you have me pass all 47 internal arguments on every call?
+
+Also, the caller of MAKE-INSTANCE might be within package SYSTEM and so
+it might not be an abstraction violation for him to pass other packaged
+symbols. That means that more keywords than those you see might be being
+received in the main arglist, though presumably none that the caller
+worries are going to be overridden by MAKE-INSTANCE.
+
+Or there might be other situations in which keyword-style calling is
+more important than in the particular call that you have there.
+
+I could add some of these issues to the add rationale, too, if you like.
+Almost by definition, any two-line example is not going to leave you
+feeling satisfied about something which is claimed to be useful in
+complex situations involving modularity boundaries.
+
+Anyway, the fact that you can figure out what is being hinted at by the
+small example makes me feel like the example did its job.
+
+*start*
+06923 00024 USf
+Return-Path: <@SAIL.STANFORD.EDU:Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 11 MAY 87 19:02:56 PDT
+Received: from SCRC-STONY-BROOK.ARPA by SAIL.STANFORD.EDU with TCP; 11 May 87  19:01:13 PDT
+Received: from EUPHRATES.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 137484; Mon 11-May-87 21:59:47 EDT
+Date: Mon, 11 May 87 21:59 EDT
+From: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: Issue: KEYWORD-ARGUMENT-NAME-PACKAGE (Version 3)
+To: CL-Cleanup@sail.stanford.edu
+Message-ID: <870511215932.3.MOON@EUPHRATES.SCRC.Symbolics.COM>
+
+Issue:        KEYWORD-ARGUMENT-NAME-PACKAGE
+References:   Lambda Expressions (pp60-64)
+Category:     CLARIFICATION/CHANGE
+Edit history: 20-Apr-87, Version 1 by Moon
+	      29-Apr-87, Version 2 by Pitman
+              11-May-87, Version 3 by Moon
+Status:	      Revised after discussion
+
+Problem Description:
+
+  CLtL says that only keyword symbols can be used as non-positional argument
+  names in &key parameter specifiers.
+
+Proposal (KEYWORD-ARGUMENT-NAME-PACKAGE:ANY)
+
+  Remove restrictions on the package of non-positional argument names;
+  allow any symbol, including NIL.
+
+Rationale:
+
+  As Common Lisp is currently defined, if someone wants to define a function
+  that accepts named (rather than positional) arguments whose names are
+  symbols in packages other than the KEYWORD package, they cannot use &KEY.
+  Instead, they have to duplicate the &KEY mechanism using &REST, GETF,
+  and (if they want error checking of argument names) DO.  This suggests that
+  the restriction of &key to only keyword symbols is arbitrary and unnecessary.
+
+  Note that the "rationale" box on p.62 of Common Lisp: the Language is an
+  argument in favor of requiring non-positional argument names to be symbols,
+  and not allowing numbers, but does not speak to the issue of whether or not
+  those symbols should be further restricted to be keywords.
+
+  The desire for non-positional arguments whose names are not keyword symbols
+  arises when the set of non-positional arguments accepted by a function is
+  the union of the sets of non-positional arguments accepted by several other
+  functions, rather than being enumerated in a single place.  In this case,
+  it becomes desirable to use packages to prevent accidental name clashes
+  among non-positional argument names of different functions.
+
+  One example of a Common Lisp application that requires this capability is
+  the draft proposal for an object-oriented programming standard.  It will
+  have generic functions that accept non-positional arguments and pass them on
+  to one or more applicable methods, with each method defining its own set of
+  arguments that it is interested in.  If this proposal is not adopted, either
+  the non-positional argument names will be required to be keywords, which
+  will require the methods to have non-modular knowledge of each other in
+  order to avoid name clashes, or the methods will have to be defined with an
+  ad hoc mechanism that duplicates the essential functionality of &key but
+  removes the restriction.
+
+  A second example of a Common Lisp application that requires this capability
+  is private communication channels between functions.  Suppose a public
+  routine MAKE-FOO needs to accept arbitrary keywords from the caller and
+  passes those keywords along to an internal routine using keywords of its
+  own.
+   (IN-PACKAGE 'FOOLAND)
+   (DEFUN MAKE-FOO (&REST KEYWORD-VALUE-PAIRS &KEY &ALLOW-OTHER-KEYS)
+     (APPLY #'MAKE-FOO-INTERNAL 'EXPLICIT T KEYWORD-VALUE-PAIRS))
+  This could be done without fear that the use of EXPLICIT T would override
+  some keyword in keyword-value-pairs, since the only way that could happen is
+  if someone had done (MAKE-FOO 'FOOLAND::EXPLICIT NIL), or if the user was
+  programming explicitly in the FOOLAND package, either of which is an implicit
+  admission of willingness to violate FOOLAND's modularity.
+
+Documentation Impact:
+
+  The following outlines the changes that would have to be made to Common
+  Lisp: the Language if this proposal were adopted, to aid in understanding
+  the impact of the proposal.
+
+  Change wording which refers to non-positional arguments as being introduced
+  by keyword symbols to simply refer to those arguments being introduced by
+  symbols. For example, in the middle of p.60, the sentence:
+    ... each -keyword- must be a keyword symbol, such as :start.
+  would become
+    ... each -keyword- must be a symbol.
+  Also, the word "keyword" in the first complete sentence on p.62 would
+  be changed to "symbol" for similar reasons.
+
+  Add extra wording on p.60 to explain that by convention keyword symbols
+  are normally used as non-positional argument names, and that all functions
+  built into the Common Lisp language follow that convention.  A language
+  manual might or might not choose to describe the circumstances in which
+  it is appropriate not to follow this convention.
+
+  Add examples to illustrate this behavior. For example, on p.64 the
+  following examples might be added:
+
+    ((lambda (a b &key ((:sea c)) d) (list a b c d)) 1 2 :sea 6)
+    => (1 2 6 NIL)
+
+    ((lambda (a b &key ((c c)) d) (list a b c d)) 1 2 'c 6)
+    => (1 2 6 NIL)
+
+Current Practice:
+
+  We do not currently know of an implementation that enforces the restriction
+  that this proposal seeks to remove.
+
+  Some implementations have bugs that prevent NIL from working as a keyword
+  argument name, but allow all non-NIL symbols. (One Symbolics version that
+  was checked had this bug.)
+
+Adoption Cost:
+
+  No existing programs will stop working.  Some implementors might have to
+  rearrange their error checking slightly, but it should be very easy.
+
+  Moon was under the impression that this proposal was actually adopted
+  around December 1985 (although no formal mechanism for adopting
+  proposals existed at that time), but isn't 100% sure.
+
+Benefits:
+
+  This will help with the object-oriented programming standard, among other
+  things.
+
+Conversion Cost:
+
+  None.
+
+Aesthetics:
+
+  There will probably be an argument about whether the restriction is
+  more esthetic or less esthetic than the freedom, but in either case
+  the aesthetic effect is slight.
+
+  In any case, users who do not want to use the extended functionality
+  can generally avoid it.
+
+Discussion:
+
+  Moon generated the original version of this proposal and supports it.
+  He thinks that if Common Lisp truly has a restriction that only keyword
+  symbols can be used as keyword names in calls to functions that take
+  keyword arguments, it will be more difficult to come up with an
+  object-oriented programming standard that fits within Common Lisp.
+
+  Pitman supports this proposal.
+
+  There was some question in the committee about whether the rationale
+  for the proposal was believable.  I hope this version of the proposal
+  has resolved any doubts.
+
+*start*
+02377 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:FAHLMAN@C.CS.CMU.EDU>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 12 MAY 87 07:29:19 PDT
+Received: from C.CS.CMU.EDU by SAIL.STANFORD.EDU with TCP; 12 May 87  07:28:09 PDT
+Received: ID <FAHLMAN@C.CS.CMU.EDU>; Tue 12 May 87 10:27:27-EDT
+Date: Tue, 12 May 87 10:27 EDT
+Message-ID: <FAHLMAN.12301789389.BABYL@C.CS.CMU.EDU>
+Sender: FAHLMAN@C.CS.CMU.EDU
+From: "Scott E. Fahlman" <Fahlman@C.CS.CMU.EDU>
+To: "David A. Moon" <Moon@SCRC-STONY-BROOK.ARPA>
+Cc: CL-Cleanup@SAIL.STANFORD.EDU
+Subject: Issue: KEYWORD-ARGUMENT-NAME-PACKAGE (Version 3)
+In-reply-to: Msg of 11 May 1987  21:59-EDT from David A. Moon <Moon at STONY-BROOK.SCRC.Symbolics.COM>
+
+
+The rationale is now sufficient, and I support
+KEYWORD-ARGUMENT-NAME-PACKAGE:ANY in general.
+
+To prevent confusion, thr proposal should address the lambda-list syntax
+explicitly.  In order to write the next paragraph without going
+insane, I will use the term "keyword-symbol" for a symbol whose home is
+the keyword package, and "keyword-indicator" for the thing (which may or
+may noit be a keyword-symbol) that appears in a function call to
+specify a not-by-position argument.
+
+If, following an &key, a variable appears alone and not as part of a
+(keyword-indicator variable) pair, the behavior specified in CLtL is
+unchanged: a keyword-symbol with the same print name as the variable is
+created and is used as the keyword-indicator in function calls.  The
+only way to get a keyword-indicator that is not a keyword-symbol is to
+use the (keyword-indicator variable) syntax in the function's lambda
+list.  Note that the variable must not be a constant, but that the
+keyword-indicator may be.
+
+Obviously, if we had anticpated this change, we should have called
+keyword arguments something else, but it is too late now.
+
+One last comment: if it were up to me, I would exclude NIL as a legal
+keyword-indicator.  Nobody would ever want to use this -- it doesn't
+help at all in solving the kinds of encapsulation problems discussed in
+the rationale -- and allowing this is particularly likely to mask errors
+made by the user.  If it screws some current implementations, that's
+another (weak) reason to disallow this.  I don't want to fight about
+this, but if NIL is allowed, I might fix our compiler to warn
+about this as being "technically correct but probably a bug".
+
+-- Scott
+
+*start*
+00666 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:Gregor.pa@Xerox.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 12 MAY 87 09:31:46 PDT
+Received: from XEROX.COM by SAIL.STANFORD.EDU with TCP; 12 May 87  09:30:01 PDT
+Received: from Cabernet.ms by ArpaGateway.ms ; 12 MAY 87 09:26:41 PDT
+Date: 12 May 87 09:24 PDT
+From: Gregor.pa
+Subject: Re: Issue: KEYWORD-ARGUMENT-NAME-PACKAGE (Version 3)
+In-reply-to: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>'s
+ message of Mon, 11 May 87 21:59 EDT
+To: Moon@STONY-BROOK.SCRC.Symbolics.COM
+cc: CL-Cleanup@sail.stanford.edu
+Message-ID: <870512-092641-3405@Xerox>
+
+I support KEYWORD-ARGUMENT-NAME-PACKAGE:ANY.
+
+*start*
+03566 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 12 MAY 87 11:59:57 PDT
+Received: from SCRC-STONY-BROOK.ARPA by SAIL.STANFORD.EDU with TCP; 12 May 87  11:58:00 PDT
+Received: from EUPHRATES.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 138111; Tue 12-May-87 14:56:28 EDT
+Date: Tue, 12 May 87 14:56 EDT
+From: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: Issue: KEYWORD-ARGUMENT-NAME-PACKAGE (Version 3)
+To: CL-Cleanup@SAIL.STANFORD.EDU
+In-Reply-To: <FAHLMAN.12301789389.BABYL@C.CS.CMU.EDU>
+Message-ID: <870512145619.6.MOON@EUPHRATES.SCRC.Symbolics.COM>
+
+    Date: Tue, 12 May 1987  10:27 EDT
+    From: "Scott E. Fahlman" <Fahlman@C.CS.CMU.EDU>
+
+    The rationale is now sufficient, and I support
+    KEYWORD-ARGUMENT-NAME-PACKAGE:ANY in general.
+
+Thanks.
+
+    To prevent confusion, thr proposal should address the lambda-list syntax
+    explicitly.  In order to write the next paragraph without going
+    insane, I will use the term "keyword-symbol" for a symbol whose home is
+    the keyword package, and "keyword-indicator" for the thing (which may or
+    may not be a keyword-symbol) that appears in a function call to
+    specify a not-by-position argument.
+
+I was using "non-positional-argument-name" where you used "keyword-indicator".
+We have to do something about the terminology.  I like "argument name" a little
+better than "keyword indicator", although the former has the problem that people
+might confuse it with "parameter name", since experience has shown that it's
+virtually impossible for anyone to remember which are the arguments and which
+are the parameters.
+
+    If, following an &key, a variable appears alone and not as part of a
+    (keyword-indicator variable) pair, the behavior specified in CLtL is
+    unchanged: a keyword-symbol with the same print name as the variable is
+    created and is used as the keyword-indicator in function calls.  The
+    only way to get a keyword-indicator that is not a keyword-symbol is to
+    use the (keyword-indicator variable) syntax in the function's lambda
+    list.  Note that the variable must not be a constant, but that the
+    keyword-indicator may be.
+
+I agree with this, except that the syntax actually has two parentheses,
+i.e. ((keyword-indicator variable)), to distinguish it from (variable default).
+
+    Obviously, if we had anticpated this change, we should have called
+    keyword arguments something else, but it is too late now.
+
+We can take "lambda-list-keywords", which aren't "keyword-symbols" either,
+as a precedent.
+
+    One last comment: if it were up to me, I would exclude NIL as a legal
+    keyword-indicator.  Nobody would ever want to use this -- it doesn't
+    help at all in solving the kinds of encapsulation problems discussed in
+    the rationale -- and allowing this is particularly likely to mask errors
+    made by the user.  If it screws some current implementations, that's
+    another (weak) reason to disallow this.  I don't want to fight about
+    this, but if NIL is allowed, I might fix our compiler to warn
+    about this as being "technically correct but probably a bug".
+
+I don't care about NIL being allowed or disallowed.  As a language
+designer, it seems like a weird restriction to disallow it, even though
+there is no earthly reason to use it.  As a commercial vendor, I won't
+complain if we don't have to fix the bug that we currently disallow it.
+I'll defer to anyone who has a strong opinion about this.
+
+*start*
+07775 00024 USf
+Date: 29 May 87 21:22 PDT
+From: Masinter.pa
+Subject: Issue: KEYWORD-ARGUMENT-NAME-PACKAGE (Version 4)
+To: CL-Cleanup@sail.stanford.edu
+cc: Masinter
+
+Status:	      I edited this to put some things in different sections  (Aesthetic arguments under aesthetics, cost of converting existing code into that section) and added some wording to meet Scott's "to prevent confusion".
+
+		Ready for release? [Use ballot]
+
+Issue:        KEYWORD-ARGUMENT-NAME-PACKAGE
+References:   Lambda Expressions (CLtL pp60-64)
+Category:     CLARIFICATION/CHANGE
+Edit history: 20-Apr-87, Version 1 by Moon
+	         29-Apr-87, Version 2 by Pitman
+              11-May-87, Version 3 by Moon
+              29-May-87, Version 4 by Masinter
+
+Problem Description:
+
+CLtL says that only keyword symbols can be used as non-positional argument
+names in &key parameter specifiers.
+
+As Common Lisp is currently defined, if someone wants to define a function that accepts named (rather than positional) arguments whose names are symbols in packages other than the KEYWORD package, they cannot use &KEY. Instead, they have to duplicate the &KEY mechanism using &REST, GETF, and (if they want error checking of argument names) DO.  
+
+Some applications (including the draft proposal for the Common Lisp Object System (CLOS)) require this capability. [See Rationale below.]
+
+ 
+Proposal (KEYWORD-ARGUMENT-NAME-PACKAGE:ANY)
+
+Remove restrictions on the package of non-positional argument names;
+allow any symbol, including NIL.  That is: 
+
+If, following an &key, a variable appears alone or in a (variable default-value) pair, the behavior specified in CLtL is unchanged: a keyword-symbol with the same print name as the variable is created and is used as the keyword-indicator in function calls.  The only way to get a non-positional-argument-name that is not a keyword symbol is to use the (indicator variable) syntax in the function's lambda list.  The keyword-indicator can be any symbol, not just a keyword.
+
+Test case:
+
+(DEFUN RESULT (&KEY (((SECRET-KEYWORD SECRET) NIL) AMOUNT)
+    (FORMAT NIL "You ~A $~D" (if SECRET "win" "lose") AMOUNT))
+
+(RESULT :AMOUNT 100) => "You lose $100"
+(RESULT :AMOUNT 100 'SECRET-KEYWORD T) => "You win $100"
+
+
+Rationale:
+
+The "rationale" box on p.62 of CLtL is an argument in favor of requiring non-positional argument names to be symbols, and not allowing numbers, but does not speak to the issue of whether or not those symbols should be further restricted to be keywords.
+
+The desire for non-positional arguments whose names are not keyword symbols
+arises when the set of non-positional arguments accepted by a function is
+the union of the sets of non-positional arguments accepted by several other
+functions, rather than being enumerated in a single place.  In this case,
+it becomes desirable to use packages to prevent accidental name clashes
+among non-positional argument names of different functions.
+
+One example of a Common Lisp application that requires this capability is
+the draft proposal for an object-oriented programming standard (CLOS).  It will
+have generic functions that accept non-positional arguments and pass them on
+to one or more applicable methods, with each method defining its own set of
+arguments that it is interested in.  If this proposal is not adopted, either
+the non-positional argument names will be required to be keywords, which
+will require the methods to have non-modular knowledge of each other in
+order to avoid name clashes, or the methods will have to be defined with an
+ad hoc mechanism that duplicates the essential functionality of &key but
+removes the restriction.
+
+A second example of a Common Lisp application that requires this capability
+is private communication channels between functions.  Suppose a public
+routine MAKE-FOO needs to accept arbitrary keywords from the caller and
+passes those keywords along to an internal routine using keywords of its
+own.
+   (IN-PACKAGE 'FOOLAND)
+   (DEFUN MAKE-FOO (&REST KEYWORD-VALUE-PAIRS &KEY &ALLOW-OTHER-KEYS)
+     (APPLY #'MAKE-FOO-INTERNAL 'EXPLICIT T KEYWORD-VALUE-PAIRS))
+This could be done without fear that the use of EXPLICIT T would override
+some keyword in keyword-value-pairs, since the only way that could happen is
+if someone had done (MAKE-FOO 'FOOLAND::EXPLICIT NIL), or if the user was
+programming explicitly in the FOOLAND package, either of which is an implicit
+admission of willingness to violate FOOLAND's modularity.
+
+Documentation Impact:
+
+The following outlines the changes that would have to be made to Common
+Lisp: the Language if this proposal were adopted, to aid in understanding
+the impact of the proposal.
+
+  Change wording which refers to non-positional arguments as being introduced
+  by keyword symbols to simply refer to those arguments being introduced by
+  symbols. For example, in the middle of p.60, the sentence:
+    ... each -keyword- must be a keyword symbol, such as :start.
+  would become
+    ... each -keyword- must be a symbol.
+  Also, the word "keyword" in the first complete sentence on p.62 would
+  be changed to "symbol" for similar reasons.
+
+  Add extra wording on p.60 to explain that by convention keyword symbols
+  are normally used as non-positional argument names, and that all functions
+  built into the Common Lisp language follow that convention.  A language
+  manual might or might not choose to describe the circumstances in which
+  it is appropriate not to follow this convention.
+
+  Add examples to illustrate this behavior. For example, on p.64 the
+  following examples might be added:
+
+    ((lambda (a b &key ((:sea c)) d) (list a b c d)) 1 2 :sea 6)
+    => (1 2 6 NIL)
+
+    ((lambda (a b &key ((c c)) d) (list a b c d)) 1 2 'c 6)
+    => (1 2 6 NIL)
+
+Current Practice:
+
+We do not currently know of an implementation that enforces the restriction
+that this proposal seeks to remove.
+
+Some implementations have bugs that prevent NIL from working as a keyword
+argument name, but allow all non-NIL symbols. (One Symbolics version that
+was checked had this bug.)
+
+Adoption Cost:
+
+Some implementors might have to rearrange their error checking slightly, but it should be very easy.
+
+Benefits:
+
+This will help with the object-oriented programming standard, among other
+things.
+
+Conversion Cost:
+
+None--no existing programs will stop working.  
+
+Aesthetics:
+
+The restriction of &key to only keyword symbols is arbitrary and unnecessary.
+
+There will probably be an argument about whether the restriction is
+more esthetic or less esthetic than the freedom, but in either case
+the aesthetic effect is slight.
+
+In any case, users who do not want to use the extended functionality
+can generally avoid it.
+
+Discussion:
+
+Moon was under the impression that this proposal was actually adopted around December 1985 (although no formal mechanism for adopting proposals existed at that time), but isn't 100% sure.
+
+If Common Lisp truly has a restriction that only keyword symbols can be used as keyword names in calls to functions that take keyword arguments, it will be more difficult to come up with an object-oriented programming standard that fits within Common Lisp.
+
+Some members of the cleanup committee would just as soon exclude NIL as a legal keyword-indicator. It might catch some errors, but is possibly otherwise an odd restriction. Disallowing NIL would reduce the adoption cost for some implementations.
+
+The cleanup committee supports this change.
+        TITAN          TITAN           
+TIMESROMAN 
+          ™                            "                            ¡             Z       -      M              ß             ¤             æ             "              g       
+       T              2             W       
+      â      â zº*start*
+00677 00024 USf
+Date:  1 Jun 87 18:39 PDT
+From: Pavel.pa
+Subject: Re: Issue: KEYWORD-ARGUMENT-NAME-PACKAGE (Version 4)
+In-reply-to: Masinter.pa's message of 29 May 87 21:22 PDT
+To: Masinter.pa
+
+Typo in the proposal:
+
+Test case:
+
+(DEFUN RESULT (&KEY (((SECRET-KEYWORD SECRET) NIL) AMOUNT)
+    (FORMAT NIL "You ~A $~D" (if SECRET "win" "lose") AMOUNT))
+
+
+should be (there was an extra parenthesis and it's easier to read this way):
+
+Test case:
+
+(DEFUN RESULT (AMOUNT &KEY ((SECRET-KEYWORD SECRET) NIL))
+    (FORMAT NIL "You ~A $~D" (if SECRET "win" "lose") AMOUNT))
+
+        GACHA 
+          
+TIMESROMAN 
+           É       †       P       …             % zº*start*
+01079 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:FAHLMAN@C.CS.CMU.EDU>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 03 JUN 87 22:38:44 PDT
+Received: from C.CS.CMU.EDU by SAIL.STANFORD.EDU with TCP; 3 Jun 87  22:37:53 PDT
+Received: ID <FAHLMAN@C.CS.CMU.EDU>; Thu 4 Jun 87 01:37:10-EDT
+Date: Thu, 4 Jun 87 01:37 EDT
+Message-ID: <FAHLMAN.12307722170.BABYL@C.CS.CMU.EDU>
+Sender: FAHLMAN@C.CS.CMU.EDU
+From: "Scott E. Fahlman" <Fahlman@C.CS.CMU.EDU>
+To: CL-Cleanup@SAIL.STANFORD.EDU
+Subject: Issue: KEYWORD-ARGUMENT-NAME-PACKAGE (Version 4)
+In-reply-to: Msg of 30 May 1987  00:22-EDT from Masinter.pa at Xerox.COM
+
+
+I support this proposal and support releasing it as-is, except for the
+next to last paragraph about NIL.  Another dangling issue, and this time
+it seems like the sentence, "The cleanup committee supports this change"
+refers to the exclusion of NIL.
+
+I don't care whether we decide that NIL should be allowed or disallowed,
+but we should decide on one or the other and say so clearly, not just
+mumble on both sides of the issue with no resolution.
+
+-- Scott
+
+*start*
+07531 00024 US 
+Date:  5 Jun 87 16:10 PDT
+From: Masinter.pa
+Subject: Issue: KEYWORD-ARGUMENT-NAME-PACKAGE (Version 5)
+To: CL-Cleanup@sail.stanford.edu
+cc: Masinter
+
+I made the discussion less wishy-washy by saying we rejected disallowing NIL.  I made some edits to fix typos various people pointed out. I fixed the "grinding".
+
+Status: Ready for release.
+
+
+Issue:        KEYWORD-ARGUMENT-NAME-PACKAGE
+References:   Lambda Expressions (CLtL pp60-64)
+Category:     CLARIFICATION/CHANGE
+Edit history: 20-Apr-87, Version 1 by Moon
+	         29-Apr-87, Version 2 by Pitman
+              11-May-87, Version 3 by Moon
+              29-May-87, Version 4 by Masinter
+               5-Jun-87, Version 5 by Masinter
+
+Problem Description:
+
+CLtL says that only keyword symbols can be used as non-positional argument names in &key parameter specifiers.
+
+As Common Lisp is currently defined, if someone wants to define a function that accepts named (rather than positional) arguments whose names are symbols in packages other than the KEYWORD package, they cannot use &KEY. Instead, they have to duplicate the &KEY mechanism using &REST, GETF, and (if they want error checking of argument names) DO.  
+
+Some applications (including the draft proposal for the Common Lisp Object System (CLOS)) require this capability. [See Rationale below.]
+
+ 
+Proposal (KEYWORD-ARGUMENT-NAME-PACKAGE:ANY)
+
+Remove restrictions on the package of non-positional argument names; allow any symbol, including NIL.  That is: 
+
+If, following an &key, a variable appears alone or in a (variable default-value) pair, the behavior specified in CLtL is unchanged: a keyword-symbol with the same print name as the variable is created and is used as the keyword-indicator in function calls.  The only way to get a non-positional-argument-name that is not a keyword symbol is to use the (indicator variable) syntax in the function's lambda list.  The keyword-indicator can be any symbol, not just a keyword.
+
+Test case:
+
+(DEFUN RESULT (&KEY ((SECRET-KEYWORD SECRET) NIL) AMOUNT)
+    (FORMAT NIL "You ~A $~D" (if SECRET "win" "lose") AMOUNT))
+
+(RESULT :AMOUNT 100) => "You lose $100"
+(RESULT :AMOUNT 100 'SECRET-KEYWORD T) => "You win $100"
+
+
+Rationale:
+
+The "rationale" box on p.62 of CLtL is an argument in favor of requiring non-positional argument names to be symbols, and not allowing numbers, but does not speak to the issue of whether or not those symbols should be further restricted to be keywords.
+
+The desire for non-positional arguments whose names are not keyword symbols arises when the set of non-positional arguments accepted by a function is the union of the sets of non-positional arguments accepted by several other functions, rather than being enumerated in a single place.  In this case,
+it becomes desirable to use packages to prevent accidental name clashes among non-positional argument names of different functions.
+
+One example of a Common Lisp application that requires this capability is the draft proposal for an object-oriented programming standard (CLOS).  It will have generic functions that accept non-positional arguments and pass them on to one or more applicable methods, with each method defining its own set of arguments that it is interested in.  If this proposal is not adopted, either the non-positional argument names will be required to be keywords, which will require the methods to have non-modular knowledge of each other in order to avoid name clashes, or the methods will have to be defined with an ad hoc mechanism that duplicates the essential functionality of &key but removes the restriction.
+
+A second example of a Common Lisp application that requires this capability is private communication channels between functions.  Suppose a public routine MAKE-FOO needs to accept arbitrary keywords from the caller and passes those keywords along to an internal routine using keywords of its own.
+ (IN-PACKAGE 'FOOLAND)
+ (DEFUN MAKE-FOO (&REST KEYWORD-VALUE-PAIRS &KEY &ALLOW-OTHER-KEYS)
+   (APPLY #'MAKE-FOO-INTERNAL 'EXPLICIT T KEYWORD-VALUE-PAIRS))
+
+This could be done without fear that the use of EXPLICIT T would override some keyword in keyword-value-pairs, since the only way that could happen is if someone had done (MAKE-FOO 'FOOLAND::EXPLICIT NIL), or if the user was programming explicitly in the FOOLAND package, either of which is an implicit admission of willingness to violate FOOLAND's modularity.
+
+Documentation Impact:
+
+The following outlines the changes that would have to be made to Common Lisp: the Language if this proposal were adopted, to aid in understanding the impact of the proposal.
+
+The wording which refers to non-positional arguments as being introduced by keyword symbols wuuld change to simply refer to those arguments being introduced by symbols. For example, in the middle of p.60, the sentence:
+   ... each -keyword- must be a keyword symbol, such as :start.
+ would become
+   ... each -keyword- must be a symbol.
+
+The word "keyword" in the first complete sentence on p.62 would be changed to "symbol" for similar reasons.
+
+Extra wording would have to be added on p.60 to explain that by convention keyword symbols are normally used as non-positional argument names, and that all functions built into the Common Lisp language follow that convention.
+
+Examples would be useful. On p.64 the following examples might be added:
+
+    ((lambda (a b &key ((:sea c)) d) (list a b c d)) 1 2 :sea 6)
+    => (1 2 6 NIL)
+
+    ((lambda (a b &key ((c c)) d) (list a b c d)) 1 2 'c 6)
+    => (1 2 6 NIL)
+
+Current Practice:
+
+We do not currently know of an implementation that enforces the restriction that this proposal seeks to remove.
+
+Some implementations have bugs that prevent NIL from working as a keyword argument name, but allow all non-NIL symbols. (One Symbolics version that was checked had this bug.)
+
+Adoption Cost:
+
+Some implementors might have to rearrange their error checking slightly, but it should be very easy.
+
+Benefits:
+
+This will help with the object-oriented programming standard, among other things.
+
+Conversion Cost:
+
+None--no existing programs will stop working.  
+
+Aesthetics:
+
+The restriction of &key to only keyword symbols is arbitrary and unnecessary.
+
+There will probably be an argument about whether the restriction is more esthetic or less esthetic than the freedom, but in either case the aesthetic effect is slight.
+
+In any case, users who do not want to use the extended functionality can generally avoid it.
+
+Discussion:
+
+Moon was under the impression that this proposal was actually adopted around December 1985 (although no formal mechanism for adopting proposals existed at that time), but isn't 100% sure.
+
+If Common Lisp truly has a restriction that only keyword symbols can be used as keyword names in calls to functions that take keyword arguments, it will be more difficult to come up with an object-oriented programming standard that fits within Common Lisp.
+
+The cleanup committee considered but rejected a proposal to exclude NIL as a legal indicator. It might catch some errors, but is otherwise an odd restriction.
+
+The cleanup committee supports this change.
+
+        TITAN           TITAN          
+TIMESROMAN 
+          
+TIMESROMAN 
+          V                            "                            Ð             Z       -      M              Þ             Ÿ             A             "              g       
+       T              2             W       
+      ‹             Í  zº*start*
+00563 00024 US 
+Return-Path: <FAHLMAN@C.CS.CMU.EDU>
+Received: from C.CS.CMU.EDU by Xerox.COM ; 07 JUN 87 16:12:33 PDT
+Received: ID <FAHLMAN@C.CS.CMU.EDU>; Sun 7 Jun 87 19:12:08-EDT
+Date: Sun, 7 Jun 87 19:12 EDT
+Message-ID: <FAHLMAN.12308700652.BABYL@C.CS.CMU.EDU>
+Sender: FAHLMAN@C.CS.CMU.EDU
+From: "Scott E. Fahlman" <Fahlman@C.CS.CMU.EDU>
+To: Masinter.pa
+Cc: CL-Cleanup@SAIL.STANFORD.EDU
+Subject: Issue: KEYWORD-ARGUMENT-NAME-PACKAGE (Version 5)
+In-reply-to: Msg of 5 Jun 1987  19:10-EDT from Masinter.pa at Xerox.COM
+
+
+This looks good to me.
+
+-- Scott
+*start*
+07918 00024 USf
+Date: 11 Jun 87 15:00 PDT
+From: Masinter.pa
+to: cl-cleanup@sail.stanford.edu
+Subject: Issue: KEYWORD-ARGUMENT-NAME-PACKAGE (Version 6)
+cc: Masinter
+
+Since the "including NIL" was inflammatory, and the proposal reads nicely and unambiguously without it, I removed it from the Proposal. I moved the "the cleanup committee generally supports" to the beginning of the discussion rather than the end, to make sure that it is clear that it refers to the proposal rather than some sentence of the discussion. I changed "The cleanup committee considered, but rejected, a proposal to exclude NIL ..."  to say "but did not adopt".
+
+I intend to mail this to x3j13 on Monday unless I hear objections.
+
+
+
+Issue:        KEYWORD-ARGUMENT-NAME-PACKAGE
+References:   Lambda Expressions (CLtL pp60-64)
+Category:     CLARIFICATION/CHANGE
+Edit history: 20-Apr-87, Version 1 by Moon
+	         29-Apr-87, Version 2 by Pitman
+              11-May-87, Version 3 by Moon
+              29-May-87, Version 4 by Masinter 
+               5-Jun-87, Version 5 by Masinter
+              11-Jun-87, Version 6 by Masinter
+
+Problem Description:
+
+CLtL says that only keyword symbols can be used as non-positional argument names in &key parameter specifiers.
+
+As Common Lisp is currently defined, if someone wants to define a function that accepts named (rather than positional) arguments whose names are symbols in packages other than the KEYWORD package, they cannot use &KEY. Instead, they have to duplicate the &KEY mechanism using &REST, GETF, and (if they want error checking of argument names) DO.  
+
+Some applications (including the draft proposal for the Common Lisp Object System (CLOS)) require this capability. [See Rationale below.]
+
+Proposal (KEYWORD-ARGUMENT-NAME-PACKAGE:ANY)
+
+Remove restrictions on the package of non-positional argument names; allow any symbol. That is: 
+
+If, following an &KEY, a variable appears alone or in a (variable default-value) pair, the behavior specified in CLtL is unchanged: a keyword-symbol with the same print name as the variable is created and is used as the keyword-indicator in function calls.  The only way to get a non-positional-argument-name that is not a keyword symbol is to use the (indicator variable) syntax in the function's lambda list.  The keyword-indicator can be any symbol, not just a keyword.
+
+Test case:
+
+(DEFUN RESULT (&KEY ((SECRET-KEYWORD SECRET) NIL) AMOUNT)
+    (FORMAT NIL "You ~A $~D" (if SECRET "win" "lose") AMOUNT))
+
+(RESULT :AMOUNT 100) => "You lose $100"
+(RESULT :AMOUNT 100 'SECRET-KEYWORD T) => "You win $100"
+
+
+Rationale:
+
+The "rationale" box on p.62 of CLtL is an argument in favor of requiring non-positional argument names to be symbols, and not allowing numbers, but does not speak to the issue of whether or not those symbols should be further restricted to be keywords.
+
+The desire for non-positional arguments whose names are not keyword symbols arises when the set of non-positional arguments accepted by a function is the union of the sets of non-positional arguments accepted by several other functions, rather than being enumerated in a single place.  In this case,
+it becomes desirable to use packages to prevent accidental name clashes among non-positional argument names of different functions.
+
+One example of a Common Lisp application that requires this capability is the draft proposal for an object-oriented programming standard (CLOS).  It will have generic functions that accept non-positional arguments and pass them on to one or more applicable methods, with each method defining its own set of arguments that it is interested in.  If this proposal is not adopted, either the non-positional argument names will be required to be keywords, which will require the methods to have non-modular knowledge of each other in order to avoid name clashes, or the methods will have to be defined with an ad hoc mechanism that duplicates the essential functionality of &key but removes the restriction.
+
+A second example of a Common Lisp application that requires this capability is private communication channels between functions.  Suppose a public routine MAKE-FOO needs to accept arbitrary keywords from the caller and passes those keywords along to an internal routine using keywords of its own.
+ (IN-PACKAGE 'FOOLAND)
+ (DEFUN MAKE-FOO (&REST KEYWORD-VALUE-PAIRS &KEY &ALLOW-OTHER-KEYS)
+   (APPLY #'MAKE-FOO-INTERNAL 'EXPLICIT T KEYWORD-VALUE-PAIRS))
+
+This could be done without fear that the use of EXPLICIT T would override some keyword in keyword-value-pairs, since the only way that could happen is if someone had done (MAKE-FOO 'FOOLAND::EXPLICIT NIL), or if the user was programming explicitly in the FOOLAND package, either of which is an implicit admission of willingness to violate FOOLAND's modularity.
+
+Documentation Impact:
+
+The following outlines the changes that would have to be made to Common Lisp: the Language if this proposal were adopted, to aid in understanding the impact of the proposal.
+
+The wording which refers to non-positional arguments as being introduced by keyword symbols wuuld change to simply refer to those arguments being introduced by symbols. For example, in the middle of p.60, the sentence:
+   ... each -keyword- must be a keyword symbol, such as :start.
+ would become
+   ... each -keyword- must be a symbol.
+
+The word "keyword" in the first complete sentence on p.62 would be changed to "symbol" for similar reasons.
+
+Extra wording would have to be added on p.60 to explain that by convention keyword symbols are normally used as non-positional argument names, and that all functions built into the Common Lisp language follow that convention.
+
+Examples would be useful. On p.64 the following examples might be added:
+
+    ((lambda (a b &key ((:sea c)) d) (list a b c d)) 1 2 :sea 6)
+    => (1 2 6 NIL)
+
+    ((lambda (a b &key ((c c)) d) (list a b c d)) 1 2 'c 6)
+    => (1 2 6 NIL)
+
+Current Practice:
+
+We do not currently know of an implementation that enforces the restriction that this proposal seeks to remove.
+
+Some implementations have bugs that prevent NIL from working as a keyword argument name, but allow all non-NIL symbols. (One Symbolics version that was checked had this bug.)
+
+Adoption Cost:
+
+Some implementors might have to rearrange their error checking slightly, but it should be very easy.
+
+Benefits:
+
+This will help with the object-oriented programming standard, among other things.
+
+Conversion Cost:
+
+None--no existing programs will stop working.  
+
+Aesthetics:
+
+The restriction of &key to only keyword symbols is arbitrary and unnecessary.
+
+There will probably be an argument about whether the restriction is more esthetic or less esthetic than the freedom, but in either case the aesthetic effect is slight.
+
+In any case, users who do not want to use the extended functionality can generally avoid it.
+
+Discussion:
+
+The cleanup committee generally supports this extension. 
+
+Moon was under the impression that this proposal was actually adopted around December 1985 (although no formal mechanism for adopting proposals existed at that time), but isn't 100% sure.
+
+If Common Lisp truly has a restriction that only keyword symbols can be used as keyword names in calls to functions that take keyword arguments, it will be more difficult to come up with an object-oriented programming standard that fits within Common Lisp.
+
+The cleanup committee considered, but did not adopt, a proposal to exclude NIL as a legal indicator. It might catch some errors, but is otherwise an odd restriction.
+
+        TITAN           TITAN          
+TIMESROMAN 
+          µ                            "                                         X       -      =              Þ             Ÿ             A             "              g       
+       T              2             W       
+       :             f      _ !zº*start*
+07862 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:Masinter.pa@Xerox.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 11 JUN 87 16:27:50 PDT
+Received: from XEROX.COM by SAIL.STANFORD.EDU with TCP; 11 Jun 87  16:22:54 PDT
+Received: from Cabernet.ms by ArpaGateway.ms ; 11 JUN 87 15:01:24 PDT
+Date: 11 Jun 87 15:00 PDT
+From: Masinter.pa
+to: cl-cleanup@sail.stanford.edu
+Subject: Issue: KEYWORD-ARGUMENT-NAME-PACKAGE (Version 6)
+cc: Masinter.pa
+Message-ID: <870611-150124-1787@Xerox>
+
+Since the "including NIL" was inflammatory, and the proposal reads
+nicely and unambiguously without it, I removed it from the Proposal. I
+moved the "the cleanup committee generally supports" to the beginning of
+the discussion rather than the end, to make sure that it is clear that
+it refers to the proposal rather than some sentence of the discussion. I
+changed "The cleanup committee considered, but rejected, a proposal to
+exclude NIL ..."  to say "but did not adopt".
+
+I intend to mail this to x3j13 on Monday unless I hear objections.
+
+
+!
+Issue:        KEYWORD-ARGUMENT-NAME-PACKAGE
+References:   Lambda Expressions (CLtL pp60-64)
+Category:     CLARIFICATION/CHANGE
+Edit history: 20-Apr-87, Version 1 by Moon
+	         29-Apr-87, Version 2 by Pitman
+              11-May-87, Version 3 by Moon
+              29-May-87, Version 4 by Masinter 
+               5-Jun-87, Version 5 by Masinter
+              11-Jun-87, Version 6 by Masinter
+
+Problem Description:
+
+CLtL says that only keyword symbols can be used as non-positional
+argument names in &key parameter specifiers.
+
+As Common Lisp is currently defined, if someone wants to define a
+function that accepts named (rather than positional) arguments whose
+names are symbols in packages other than the KEYWORD package, they
+cannot use &KEY. Instead, they have to duplicate the &KEY mechanism
+using &REST, GETF, and (if they want error checking of argument names)
+DO.  
+
+Some applications (including the draft proposal for the Common Lisp
+Object System (CLOS)) require this capability. [See Rationale below.]
+
+Proposal (KEYWORD-ARGUMENT-NAME-PACKAGE:ANY)
+
+Remove restrictions on the package of non-positional argument names;
+allow any symbol. That is: 
+
+If, following an &KEY, a variable appears alone or in a (variable
+default-value) pair, the behavior specified in CLtL is unchanged: a
+keyword-symbol with the same print name as the variable is created and
+is used as the keyword-indicator in function calls.  The only way to get
+a non-positional-argument-name that is not a keyword symbol is to use
+the (indicator variable) syntax in the function's lambda list.  The
+keyword-indicator can be any symbol, not just a keyword.
+
+Test case:
+
+(DEFUN RESULT (&KEY ((SECRET-KEYWORD SECRET) NIL) AMOUNT)
+    (FORMAT NIL "You ~A $~D" (if SECRET "win" "lose") AMOUNT))
+
+(RESULT :AMOUNT 100) => "You lose $100"
+(RESULT :AMOUNT 100 'SECRET-KEYWORD T) => "You win $100"
+
+
+Rationale:
+
+The "rationale" box on p.62 of CLtL is an argument in favor of requiring
+non-positional argument names to be symbols, and not allowing numbers,
+but does not speak to the issue of whether or not those symbols should
+be further restricted to be keywords.
+
+The desire for non-positional arguments whose names are not keyword
+symbols arises when the set of non-positional arguments accepted by a
+function is the union of the sets of non-positional arguments accepted
+by several other functions, rather than being enumerated in a single
+place.  In this case,
+it becomes desirable to use packages to prevent accidental name clashes
+among non-positional argument names of different functions.
+
+One example of a Common Lisp application that requires this capability
+is the draft proposal for an object-oriented programming standard
+(CLOS).  It will have generic functions that accept non-positional
+arguments and pass them on to one or more applicable methods, with each
+method defining its own set of arguments that it is interested in.  If
+this proposal is not adopted, either the non-positional argument names
+will be required to be keywords, which will require the methods to have
+non-modular knowledge of each other in order to avoid name clashes, or
+the methods will have to be defined with an ad hoc mechanism that
+duplicates the essential functionality of &key but removes the
+restriction.
+
+A second example of a Common Lisp application that requires this
+capability is private communication channels between functions.  Suppose
+a public routine MAKE-FOO needs to accept arbitrary keywords from the
+caller and passes those keywords along to an internal routine using
+keywords of its own.
+ (IN-PACKAGE 'FOOLAND)
+ (DEFUN MAKE-FOO (&REST KEYWORD-VALUE-PAIRS &KEY &ALLOW-OTHER-KEYS)
+   (APPLY #'MAKE-FOO-INTERNAL 'EXPLICIT T KEYWORD-VALUE-PAIRS))
+
+This could be done without fear that the use of EXPLICIT T would
+override some keyword in keyword-value-pairs, since the only way that
+could happen is if someone had done (MAKE-FOO 'FOOLAND::EXPLICIT NIL),
+or if the user was programming explicitly in the FOOLAND package, either
+of which is an implicit admission of willingness to violate FOOLAND's
+modularity.
+
+Documentation Impact:
+
+The following outlines the changes that would have to be made to Common
+Lisp: the Language if this proposal were adopted, to aid in
+understanding the impact of the proposal.
+
+The wording which refers to non-positional arguments as being introduced
+by keyword symbols wuuld change to simply refer to those arguments being
+introduced by symbols. For example, in the middle of p.60, the sentence:
+   ... each -keyword- must be a keyword symbol, such as :start.
+ would become
+   ... each -keyword- must be a symbol.
+
+The word "keyword" in the first complete sentence on p.62 would be
+changed to "symbol" for similar reasons.
+
+Extra wording would have to be added on p.60 to explain that by
+convention keyword symbols are normally used as non-positional argument
+names, and that all functions built into the Common Lisp language follow
+that convention.
+
+Examples would be useful. On p.64 the following examples might be added:
+
+    ((lambda (a b &key ((:sea c)) d) (list a b c d)) 1 2 :sea 6)
+    => (1 2 6 NIL)
+
+    ((lambda (a b &key ((c c)) d) (list a b c d)) 1 2 'c 6)
+    => (1 2 6 NIL)
+
+Current Practice:
+
+We do not currently know of an implementation that enforces the
+restriction that this proposal seeks to remove.
+
+Some implementations have bugs that prevent NIL from working as a
+keyword argument name, but allow all non-NIL symbols. (One Symbolics
+version that was checked had this bug.)
+
+Adoption Cost:
+
+Some implementors might have to rearrange their error checking slightly,
+but it should be very easy.
+
+Benefits:
+
+This will help with the object-oriented programming standard, among
+other things.
+
+Conversion Cost:
+
+None--no existing programs will stop working.  
+
+Aesthetics:
+
+The restriction of &key to only keyword symbols is arbitrary and
+unnecessary.
+
+There will probably be an argument about whether the restriction is more
+esthetic or less esthetic than the freedom, but in either case the
+aesthetic effect is slight.
+
+In any case, users who do not want to use the extended functionality can
+generally avoid it.
+
+Discussion:
+
+The cleanup committee generally supports this extension. 
+
+Moon was under the impression that this proposal was actually adopted
+around December 1985 (although no formal mechanism for adopting
+proposals existed at that time), but isn't 100% sure.
+
+If Common Lisp truly has a restriction that only keyword symbols can be
+used as keyword names in calls to functions that take keyword arguments,
+it will be more difficult to come up with an object-oriented programming
+standard that fits within Common Lisp.
+
+The cleanup committee considered, but did not adopt, a proposal to
+exclude NIL as a legal indicator. It might catch some errors, but is
+otherwise an odd restriction.
+
+*start*
+07371 00024 USh
+Date: 15 Jun 87 14:15 PDT
+From: Masinter.pa
+to: X3J13@sail.stanford.edu
+Subject: Issue: KEYWORD-ARGUMENT-NAME-PACKAGE (Version 6)
+cc: Masinter
+
+
+
+Issue:        KEYWORD-ARGUMENT-NAME-PACKAGE
+References:   Lambda Expressions (CLtL pp60-64)
+Category:     CLARIFICATION/CHANGE
+Edit history: 20-Apr-87, Version 1 by Moon
+	         29-Apr-87, Version 2 by Pitman
+              11-May-87, Version 3 by Moon
+              29-May-87, Version 4 by Masinter 
+               5-Jun-87, Version 5 by Masinter
+              11-Jun-87, Version 6 by Masinter
+
+Problem Description:
+
+CLtL says that only keyword symbols can be used as non-positional argument names in &key parameter specifiers.
+
+As Common Lisp is currently defined, if someone wants to define a function that accepts named (rather than positional) arguments whose names are symbols in packages other than the KEYWORD package, they cannot use &KEY. Instead, they have to duplicate the &KEY mechanism using &REST, GETF, and (if they want error checking of argument names) DO.  
+
+Some applications (including the draft proposal for the Common Lisp Object System (CLOS)) require this capability. [See Rationale below.]
+
+Proposal (KEYWORD-ARGUMENT-NAME-PACKAGE:ANY)
+
+Remove restrictions on the package of non-positional argument names; allow any symbol. That is: 
+
+If, following an &KEY, a variable appears alone or in a (variable default-value) pair, the behavior specified in CLtL is unchanged: a keyword-symbol with the same print name as the variable is created and is used as the keyword-indicator in function calls.  The only way to get a non-positional-argument-name that is not a keyword symbol is to use the (indicator variable) syntax in the function's lambda list.  The keyword-indicator can be any symbol, not just a keyword.
+
+Test case:
+
+(DEFUN RESULT (&KEY ((SECRET-KEYWORD SECRET) NIL) AMOUNT)
+    (FORMAT NIL "You ~A $~D" (if SECRET "win" "lose") AMOUNT))
+
+(RESULT :AMOUNT 100) => "You lose $100"
+(RESULT :AMOUNT 100 'SECRET-KEYWORD T) => "You win $100"
+
+
+Rationale:
+
+The "rationale" box on p.62 of CLtL is an argument in favor of requiring non-positional argument names to be symbols, and not allowing numbers, but does not speak to the issue of whether or not those symbols should be further restricted to be keywords.
+
+The desire for non-positional arguments whose names are not keyword symbols arises when the set of non-positional arguments accepted by a function is the union of the sets of non-positional arguments accepted by several other functions, rather than being enumerated in a single place.  In this case, it becomes desirable to use packages to prevent accidental name clashes among non-positional argument names of different functions.
+
+One example of a Common Lisp application that requires this capability is the draft proposal for an object-oriented programming standard (CLOS).  It will have generic functions that accept non-positional arguments and pass them on to one or more applicable methods, with each method defining its own set of arguments that it is interested in.  If this proposal is not adopted, either the non-positional argument names will be required to be keywords, which will require the methods to have non-modular knowledge of each other in order to avoid name clashes, or the methods will have to be defined with an ad hoc mechanism that duplicates the essential functionality of &key but removes the restriction.
+
+A second example of a Common Lisp application that requires this capability is private communication channels between functions.  Suppose a public routine MAKE-FOO needs to accept arbitrary keywords from the caller and passes those keywords along to an internal routine using keywords of its own.
+ (IN-PACKAGE 'FOOLAND)
+ (DEFUN MAKE-FOO (&REST KEYWORD-VALUE-PAIRS &KEY &ALLOW-OTHER-KEYS)
+   (APPLY #'MAKE-FOO-INTERNAL 'EXPLICIT T KEYWORD-VALUE-PAIRS))
+
+This could be done without fear that the use of EXPLICIT T would override some keyword in keyword-value-pairs, since the only way that could happen is if someone had done (MAKE-FOO 'FOOLAND::EXPLICIT NIL), or if the user was programming explicitly in the FOOLAND package, either of which is an implicit admission of willingness to violate FOOLAND's modularity.
+
+Documentation Impact:
+
+The following outlines the changes that would have to be made to Common Lisp: the Language if this proposal were adopted, to aid in understanding the impact of the proposal.
+
+The wording which refers to non-positional arguments as being introduced by keyword symbols wuuld change to simply refer to those arguments being introduced by symbols. For example, in the middle of p.60, the sentence:
+   ... each -keyword- must be a keyword symbol, such as :start.
+ would become
+   ... each -keyword- must be a symbol.
+
+The word "keyword" in the first complete sentence on p.62 would be changed to "symbol" for similar reasons.
+
+Extra wording would have to be added on p.60 to explain that by convention keyword symbols are normally used as non-positional argument names, and that all functions built into the Common Lisp language follow that convention.
+
+Examples would be useful. On p.64 the following examples might be added:
+
+    ((lambda (a b &key ((:sea c)) d) (list a b c d)) 1 2 :sea 6)
+    => (1 2 6 NIL)
+
+    ((lambda (a b &key ((c c)) d) (list a b c d)) 1 2 'c 6)
+    => (1 2 6 NIL)
+
+Current Practice:
+
+We do not currently know of an implementation that enforces the restriction that this proposal seeks to remove.
+
+Some implementations have bugs that prevent NIL from working as a keyword argument name, but allow all non-NIL symbols. (One Symbolics version that was checked had this bug.)
+
+Adoption Cost:
+
+Some implementors might have to rearrange their error checking slightly, but it should be very easy.
+
+Benefits:
+
+This will help with the object-oriented programming standard, among other things.
+
+Conversion Cost:
+
+None--no existing programs will stop working.  
+
+Aesthetics:
+
+The restriction of &key to only keyword symbols is arbitrary and unnecessary.
+
+There will probably be an argument about whether the restriction is more esthetic or less esthetic than the freedom, but in either case the aesthetic effect is slight.
+
+In any case, users who do not want to use the extended functionality can generally avoid it.
+
+Discussion:
+
+The cleanup committee generally supports this extension. 
+
+Moon was under the impression that this proposal was actually adopted around December 1985 (although no formal mechanism for adopting proposals existed at that time), but isn't 100% sure.
+
+If Common Lisp truly has a restriction that only keyword symbols can be used as keyword names in calls to functions that take keyword arguments, it will be more difficult to come up with an object-oriented programming standard that fits within Common Lisp.
+
+The cleanup committee considered, but did not adopt, a proposal to exclude NIL as a legal indicator. It might catch some errors, but is otherwise an odd restriction.
+        TITAN           TITAN          
+TIMESROMAN 
+           “                            "                                         X       -      =              Þ             Ÿ             A             "              g       
+       T              2             W       
+       :             e      < !zº*start*
+07371 00024 US 
+Date: 15 Jun 87 14:15 PDT
+From: Masinter.pa
+to: X3J13@sail.stanford.edu
+Subject: Issue: KEYWORD-ARGUMENT-NAME-PACKAGE (Version 6)
+cc: Masinter
+
+
+
+Issue:        KEYWORD-ARGUMENT-NAME-PACKAGE
+References:   Lambda Expressions (CLtL pp60-64)
+Category:     CLARIFICATION/CHANGE
+Edit history: 20-Apr-87, Version 1 by Moon
+	         29-Apr-87, Version 2 by Pitman
+              11-May-87, Version 3 by Moon
+              29-May-87, Version 4 by Masinter 
+               5-Jun-87, Version 5 by Masinter
+              11-Jun-87, Version 6 by Masinter
+
+Problem Description:
+
+CLtL says that only keyword symbols can be used as non-positional argument names in &key parameter specifiers.
+
+As Common Lisp is currently defined, if someone wants to define a function that accepts named (rather than positional) arguments whose names are symbols in packages other than the KEYWORD package, they cannot use &KEY. Instead, they have to duplicate the &KEY mechanism using &REST, GETF, and (if they want error checking of argument names) DO.  
+
+Some applications (including the draft proposal for the Common Lisp Object System (CLOS)) require this capability. [See Rationale below.]
+
+Proposal (KEYWORD-ARGUMENT-NAME-PACKAGE:ANY)
+
+Remove restrictions on the package of non-positional argument names; allow any symbol. That is: 
+
+If, following an &KEY, a variable appears alone or in a (variable default-value) pair, the behavior specified in CLtL is unchanged: a keyword-symbol with the same print name as the variable is created and is used as the keyword-indicator in function calls.  The only way to get a non-positional-argument-name that is not a keyword symbol is to use the (indicator variable) syntax in the function's lambda list.  The keyword-indicator can be any symbol, not just a keyword.
+
+Test case:
+
+(DEFUN RESULT (&KEY ((SECRET-KEYWORD SECRET) NIL) AMOUNT)
+    (FORMAT NIL "You ~A $~D" (if SECRET "win" "lose") AMOUNT))
+
+(RESULT :AMOUNT 100) => "You lose $100"
+(RESULT :AMOUNT 100 'SECRET-KEYWORD T) => "You win $100"
+
+
+Rationale:
+
+The "rationale" box on p.62 of CLtL is an argument in favor of requiring non-positional argument names to be symbols, and not allowing numbers, but does not speak to the issue of whether or not those symbols should be further restricted to be keywords.
+
+The desire for non-positional arguments whose names are not keyword symbols arises when the set of non-positional arguments accepted by a function is the union of the sets of non-positional arguments accepted by several other functions, rather than being enumerated in a single place.  In this case, it becomes desirable to use packages to prevent accidental name clashes among non-positional argument names of different functions.
+
+One example of a Common Lisp application that requires this capability is the draft proposal for an object-oriented programming standard (CLOS).  It will have generic functions that accept non-positional arguments and pass them on to one or more applicable methods, with each method defining its own set of arguments that it is interested in.  If this proposal is not adopted, either the non-positional argument names will be required to be keywords, which will require the methods to have non-modular knowledge of each other in order to avoid name clashes, or the methods will have to be defined with an ad hoc mechanism that duplicates the essential functionality of &key but removes the restriction.
+
+A second example of a Common Lisp application that requires this capability is private communication channels between functions.  Suppose a public routine MAKE-FOO needs to accept arbitrary keywords from the caller and passes those keywords along to an internal routine using keywords of its own.
+ (IN-PACKAGE 'FOOLAND)
+ (DEFUN MAKE-FOO (&REST KEYWORD-VALUE-PAIRS &KEY &ALLOW-OTHER-KEYS)
+   (APPLY #'MAKE-FOO-INTERNAL 'EXPLICIT T KEYWORD-VALUE-PAIRS))
+
+This could be done without fear that the use of EXPLICIT T would override some keyword in keyword-value-pairs, since the only way that could happen is if someone had done (MAKE-FOO 'FOOLAND::EXPLICIT NIL), or if the user was programming explicitly in the FOOLAND package, either of which is an implicit admission of willingness to violate FOOLAND's modularity.
+
+Documentation Impact:
+
+The following outlines the changes that would have to be made to Common Lisp: the Language if this proposal were adopted, to aid in understanding the impact of the proposal.
+
+The wording which refers to non-positional arguments as being introduced by keyword symbols wuuld change to simply refer to those arguments being introduced by symbols. For example, in the middle of p.60, the sentence:
+   ... each -keyword- must be a keyword symbol, such as :start.
+ would become
+   ... each -keyword- must be a symbol.
+
+The word "keyword" in the first complete sentence on p.62 would be changed to "symbol" for similar reasons.
+
+Extra wording would have to be added on p.60 to explain that by convention keyword symbols are normally used as non-positional argument names, and that all functions built into the Common Lisp language follow that convention.
+
+Examples would be useful. On p.64 the following examples might be added:
+
+    ((lambda (a b &key ((:sea c)) d) (list a b c d)) 1 2 :sea 6)
+    => (1 2 6 NIL)
+
+    ((lambda (a b &key ((c c)) d) (list a b c d)) 1 2 'c 6)
+    => (1 2 6 NIL)
+
+Current Practice:
+
+We do not currently know of an implementation that enforces the restriction that this proposal seeks to remove.
+
+Some implementations have bugs that prevent NIL from working as a keyword argument name, but allow all non-NIL symbols. (One Symbolics version that was checked had this bug.)
+
+Adoption Cost:
+
+Some implementors might have to rearrange their error checking slightly, but it should be very easy.
+
+Benefits:
+
+This will help with the object-oriented programming standard, among other things.
+
+Conversion Cost:
+
+None--no existing programs will stop working.  
+
+Aesthetics:
+
+The restriction of &key to only keyword symbols is arbitrary and unnecessary.
+
+There will probably be an argument about whether the restriction is more esthetic or less esthetic than the freedom, but in either case the aesthetic effect is slight.
+
+In any case, users who do not want to use the extended functionality can generally avoid it.
+
+Discussion:
+
+The cleanup committee generally supports this extension. 
+
+Moon was under the impression that this proposal was actually adopted around December 1985 (although no formal mechanism for adopting proposals existed at that time), but isn't 100% sure.
+
+If Common Lisp truly has a restriction that only keyword symbols can be used as keyword names in calls to functions that take keyword arguments, it will be more difficult to come up with an object-oriented programming standard that fits within Common Lisp.
+
+The cleanup committee considered, but did not adopt, a proposal to exclude NIL as a legal indicator. It might catch some errors, but is otherwise an odd restriction.
+        TITAN           TITAN          
+TIMESROMAN 
+           “                            "                                         X       -      =              Þ             Ÿ             A             "              g       
+       T              2             W       
+       :             e      < !zº*start*
+07315 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:Masinter.pa@Xerox.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 15 JUN 87 19:41:11 PDT
+Received: from XEROX.COM by SAIL.STANFORD.EDU with TCP; 15 Jun 87  19:20:03 PDT
+Received: from Cabernet.ms by ArpaGateway.ms ; 15 JUN 87 14:43:28 PDT
+Date: 15 Jun 87 14:15 PDT
+From: Masinter.pa
+to: X3J13@sail.stanford.edu
+Subject: Issue: KEYWORD-ARGUMENT-NAME-PACKAGE (Version 6)
+cc: Masinter.pa
+Message-ID: <870615-144328-103@Xerox>
+
+
+!
+Issue:        KEYWORD-ARGUMENT-NAME-PACKAGE
+References:   Lambda Expressions (CLtL pp60-64)
+Category:     CLARIFICATION/CHANGE
+Edit history: 20-Apr-87, Version 1 by Moon
+	         29-Apr-87, Version 2 by Pitman
+              11-May-87, Version 3 by Moon
+              29-May-87, Version 4 by Masinter 
+               5-Jun-87, Version 5 by Masinter
+              11-Jun-87, Version 6 by Masinter
+
+Problem Description:
+
+CLtL says that only keyword symbols can be used as non-positional
+argument names in &key parameter specifiers.
+
+As Common Lisp is currently defined, if someone wants to define a
+function that accepts named (rather than positional) arguments whose
+names are symbols in packages other than the KEYWORD package, they
+cannot use &KEY. Instead, they have to duplicate the &KEY mechanism
+using &REST, GETF, and (if they want error checking of argument names)
+DO.  
+
+Some applications (including the draft proposal for the Common Lisp
+Object System (CLOS)) require this capability. [See Rationale below.]
+
+Proposal (KEYWORD-ARGUMENT-NAME-PACKAGE:ANY)
+
+Remove restrictions on the package of non-positional argument names;
+allow any symbol. That is: 
+
+If, following an &KEY, a variable appears alone or in a (variable
+default-value) pair, the behavior specified in CLtL is unchanged: a
+keyword-symbol with the same print name as the variable is created and
+is used as the keyword-indicator in function calls.  The only way to get
+a non-positional-argument-name that is not a keyword symbol is to use
+the (indicator variable) syntax in the function's lambda list.  The
+keyword-indicator can be any symbol, not just a keyword.
+
+Test case:
+
+(DEFUN RESULT (&KEY ((SECRET-KEYWORD SECRET) NIL) AMOUNT)
+    (FORMAT NIL "You ~A $~D" (if SECRET "win" "lose") AMOUNT))
+
+(RESULT :AMOUNT 100) => "You lose $100"
+(RESULT :AMOUNT 100 'SECRET-KEYWORD T) => "You win $100"
+
+
+Rationale:
+
+The "rationale" box on p.62 of CLtL is an argument in favor of requiring
+non-positional argument names to be symbols, and not allowing numbers,
+but does not speak to the issue of whether or not those symbols should
+be further restricted to be keywords.
+
+The desire for non-positional arguments whose names are not keyword
+symbols arises when the set of non-positional arguments accepted by a
+function is the union of the sets of non-positional arguments accepted
+by several other functions, rather than being enumerated in a single
+place.  In this case, it becomes desirable to use packages to prevent
+accidental name clashes among non-positional argument names of different
+functions.
+
+One example of a Common Lisp application that requires this capability
+is the draft proposal for an object-oriented programming standard
+(CLOS).  It will have generic functions that accept non-positional
+arguments and pass them on to one or more applicable methods, with each
+method defining its own set of arguments that it is interested in.  If
+this proposal is not adopted, either the non-positional argument names
+will be required to be keywords, which will require the methods to have
+non-modular knowledge of each other in order to avoid name clashes, or
+the methods will have to be defined with an ad hoc mechanism that
+duplicates the essential functionality of &key but removes the
+restriction.
+
+A second example of a Common Lisp application that requires this
+capability is private communication channels between functions.  Suppose
+a public routine MAKE-FOO needs to accept arbitrary keywords from the
+caller and passes those keywords along to an internal routine using
+keywords of its own.
+ (IN-PACKAGE 'FOOLAND)
+ (DEFUN MAKE-FOO (&REST KEYWORD-VALUE-PAIRS &KEY &ALLOW-OTHER-KEYS)
+   (APPLY #'MAKE-FOO-INTERNAL 'EXPLICIT T KEYWORD-VALUE-PAIRS))
+
+This could be done without fear that the use of EXPLICIT T would
+override some keyword in keyword-value-pairs, since the only way that
+could happen is if someone had done (MAKE-FOO 'FOOLAND::EXPLICIT NIL),
+or if the user was programming explicitly in the FOOLAND package, either
+of which is an implicit admission of willingness to violate FOOLAND's
+modularity.
+
+Documentation Impact:
+
+The following outlines the changes that would have to be made to Common
+Lisp: the Language if this proposal were adopted, to aid in
+understanding the impact of the proposal.
+
+The wording which refers to non-positional arguments as being introduced
+by keyword symbols wuuld change to simply refer to those arguments being
+introduced by symbols. For example, in the middle of p.60, the sentence:
+   ... each -keyword- must be a keyword symbol, such as :start.
+ would become
+   ... each -keyword- must be a symbol.
+
+The word "keyword" in the first complete sentence on p.62 would be
+changed to "symbol" for similar reasons.
+
+Extra wording would have to be added on p.60 to explain that by
+convention keyword symbols are normally used as non-positional argument
+names, and that all functions built into the Common Lisp language follow
+that convention.
+
+Examples would be useful. On p.64 the following examples might be added:
+
+    ((lambda (a b &key ((:sea c)) d) (list a b c d)) 1 2 :sea 6)
+    => (1 2 6 NIL)
+
+    ((lambda (a b &key ((c c)) d) (list a b c d)) 1 2 'c 6)
+    => (1 2 6 NIL)
+
+Current Practice:
+
+We do not currently know of an implementation that enforces the
+restriction that this proposal seeks to remove.
+
+Some implementations have bugs that prevent NIL from working as a
+keyword argument name, but allow all non-NIL symbols. (One Symbolics
+version that was checked had this bug.)
+
+Adoption Cost:
+
+Some implementors might have to rearrange their error checking slightly,
+but it should be very easy.
+
+Benefits:
+
+This will help with the object-oriented programming standard, among
+other things.
+
+Conversion Cost:
+
+None--no existing programs will stop working.  
+
+Aesthetics:
+
+The restriction of &key to only keyword symbols is arbitrary and
+unnecessary.
+
+There will probably be an argument about whether the restriction is more
+esthetic or less esthetic than the freedom, but in either case the
+aesthetic effect is slight.
+
+In any case, users who do not want to use the extended functionality can
+generally avoid it.
+
+Discussion:
+
+The cleanup committee generally supports this extension. 
+
+Moon was under the impression that this proposal was actually adopted
+around December 1985 (although no formal mechanism for adopting
+proposals existed at that time), but isn't 100% sure.
+
+If Common Lisp truly has a restriction that only keyword symbols can be
+used as keyword names in calls to functions that take keyword arguments,
+it will be more difficult to come up with an object-oriented programming
+standard that fits within Common Lisp.
+
+The cleanup committee considered, but did not adopt, a proposal to
+exclude NIL as a legal indicator. It might catch some errors, but is
+otherwise an odd restriction.
+
+*start*
+01503 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 30 JUL 87 14:50:11 PDT
+Received: from SCRC-STONY-BROOK.ARPA by SAIL.STANFORD.EDU with TCP; 30 Jul 87  11:28:53 PDT
+Received: from EUPHRATES.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 202848; Thu 30-Jul-87 14:29:55 EDT
+Date: Thu, 30 Jul 87 14:29 EDT
+From: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: Issue KEYWORD-ARGUMENT-NAME-PACKAGE
+To: CL-CLEANUP@SAIL.STANFORD.EDU
+In-Reply-To: <870713-141108-2238@Xerox>
+Message-ID: <870730142947.9.MOON@EUPHRATES.SCRC.Symbolics.COM>
+
+    Date: 13 Jul 87 14:05 PDT
+    From: Masinter.pa@Xerox.COM
+
+    * KEYWORD-ARGUMENT-NAME-PACKAGE (Version 6/11 Jun 87)
+     ( &KEY arguments not in keyword package?)
+     Version 6 conditionally passed X3J13/Jun87.
+     Examine wording and avoid "keyword argument" phrasing.
+      Introduce phrase "a key argument" to denote arguments
+      defined with &KEY ??
+
+In some CLOS stuff I'm writing today, I'm using the terms "positional
+argument" and "named argument".  Positional arguments are received by
+required and optional parameters, while named arguments are received
+by &key parameters.  &rest parameters can receive either kind of argument.
+
+I don't have time to revise the proposal today, but perhaps I can do
+so along these lines later, if people agree that this is a good
+terminology.
+
+*start*
+00894 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:FAHLMAN@C.CS.CMU.EDU>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 30 JUL 87 14:50:19 PDT
+Received: from C.CS.CMU.EDU by SAIL.STANFORD.EDU with TCP; 30 Jul 87  11:44:56 PDT
+Received: ID <FAHLMAN@C.CS.CMU.EDU>; Thu 30 Jul 87 14:44:49-EDT
+Date: Thu, 30 Jul 87 14:44 EDT
+Message-ID: <FAHLMAN.12322545615.BABYL@C.CS.CMU.EDU>
+Sender: FAHLMAN@C.CS.CMU.EDU
+From: "Scott E. Fahlman" <Fahlman@C.CS.CMU.EDU>
+To: "David A. Moon" <Moon@SCRC-STONY-BROOK.ARPA>
+Cc: CL-CLEANUP@SAIL.STANFORD.EDU
+Subject: Issue KEYWORD-ARGUMENT-NAME-PACKAGE
+In-reply-to: Msg of 30 Jul 1987  14:29-EDT from David A. Moon <Moon at STONY-BROOK.SCRC.Symbolics.COM>
+
+
+Seems like a good terminology to me, though you'll have to define your
+terms at the start of the proposal so that nobody has to guess exactly
+what you mean.
+
+-- Scott
+
+*start*
+01415 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:Masinter.pa@Xerox.COM>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 30 JUL 87 17:18:18 PDT
+Received: from XEROX.COM by SAIL.STANFORD.EDU with TCP; 30 Jul 87  17:16:53 PDT
+Received: from Cabernet.ms by ArpaGateway.ms ; 30 JUL 87 17:16:56 PDT
+Date: 30 Jul 87 17:15 PDT
+From: Masinter.pa
+Subject: Re: Issue KEYWORD-ARGUMENT-NAME-PACKAGE
+In-reply-to: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>'s
+ message of Thu, 30 Jul 87 14:29 EDT
+To: Moon@STONY-BROOK.SCRC.Symbolics.COM
+cc: CL-CLEANUP@SAIL.STANFORD.EDU
+Message-ID: <870730-171656-1501@Xerox>
+
+ 
+
+While I think that "positional" and "named" are good ways of talking
+about the different kinds of arguments, and that "key arguments" is
+awkward, I don't think it is necessary for you to spend your time
+rewriting the  proposal KEYWORD-ARGUMENT-NAME-PACKAGE, which doesn't
+make any recommendations about terminology in the standard; rather, it
+just uses it locally.
+
+I would like to see a set of "terminology" recommendations for the spec
+gathered and passed by X3J13; there are a number of other things which
+have passed through here that would belong in it. I don't think they fit
+into the standard form for language changes (since the considerations
+are different, e.g., "current practice" might refer to existing
+textbooks and programming language literature).
+
+*start*
+07665 00024 US 
+Date: 23 Oct 87 17:29 PDT
+From: Masinter.pa
+to: cl-cleanup@sail.stanford.edu
+Subject: Issue: KEYWORD-ARGUMENT-NAME-PACKAGE (Version 7)
+cc: Masinter
+
+
+I attempted to make the change from "keyword" to Named-argument in this version.
+
+This issue was conditionally passed at the last X3J13 pending only the terminology change.
+
+
+
+Issue:        KEYWORD-ARGUMENT-NAME-PACKAGE
+References:   Lambda Expressions (CLtL pp60-64)
+Category:     CLARIFICATION/CHANGE
+Edit history: 20-Apr-87, Version 1 by Moon
+	         29-Apr-87, Version 2 by Pitman
+              11-May-87, Version 3 by Moon
+              29-May-87, Version 4 by Masinter 
+               5-Jun-87, Version 5 by Masinter
+              11-Jun-87, Version 6 by Masinter
+
+Problem Description:
+
+CLtL says that only keyword symbols can be used as argument names in &key parameter specifiers.
+
+As Common Lisp is currently defined, if someone wants to define a function that accepts named (rather than positional) arguments whose names are symbols in packages other than the KEYWORD package, they cannot use &KEY. Instead, they have to duplicate the &KEY mechanism using &REST, GETF, and (if they want error checking of argument names) DO.  
+
+Some applications (including the draft proposal for the Common Lisp Object System (CLOS)) require this capability. [See Rationale below.]
+
+Proposal (KEYWORD-ARGUMENT-NAME-PACKAGE:ANY)
+
+Remove restrictions on the package of the names of named argument; allow any symbol. That is: 
+
+If, following an &KEY, a variable appears alone or in a (variable default-value) pair, the behavior specified in CLtL is unchanged: a keyword-symbol with the same print name as the variable is created and is used as the keyword-indicator in function calls.  The only way to get a named argument that is not a keyword symbol is to use the (indicator variable) syntax in the function's lambda list.  The keyword-indicator can be any symbol, not just a keyword.
+
+Test case:
+
+(DEFUN RESULT (&KEY ((SECRET-KEYWORD SECRET) NIL) AMOUNT)
+    (FORMAT NIL "You ~A $~D" (if SECRET "win" "lose") AMOUNT))
+
+(RESULT :AMOUNT 100) => "You lose $100"
+(RESULT :AMOUNT 100 'SECRET-KEYWORD T) => "You win $100"
+
+
+Rationale:
+
+The "rationale" box on p.62 of CLtL is an argument in favor of requiring named arguments to be symbols, and disallowing numbers, but does not speak to the issue of whether or not those symbols should be further restricted to be keywords.
+
+The desire for non-keyword named arguments arises when the set of named arguments accepted by a function is the union of the sets of named arguments accepted by several other functions, rather than being enumerated in a single place.  In this case, it becomes desirable to use packages to prevent accidental name clashes among named argument of different functions.
+
+One example of a Common Lisp application that requires this capability is the draft proposal for an object-oriented programming standard (CLOS).  It will have generic functions that accept named arguments and pass them on to one or more applicable methods, with each method defining its own set of arguments that it is interested in.  If this proposal is not adopted, either the named arguments will be required to be keywords, which will require the methods to have non-modular knowledge of each other in order to avoid name clashes, or the methods will have to be defined with an ad hoc mechanism that duplicates the essential functionality of &key but removes the restriction.
+
+A second example of a Common Lisp application that requires this capability is private communication channels between functions.  Suppose a public routine MAKE-FOO needs to accept arbitrary named arguments from the caller and passes those arguments along to an internal routine using named arguments of its own.
+
+ (IN-PACKAGE 'FOOLAND)
+ (DEFUN MAKE-FOO (&REST NAME-VALUE-PAIRS &KEY &ALLOW-OTHER-KEYS)
+   (APPLY #'MAKE-FOO-INTERNAL 'EXPLICIT T NAME-VALUE-PAIRS))
+
+This could be done without fear that the use of EXPLICIT T would override some named argument in NAME-VALUE-PAIRS, since the only way that could happen is if someone had done (MAKE-FOO 'FOOLAND::EXPLICIT NIL), or if the user was programming explicitly in the FOOLAND package, either of which is an implicit admission of willingness to violate FOOLAND's modularity.
+
+Documentation Impact:
+
+Some careful rewording of the existing language in CLtL is necessary in the standard to avoid confusion between keyword, indicating a symbol in the KEYWORD package, and named arguments. It is likely that this is best served by changing those instances of "keyword" to "named argument" when the specification is discussing the indicator which introduces an actual parameter in a call to a function defined with &KEY.
+
+The wording which refers to named arguments as being introduced by keyword symbols would change to simply refer to those arguments being introduced by symbols. For example, in the middle of p.60, the sentence:
+   ... each -keyword- must be a keyword symbol, such as :start.
+ would become
+   ... each named argument must be a symbol.
+
+The word "keyword" in the first complete sentence on p.62 would be changed to "symbol" for similar reasons.
+
+Extra wording would have to be added on p.60 to explain that by convention keyword symbols are normally used the names for named arguments, and that all functions built into the Common Lisp language follow that convention.
+
+Examples would be useful. On p.64 the following examples might be added:
+
+    ((lambda (a b &key ((:sea c)) d) (list a b c d)) 1 2 :sea 6)
+    => (1 2 6 NIL)
+
+    ((lambda (a b &key ((c c)) d) (list a b c d)) 1 2 'c 6)
+    => (1 2 6 NIL)
+
+Current Practice:
+
+We do not currently know of an implementation that enforces the restriction that this proposal seeks to remove.
+
+Some implementations have bugs that prevent NIL from working as a keyword argument name, but allow all non-NIL symbols. (One Symbolics version that was checked had this bug.)
+
+Adoption Cost:
+
+Some implementors might have to rearrange their error checking slightly, but it should be very easy.
+
+Benefits:
+
+This will help with the object-oriented programming standard, among other things.
+
+Conversion Cost:
+
+None--no existing programs will stop working.  
+
+Aesthetics:
+
+The restriction of &key to only keyword symbols is arbitrary and unnecessary.
+
+There will probably be an argument about whether the restriction is more esthetic or less esthetic than the freedom, but in either case the aesthetic effect is slight.
+
+In any case, users who do not want to use the extended functionality can generally avoid it.
+
+Discussion:
+
+The cleanup committee generally supports this extension. 
+
+Moon was under the impression that this proposal was actually adopted around December 1985 (although no formal mechanism for adopting proposals existed at that time), but isn't 100% sure.
+
+If Common Lisp truly has a restriction that only keyword symbols can be used as keyword names in calls to functions that take keyword arguments, it will be more difficult to come up with an object-oriented programming standard that fits within Common Lisp.
+
+The cleanup committee considered, but did not adopt, a proposal to exclude NIL as a legal indicator. It might catch some errors, but is otherwise an odd restriction.
+        TITAN           TITAN          
+TIMESROMAN 
+          G                            "                                         I       -      -              Þ             E             ,             "              g       
+       T              2             W       
+       :             e      b !zº*start*
+07646 00024 US 
+Return-Path: <@SAIL.Stanford.EDU:Masinter.pa@Xerox.COM>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 23 OCT 87 17:31:49 PDT
+Received: from XEROX.COM by SAIL.STANFORD.EDU with TCP; 23 Oct 87  17:28:37 PDT
+Received: from Cabernet.ms by ArpaGateway.ms ; 23 OCT 87 17:29:18 PDT
+Date: 23 Oct 87 17:29 PDT
+From: Masinter.pa
+to: cl-cleanup@sail.stanford.edu
+Subject: Issue: KEYWORD-ARGUMENT-NAME-PACKAGE (Version 7)
+cc: Masinter.pa
+Message-ID: <871023-172918-1711@Xerox>
+
+
+I attempted to make the change from "keyword" to Named-argument in this
+version.
+
+This issue was conditionally passed at the last X3J13 pending only the
+terminology change.
+
+
+!
+Issue:        KEYWORD-ARGUMENT-NAME-PACKAGE
+References:   Lambda Expressions (CLtL pp60-64)
+Category:     CLARIFICATION/CHANGE
+Edit history: 20-Apr-87, Version 1 by Moon
+	         29-Apr-87, Version 2 by Pitman
+              11-May-87, Version 3 by Moon
+              29-May-87, Version 4 by Masinter 
+               5-Jun-87, Version 5 by Masinter
+              11-Jun-87, Version 6 by Masinter
+
+Problem Description:
+
+CLtL says that only keyword symbols can be used as argument names in
+&key parameter specifiers.
+
+As Common Lisp is currently defined, if someone wants to define a
+function that accepts named (rather than positional) arguments whose
+names are symbols in packages other than the KEYWORD package, they
+cannot use &KEY. Instead, they have to duplicate the &KEY mechanism
+using &REST, GETF, and (if they want error checking of argument names)
+DO.  
+
+Some applications (including the draft proposal for the Common Lisp
+Object System (CLOS)) require this capability. [See Rationale below.]
+
+Proposal (KEYWORD-ARGUMENT-NAME-PACKAGE:ANY)
+
+Remove restrictions on the package of the names of named argument; allow
+any symbol. That is: 
+
+If, following an &KEY, a variable appears alone or in a (variable
+default-value) pair, the behavior specified in CLtL is unchanged: a
+keyword-symbol with the same print name as the variable is created and
+is used as the keyword-indicator in function calls.  The only way to get
+a named argument that is not a keyword symbol is to use the (indicator
+variable) syntax in the function's lambda list.  The keyword-indicator
+can be any symbol, not just a keyword.
+
+Test case:
+
+(DEFUN RESULT (&KEY ((SECRET-KEYWORD SECRET) NIL) AMOUNT)
+    (FORMAT NIL "You ~A $~D" (if SECRET "win" "lose") AMOUNT))
+
+(RESULT :AMOUNT 100) => "You lose $100"
+(RESULT :AMOUNT 100 'SECRET-KEYWORD T) => "You win $100"
+
+
+Rationale:
+
+The "rationale" box on p.62 of CLtL is an argument in favor of requiring
+named arguments to be symbols, and disallowing numbers, but does not
+speak to the issue of whether or not those symbols should be further
+restricted to be keywords.
+
+The desire for non-keyword named arguments arises when the set of named
+arguments accepted by a function is the union of the sets of named
+arguments accepted by several other functions, rather than being
+enumerated in a single place.  In this case, it becomes desirable to use
+packages to prevent accidental name clashes among named argument of
+different functions.
+
+One example of a Common Lisp application that requires this capability
+is the draft proposal for an object-oriented programming standard
+(CLOS).  It will have generic functions that accept named arguments and
+pass them on to one or more applicable methods, with each method
+defining its own set of arguments that it is interested in.  If this
+proposal is not adopted, either the named arguments will be required to
+be keywords, which will require the methods to have non-modular
+knowledge of each other in order to avoid name clashes, or the methods
+will have to be defined with an ad hoc mechanism that duplicates the
+essential functionality of &key but removes the restriction.
+
+A second example of a Common Lisp application that requires this
+capability is private communication channels between functions.  Suppose
+a public routine MAKE-FOO needs to accept arbitrary named arguments from
+the caller and passes those arguments along to an internal routine using
+named arguments of its own.
+
+ (IN-PACKAGE 'FOOLAND)
+ (DEFUN MAKE-FOO (&REST NAME-VALUE-PAIRS &KEY &ALLOW-OTHER-KEYS)
+   (APPLY #'MAKE-FOO-INTERNAL 'EXPLICIT T NAME-VALUE-PAIRS))
+
+This could be done without fear that the use of EXPLICIT T would
+override some named argument in NAME-VALUE-PAIRS, since the only way
+that could happen is if someone had done (MAKE-FOO 'FOOLAND::EXPLICIT
+NIL), or if the user was programming explicitly in the FOOLAND package,
+either of which is an implicit admission of willingness to violate
+FOOLAND's modularity.
+
+Documentation Impact:
+
+Some careful rewording of the existing language in CLtL is necessary in
+the standard to avoid confusion between keyword, indicating a symbol in
+the KEYWORD package, and named arguments. It is likely that this is best
+served by changing those instances of "keyword" to "named argument" when
+the specification is discussing the indicator which introduces an actual
+parameter in a call to a function defined with &KEY.
+
+The wording which refers to named arguments as being introduced by
+keyword symbols would change to simply refer to those arguments being
+introduced by symbols. For example, in the middle of p.60, the sentence:
+   ... each -keyword- must be a keyword symbol, such as :start.
+ would become
+   ... each named argument must be a symbol.
+
+The word "keyword" in the first complete sentence on p.62 would be
+changed to "symbol" for similar reasons.
+
+Extra wording would have to be added on p.60 to explain that by
+convention keyword symbols are normally used the names for named
+arguments, and that all functions built into the Common Lisp language
+follow that convention.
+
+Examples would be useful. On p.64 the following examples might be added:
+
+    ((lambda (a b &key ((:sea c)) d) (list a b c d)) 1 2 :sea 6)
+    => (1 2 6 NIL)
+
+    ((lambda (a b &key ((c c)) d) (list a b c d)) 1 2 'c 6)
+    => (1 2 6 NIL)
+
+Current Practice:
+
+We do not currently know of an implementation that enforces the
+restriction that this proposal seeks to remove.
+
+Some implementations have bugs that prevent NIL from working as a
+keyword argument name, but allow all non-NIL symbols. (One Symbolics
+version that was checked had this bug.)
+
+Adoption Cost:
+
+Some implementors might have to rearrange their error checking slightly,
+but it should be very easy.
+
+Benefits:
+
+This will help with the object-oriented programming standard, among
+other things.
+
+Conversion Cost:
+
+None--no existing programs will stop working.  
+
+Aesthetics:
+
+The restriction of &key to only keyword symbols is arbitrary and
+unnecessary.
+
+There will probably be an argument about whether the restriction is more
+esthetic or less esthetic than the freedom, but in either case the
+aesthetic effect is slight.
+
+In any case, users who do not want to use the extended functionality can
+generally avoid it.
+
+Discussion:
+
+The cleanup committee generally supports this extension. 
+
+Moon was under the impression that this proposal was actually adopted
+around December 1985 (although no formal mechanism for adopting
+proposals existed at that time), but isn't 100% sure.
+
+If Common Lisp truly has a restriction that only keyword symbols can be
+used as keyword names in calls to functions that take keyword arguments,
+it will be more difficult to come up with an object-oriented programming
+standard that fits within Common Lisp.
+
+The cleanup committee considered, but did not adopt, a proposal to
+exclude NIL as a legal indicator. It might catch some errors, but is
+otherwise an odd restriction.
+
+*start*
+01218 00024 US 
+Return-Path: <@SAIL.Stanford.EDU:Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 23 OCT 87 17:50:38 PDT
+Received: from SCRC-STONY-BROOK.ARPA by SAIL.STANFORD.EDU with TCP; 23 Oct 87  17:48:16 PDT
+Received: from EUPHRATES.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 262518; Fri 23-Oct-87 20:48:44 EDT
+Date: Fri, 23 Oct 87 20:48 EDT
+From: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: Issue: KEYWORD-ARGUMENT-NAME-PACKAGE (Version 7)
+To: Masinter.pa
+cc: cl-cleanup@sail.stanford.edu
+In-Reply-To: <871023-172918-1711@Xerox>
+Message-ID: <19871024004826.0.MOON@EUPHRATES.SCRC.Symbolics.COM>
+Line-fold: No
+
+    Date: 23 Oct 87 17:29 PDT
+    From: Masinter.pa@Xerox.COM
+
+    I attempted to make the change from "keyword" to Named-argument in this
+    version.
+
+I no longer believe in that terminology, having tried it for a while in the
+CLOS world.  I think keeping the CLtL terminology of "keyword arguments"
+and "keyword names", with a disclaimer that keyword symbols, lambda-list
+keywords, and keyword arguments are three different things, works out better
+on the whole.
+
+*start*
+09019 00024 USf
+Return-Path: <CL-Cleanup-mailer@SAIL.Stanford.EDU>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 08 NOV 87 13:09:07 PST
+Received: from SCRC-STONY-BROOK.ARPA by SAIL.STANFORD.EDU with TCP; 8 Nov 87  13:06:54 PST
+Received: from EUPHRATES.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 274804; Sun 8-Nov-87 16:06:42 EST
+Date: Sun, 8 Nov 87 16:06 EST
+From: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: Issue: KEYWORD-ARGUMENT-NAME-PACKAGE (Version 8)
+To: cl-cleanup@SAIL.STANFORD.EDU
+In-Reply-To: <871023-172918-1711@Xerox>
+Message-ID: <19871108210657.7.MOON@EUPHRATES.SCRC.Symbolics.COM>
+
+    Date: 23 Oct 87 17:29 PDT
+    From: Masinter.pa@Xerox.COM
+    
+    I attempted to make the change from "keyword" to Named-argument in this
+    version.
+    
+    This issue was conditionally passed at the last X3J13 pending only the
+    terminology change.
+
+Neither version 6 nor version 7 uses the terminology that CLtL uses.
+Since I was the one who prompted attempts to change the terminology, and
+I've now repudiated that idea (it seems to create more confusion than
+it solves), I offer this revision, to use precisely the terminology
+that CLtL now uses in the referenced pages.  I also fixed some typos.
+
+!
+Issue:        KEYWORD-ARGUMENT-NAME-PACKAGE
+References:   Lambda Expressions (CLtL pp60-64)
+Category:     CLARIFICATION/CHANGE
+Edit history: 20-Apr-87, Version 1 by Moon
+              29-Apr-87, Version 2 by Pitman
+              11-May-87, Version 3 by Moon
+              29-May-87, Version 4 by Masinter 
+               5-Jun-87, Version 5 by Masinter
+              11-Jun-87, Version 6 by Masinter
+              23-Oct-87, Version 7 by Masinter
+               8-Nov-87, Version 8 by Moon
+
+Problem Description:
+
+CLtL says that only keyword symbols can be used as keyword-names in
+&key parameter specifiers (page 60, "each -keyword- must be a
+keyword symbol, such as :start.")
+
+As Common Lisp is currently defined, if someone wants to define a
+function that accepts keyword (rather than positional) arguments whose
+keyword-names are symbols in packages other than the KEYWORD package,
+they cannot use &KEY. Instead, they have to duplicate the &KEY mechanism
+using &REST, GETF, and (if they want error checking of argument names)
+DO.
+
+Some applications (including the draft proposal for the Common Lisp
+Object System (CLOS)) require this capability. [See Rationale below.]
+
+Proposal (KEYWORD-ARGUMENT-NAME-PACKAGE:ANY)
+
+Remove restrictions on the package of the keyword-names of keyword
+parameters; allow any symbol. That is:
+
+If, following an &KEY, a variable appears alone or in a (variable
+default-value) pair, the behavior specified in CLtL is unchanged: a
+keyword symbol with the same print name as the variable is created and
+is used as the keyword-name when matching arguments to parameter
+specifiers.  A keyword-name that is not a keyword symbol can be
+specified with the ((-keyword- -var-)) syntax of parameter specifier.
+The -keyword- can be any symbol, not just a keyword.
+
+A future specification of Common Lisp could be written with revised
+terminology that did not use the term "keyword" to refer to three
+different things: symbols in the KEYWORD package, symbols beginning
+with & that have special meaning in lambda-lists, and keyword-names
+used to match function arguments to keyword parameter specifiers.
+However, this proposal does not propose to change any terminology.
+
+Test case:
+
+(DEFUN RESULT (&KEY ((SECRET-KEYWORD SECRET) NIL) AMOUNT)
+    (FORMAT NIL "You ~A $~D" (if SECRET "win" "lose") AMOUNT))
+
+(RESULT :AMOUNT 100) => "You lose $100"
+(RESULT :AMOUNT 100 'SECRET-KEYWORD T) => "You win $100"
+
+
+Rationale:
+
+The "rationale" box on p.62 of CLtL is an argument in favor of requiring
+keyword-names to be symbols, and disallowing numbers, but does not
+speak to the issue of whether or not those symbols should be further
+restricted to be in the KEYWORD package.
+
+The desire for keyword parameters whose keyword-names are not in the
+KEYWORD package arises when the set of keyword-names accepted by a
+function is the union of the sets of keyword-names accepted by several
+other functions, rather than being enumerated in a single place.  In
+this case, it becomes desirable to use packages to prevent accidental
+name clashes among keyword-names of different functions.
+
+One example of a Common Lisp application that requires this capability
+is the draft proposal for an object-oriented programming standard
+(CLOS).  It will have generic functions that accept arguments and pass
+them on to one or more applicable methods, with each method defining its
+own set of keyword-names that it is interested in.  If this proposal is
+not adopted, either the keyword-names will be required to be keywords,
+which will require the methods to have non-modular knowledge of each
+other in order to avoid name clashes, or the methods will have to be
+defined with an ad hoc mechanism that duplicates the essential
+functionality of &key but removes the restriction.
+
+A second example of a Common Lisp application that requires this
+capability is private communication channels between functions.  Suppose
+a public routine MAKE-FOO needs to accept arbitrary arguments from the
+caller and passes those arguments along to an internal routine with
+additional arguments of its own, and suppose that keyword parameters
+are used to receive these arguments.
+
+ (IN-PACKAGE 'FOOLAND)
+ (DEFUN MAKE-FOO (&REST NAME-VALUE-PAIRS &KEY &ALLOW-OTHER-KEYS)
+   (APPLY #'MAKE-FOO-INTERNAL 'EXPLICIT T NAME-VALUE-PAIRS))
+
+This could be done without fear that the use of EXPLICIT T would
+override some argument in NAME-VALUE-PAIRS, since the only way
+that could happen is if someone had done (MAKE-FOO 'FOOLAND::EXPLICIT
+NIL), or if the user was programming explicitly in the FOOLAND package,
+either of which is an implicit admission of willingness to violate
+FOOLAND's modularity.
+
+Documentation Impact:
+
+Some careful rewording of the existing language in CLtL is necessary in
+the standard to avoid confusion between "keyword", indicating a symbol
+in the KEYWORD package, and "keyword name", indicating a syntactic part
+of a keyword parameter specifier.  It is likely that this is best served
+by changing those instances of "keyword" to "named argument" when the
+specification is discussing the indicator which introduces an actual
+parameter in a call to a function defined with &KEY.
+
+The wording which refers to named arguments as being introduced by
+keyword symbols would change to simply refer to those arguments being
+introduced by symbols. For example, in the middle of p.60, the sentence:
+   ... each -keyword- must be a keyword symbol, such as :start.
+ would become
+   ... each named argument name must be a symbol.
+
+The word "keyword" in the first complete sentence on p.62 would be
+changed to "symbol" for similar reasons.
+
+Extra wording would have to be added on p.60 to explain that by
+convention keyword symbols are normally used as the names for named
+arguments, and that all functions built into the Common Lisp language
+follow that convention.
+
+Examples would be useful. On p.64 the following examples might be added:
+
+    ((lambda (a b &key ((:sea c)) d) (list a b c d)) 1 2 :sea 6)
+    => (1 2 6 NIL)
+
+    ((lambda (a b &key ((c c)) d) (list a b c d)) 1 2 'c 6)
+    => (1 2 6 NIL)
+
+Current Practice:
+
+We do not currently know of an implementation that enforces the
+restriction that this proposal seeks to remove.
+
+Some implementations have bugs that prevent NIL from working as a
+keyword argument name, but allow all non-NIL symbols. (One Symbolics
+version that was checked had this bug.)
+
+Adoption Cost:
+
+Some implementors might have to rearrange their error checking slightly,
+but it should be very easy.
+
+Benefits:
+
+This will help with the object-oriented programming standard, among
+other things.
+
+Conversion Cost:
+
+None--no existing programs will stop working.  
+
+Aesthetics:
+
+The restriction of &key to only keyword symbols is arbitrary and
+unnecessary.
+
+There will probably be an argument about whether the restriction is more
+esthetic or less esthetic than the freedom, but in either case the
+aesthetic effect is slight.
+
+In any case, users who do not want to use the extended functionality can
+generally avoid it.
+
+Discussion:
+
+The cleanup committee generally supports this extension. 
+
+Moon was under the impression that this proposal was actually adopted
+around December 1985 (although no formal mechanism for adopting
+proposals existed at that time), but may be mistaken.
+
+If Common Lisp truly has a restriction that only keyword symbols can be
+used as keyword names in calls to functions that take keyword arguments,
+it will be more difficult to come up with an object-oriented programming
+standard that fits within Common Lisp.
+
+The cleanup committee considered, but did not adopt, a proposal to
+exclude NIL as a legal indicator. It might catch some errors, but is
+otherwise an odd restriction.
+
+
+*start*
+01465 00024 US 
+Return-Path: <CL-Cleanup-mailer@SAIL.Stanford.EDU>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 09 NOV 87 17:22:42 PST
+Received: from SCRC-STONY-BROOK.ARPA by SAIL.STANFORD.EDU with TCP; 9 Nov 87  17:20:31 PST
+Received: from RIO-DE-JANEIRO.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 275899; Mon 9-Nov-87 20:21:19 EST
+Date: Mon, 9 Nov 87 20:21 EST
+From: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: Issue: KEYWORD-ARGUMENT-NAME-PACKAGE (Version 8)
+To: Moon@STONY-BROOK.SCRC.Symbolics.COM
+cc: CL-Cleanup@SAIL.Stanford.EDU, KMP@STONY-BROOK.SCRC.Symbolics.COM
+In-Reply-To: <19871108210657.7.MOON@EUPHRATES.SCRC.Symbolics.COM>
+Message-ID: <871109202108.4.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+
+I support KEYWORD-ARGUMENT-NAME-PACKAGE:ANY as expressed in
+version 8.
+
+I do have the following (non-preemptive) comments about things
+that I'd like to see fixed, but I wouldn't hold up the proposal
+over:
+
+ * In KEYWORD-ARGUMENT-NAME-PACKAGE (Version 8), I would change:
+   ((-keyword- -var-)) to ((-keyword- -var-) ...)
+   to make it clear that a default value is not being omitted.
+   Better safe than sorry.
+
+ * The spelling of "aesthetic" needs to be regularlized. Sometimes
+   you omit the leading "a", which I know is your preference, but
+   sometimes you let my spelling slip through. Genera's spell
+   program says it has a leading "a", by the way.
+
+*start*
+01706 00024 US 
+Return-Path: <CL-Cleanup-mailer@SAIL.Stanford.EDU>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 09 NOV 87 19:05:17 PST
+Received: from SCRC-RIVERSIDE.ARPA by SAIL.STANFORD.EDU with TCP; 9 Nov 87  19:02:51 PST
+Received: from EUPHRATES.SCRC.Symbolics.COM by Riverside.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 186648; Mon 9-Nov-87 22:03:28 EST
+Date: Mon, 9 Nov 87 22:03 EST
+From: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: Issue: KEYWORD-ARGUMENT-NAME-PACKAGE (Version 8)
+To: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+cc: CL-Cleanup@SAIL.STANFORD.EDU
+In-Reply-To: <871109202108.4.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+Message-ID: <19871110030337.0.MOON@EUPHRATES.SCRC.Symbolics.COM>
+
+    Date: Mon, 9 Nov 87 20:21 EST
+    From: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+
+    I support KEYWORD-ARGUMENT-NAME-PACKAGE:ANY as expressed in
+    version 8.
+
+    I do have the following (non-preemptive) comments about things
+    that I'd like to see fixed, but I wouldn't hold up the proposal
+    over:
+
+     * In KEYWORD-ARGUMENT-NAME-PACKAGE (Version 8), I would change:
+       ((-keyword- -var-)) to ((-keyword- -var-) ...)
+       to make it clear that a default value is not being omitted.
+       Better safe than sorry.
+
+Good point.
+
+     * The spelling of "aesthetic" needs to be regularlized. Sometimes
+       you omit the leading "a", which I know is your preference, but
+       sometimes you let my spelling slip through. Genera's spell
+       program says it has a leading "a", by the way.
+
+I doubt that any occurrences of that word came from me.  Was
+"your preference" referring to me or to Larry?
+
+*start*
+08204 00024 US 
+Date: 14 Nov 87 18:13 PST
+From: Masinter.pa
+to: masinter
+Subject: Issue: KEYWORD-ARGUMENT-NAME-PACKAGE (Version 8) reformatted
+
+Issue:        KEYWORD-ARGUMENT-NAME-PACKAGE
+References:   Lambda Expressions (CLtL pp60-64)
+Category:     CLARIFICATION/CHANGE
+Edit history: 20-Apr-87, Version 1 by Moon
+              29-Apr-87, Version 2 by Pitman
+              11-May-87, Version 3 by Moon
+              29-May-87, Version 4 by Masinter 
+               5-Jun-87, Version 5 by Masinter
+              11-Jun-87, Version 6 by Masinter
+              23-Oct-87, Version 7 by Masinter
+               8-Nov-87, Version 8 by Moon
+
+Problem Description:
+
+CLtL says that only keyword symbols can be used as keyword-names in
+&key parameter specifiers (page 60, "each -keyword- must be a
+keyword symbol, such as :start.")
+
+As Common Lisp is currently defined, if someone wants to define a
+function that accepts keyword (rather than positional) arguments whose
+keyword-names are symbols in packages other than the KEYWORD package,
+they cannot use &KEY. Instead, they have to duplicate the &KEY mechanism
+using &REST, GETF, and (if they want error checking of argument names)
+DO.
+
+Some applications (including the draft proposal for the Common Lisp
+Object System (CLOS)) require this capability. [See Rationale below.]
+
+Proposal (KEYWORD-ARGUMENT-NAME-PACKAGE:ANY)
+
+Remove restrictions on the package of the keyword-names of keyword
+parameters; allow any symbol. That is:
+
+If, following an &KEY, a variable appears alone or in a (variable
+default-value) pair, the behavior specified in CLtL is unchanged: a
+keyword symbol with the same print name as the variable is created and
+is used as the keyword-name when matching arguments to parameter
+specifiers.  A keyword-name that is not a keyword symbol can be
+specified with the ((-keyword- -var-) ...) syntax of parameter
+specifier. The -keyword- can be any symbol, not just a keyword.
+
+A future specification of Common Lisp could be written with revised
+terminology that did not use the term "keyword" to refer to three
+different things: symbols in the KEYWORD package, symbols beginning
+with & that have special meaning in lambda-lists, and keyword-names
+used to match function arguments to keyword parameter specifiers.
+However, this proposal does not propose to change any terminology.
+
+Test case:
+
+(DEFUN RESULT (&KEY ((SECRET-KEYWORD SECRET) NIL) AMOUNT)
+    (FORMAT NIL "You ~A $~D" (if SECRET "win" "lose") AMOUNT))
+
+(RESULT :AMOUNT 100) => "You lose $100"
+(RESULT :AMOUNT 100 'SECRET-KEYWORD T) => "You win $100"
+
+
+Rationale:
+
+The "rationale" box on p.62 of CLtL is an argument in favor of requiring
+keyword-names to be symbols, and disallowing numbers, but does not
+speak to the issue of whether or not those symbols should be further
+restricted to be in the KEYWORD package.
+
+The desire for keyword parameters whose keyword-names are not in the
+KEYWORD package arises when the set of keyword-names accepted by a
+function is the union of the sets of keyword-names accepted by several
+other functions, rather than being enumerated in a single place.  In
+this case, it becomes desirable to use packages to prevent accidental
+name clashes among keyword-names of different functions.
+
+One example of a Common Lisp application that requires this capability
+is the draft proposal for an object-oriented programming standard
+(CLOS).  It will have generic functions that accept arguments and pass
+them on to one or more applicable methods, with each method defining its
+own set of keyword-names that it is interested in.  If this proposal is
+not adopted, either the keyword-names will be required to be keywords,
+which will require the methods to have non-modular knowledge of each
+other in order to avoid name clashes, or the methods will have to be
+defined with an ad hoc mechanism that duplicates the essential
+functionality of &key but removes the restriction.
+
+A second example of a Common Lisp application that requires this
+capability is private communication channels between functions.  Suppose
+a public routine MAKE-FOO needs to accept arbitrary arguments from the
+caller and passes those arguments along to an internal routine with
+additional arguments of its own, and suppose that keyword parameters
+are used to receive these arguments.
+
+ (IN-PACKAGE 'FOOLAND)
+ (DEFUN MAKE-FOO (&REST NAME-VALUE-PAIRS &KEY &ALLOW-OTHER-KEYS)
+   (APPLY #'MAKE-FOO-INTERNAL 'EXPLICIT T NAME-VALUE-PAIRS))
+
+This could be done without fear that the use of EXPLICIT T would
+override some argument in NAME-VALUE-PAIRS, since the only way
+that could happen is if someone had done (MAKE-FOO 'FOOLAND::EXPLICIT
+NIL), or if the user was programming explicitly in the FOOLAND package,
+either of which is an implicit admission of willingness to violate
+FOOLAND's modularity.
+
+Documentation Impact:
+
+Some careful rewording of the existing language in CLtL is necessary in
+the standard to avoid confusion between "keyword", indicating a symbol
+in the KEYWORD package, and "keyword name", indicating a syntactic part
+of a keyword parameter specifier.  It is likely that this is best served
+by changing those instances of "keyword" to "named argument" when the
+specification is discussing the indicator which introduces an actual
+parameter in a call to a function defined with &KEY.
+
+The wording which refers to named arguments as being introduced by
+keyword symbols would change to simply refer to those arguments being
+introduced by symbols. For example, in the middle of p.60, the sentence:
+   ... each -keyword- must be a keyword symbol, such as :start.
+ would become
+   ... each named argument name must be a symbol.
+
+The word "keyword" in the first complete sentence on p.62 would be
+changed to "symbol" for similar reasons.
+
+Extra wording would have to be added on p.60 to explain that by
+convention keyword symbols are normally used as the names for named
+arguments, and that all functions built into the Common Lisp language
+follow that convention.
+
+Examples would be useful. On p.64 the following examples might be added:
+
+    ((lambda (a b &key ((:sea c)) d) (list a b c d)) 1 2 :sea 6)
+    => (1 2 6 NIL)
+
+    ((lambda (a b &key ((c c)) d) (list a b c d)) 1 2 'c 6)
+    => (1 2 6 NIL)
+
+Current Practice:
+
+We do not currently know of an implementation that enforces the
+restriction that this proposal seeks to remove.
+
+Some implementations have bugs that prevent NIL from working as a
+keyword argument name, but allow all non-NIL symbols. (One Symbolics
+version that was checked had this bug.)
+
+Adoption Cost:
+
+Some implementors might have to rearrange their error checking slightly,
+but it should be very easy.
+
+Benefits:
+
+This will help with the object-oriented programming standard, among
+other things.
+
+Conversion Cost:
+
+None--no existing programs will stop working.  
+
+Aesthetics:
+
+The restriction of &key to only keyword symbols is arbitrary and
+unnecessary.
+
+There will probably be an argument about whether the restriction is more
+aesthetic or less aesthetic than the freedom, but in either case the
+aesthetic effect is slight.
+
+In any case, users who do not want to use the extended functionality can
+generally avoid it.
+
+Discussion:
+
+The cleanup committee generally supports this extension. 
+
+Moon was under the impression that this proposal was actually adopted
+around December 1985 (although no formal mechanism for adopting
+proposals existed at that time), but may be mistaken.
+
+If Common Lisp truly has a restriction that only keyword symbols can be
+used as keyword names in calls to functions that take keyword arguments,
+it will be more difficult to come up with an object-oriented programming
+standard that fits within Common Lisp.
+
+The cleanup committee considered, but did not adopt, a proposal to
+exclude NIL as a legal indicator. It might catch some errors, but is
+otherwise an odd restriction.
+        TITAN 
+         TITAN 
+           I              (                     "                           ^             •       -      Î              Þ             ³             t             "              g       
+       T              2             Y             ¡      ž  zº*start*
+08423 00024 US 
+Date: 14 Feb 88 13:06 PST
+From: Masinter.pa
+Subject: Issue: KEYWORD-ARGUMENT-NAME-PACKAGE (Version 8)
+To: X3J13@Sail.stanford.edu
+cc: Masinter
+reply-to: CL-CLEANUP@Sail.Stanford.EDU
+
+Version 6 conditionally passed X3J13/Jun87. Version 8 distributed in hardcopy form X3J13/Nov87.
+
+
+Issue:        KEYWORD-ARGUMENT-NAME-PACKAGE
+References:   Lambda Expressions (CLtL pp60-64)
+Category:     CLARIFICATION/CHANGE
+Edit history: 20-Apr-87, Version 1 by Moon
+              29-Apr-87, Version 2 by Pitman
+              11-May-87, Version 3 by Moon
+              29-May-87, Version 4 by Masinter 
+               5-Jun-87, Version 5 by Masinter
+              11-Jun-87, Version 6 by Masinter
+              23-Oct-87, Version 7 by Masinter
+               8-Nov-87, Version 8 by Moon
+
+Problem Description:
+
+CLtL says that only keyword symbols can be used as keyword-names in
+&key parameter specifiers (page 60, "each -keyword- must be a
+keyword symbol, such as :start.")
+
+As Common Lisp is currently defined, if someone wants to define a
+function that accepts keyword (rather than positional) arguments whose
+keyword-names are symbols in packages other than the KEYWORD package,
+they cannot use &KEY. Instead, they have to duplicate the &KEY mechanism
+using &REST, GETF, and (if they want error checking of argument names)
+DO.
+
+Some applications (including the draft proposal for the Common Lisp
+Object System (CLOS)) require this capability. [See Rationale below.]
+
+Proposal (KEYWORD-ARGUMENT-NAME-PACKAGE:ANY)
+
+Remove restrictions on the package of the keyword-names of keyword
+parameters; allow any symbol. That is:
+
+If, following an &KEY, a variable appears alone or in a (variable
+default-value) pair, the behavior specified in CLtL is unchanged: a
+keyword symbol with the same print name as the variable is created and
+is used as the keyword-name when matching arguments to parameter
+specifiers.  A keyword-name that is not a keyword symbol can be
+specified with the ((-keyword- -var-) ...) syntax of parameter
+specifier. The -keyword- can be any symbol, not just a keyword.
+
+A future specification of Common Lisp could be written with revised
+terminology that did not use the term "keyword" to refer to three
+different things: symbols in the KEYWORD package, symbols beginning
+with & that have special meaning in lambda-lists, and keyword-names
+used to match function arguments to keyword parameter specifiers.
+However, this proposal does not propose to change any terminology.
+
+Test case:
+
+(DEFUN RESULT (&KEY ((SECRET-KEYWORD SECRET) NIL) AMOUNT)
+    (FORMAT NIL "You ~A $~D" (if SECRET "win" "lose") AMOUNT))
+
+(RESULT :AMOUNT 100) => "You lose $100"
+(RESULT :AMOUNT 100 'SECRET-KEYWORD T) => "You win $100"
+
+
+Rationale:
+
+The "rationale" box on p.62 of CLtL is an argument in favor of requiring
+keyword-names to be symbols, and disallowing numbers, but does not
+speak to the issue of whether or not those symbols should be further
+restricted to be in the KEYWORD package.
+
+The desire for keyword parameters whose keyword-names are not in the
+KEYWORD package arises when the set of keyword-names accepted by a
+function is the union of the sets of keyword-names accepted by several
+other functions, rather than being enumerated in a single place.  In
+this case, it becomes desirable to use packages to prevent accidental
+name clashes among keyword-names of different functions.
+
+One example of a Common Lisp application that requires this capability
+is the draft proposal for an object-oriented programming standard
+(CLOS).  It will have generic functions that accept arguments and pass
+them on to one or more applicable methods, with each method defining its
+own set of keyword-names that it is interested in.  If this proposal is
+not adopted, either the keyword-names will be required to be keywords,
+which will require the methods to have non-modular knowledge of each
+other in order to avoid name clashes, or the methods will have to be
+defined with an ad hoc mechanism that duplicates the essential
+functionality of &key but removes the restriction.
+
+A second example of a Common Lisp application that requires this
+capability is private communication channels between functions.  Suppose
+a public routine MAKE-FOO needs to accept arbitrary arguments from the
+caller and passes those arguments along to an internal routine with
+additional arguments of its own, and suppose that keyword parameters
+are used to receive these arguments.
+
+ (IN-PACKAGE 'FOOLAND)
+ (DEFUN MAKE-FOO (&REST NAME-VALUE-PAIRS &KEY &ALLOW-OTHER-KEYS)
+   (APPLY #'MAKE-FOO-INTERNAL 'EXPLICIT T NAME-VALUE-PAIRS))
+
+This could be done without fear that the use of EXPLICIT T would
+override some argument in NAME-VALUE-PAIRS, since the only way
+that could happen is if someone had done (MAKE-FOO 'FOOLAND::EXPLICIT
+NIL), or if the user was programming explicitly in the FOOLAND package,
+either of which is an implicit admission of willingness to violate
+FOOLAND's modularity.
+
+Documentation Impact:
+
+Some careful rewording of the existing language in CLtL is necessary in
+the standard to avoid confusion between "keyword", indicating a symbol
+in the KEYWORD package, and "keyword name", indicating a syntactic part
+of a keyword parameter specifier.  It is likely that this is best served
+by changing those instances of "keyword" to "named argument" when the
+specification is discussing the indicator which introduces an actual
+parameter in a call to a function defined with &KEY.
+
+The wording which refers to named arguments as being introduced by
+keyword symbols would change to simply refer to those arguments being
+introduced by symbols. For example, in the middle of p.60, the sentence:
+   ... each -keyword- must be a keyword symbol, such as :start.
+ would become
+   ... each named argument name must be a symbol.
+
+The word "keyword" in the first complete sentence on p.62 would be
+changed to "symbol" for similar reasons.
+
+Extra wording would have to be added on p.60 to explain that by
+convention keyword symbols are normally used as the names for named
+arguments, and that all functions built into the Common Lisp language
+follow that convention.
+
+Examples would be useful. On p.64 the following examples might be added:
+
+    ((lambda (a b &key ((:sea c)) d) (list a b c d)) 1 2 :sea 6)
+    => (1 2 6 NIL)
+
+    ((lambda (a b &key ((c c)) d) (list a b c d)) 1 2 'c 6)
+    => (1 2 6 NIL)
+
+Current Practice:
+
+We do not currently know of an implementation that enforces the
+restriction that this proposal seeks to remove.
+
+Some implementations have bugs that prevent NIL from working as a
+keyword argument name, but allow all non-NIL symbols. (One Symbolics
+version that was checked had this bug.)
+
+Cost to implementors:
+
+Some implementors might have to rearrange their error checking slightly,
+but it should be very easy.
+
+Cost to users:
+
+None--no existing programs will stop working.  
+
+Benefits:
+
+This will help with the object-oriented programming standard, among
+other things.
+
+Aesthetics:
+
+The restriction of &key to only keyword symbols is arbitrary and
+unnecessary.
+
+There will probably be an argument about whether the restriction is more
+aesthetic or less aesthetic than the freedom, but in either case the
+aesthetic effect is slight.
+
+In any case, users who do not want to use the extended functionality can
+generally avoid it.
+
+Discussion:
+
+The cleanup committee generally supports this extension. 
+
+Moon was under the impression that this proposal was actually adopted
+around December 1985 (although no formal mechanism for adopting
+proposals existed at that time), but may be mistaken.
+
+If Common Lisp truly has a restriction that only keyword symbols can be
+used as keyword names in calls to functions that take keyword arguments,
+it will be more difficult to come up with an object-oriented programming
+standard that fits within Common Lisp.
+
+The cleanup committee considered, but did not adopt, a proposal to
+exclude NIL as a legal indicator. It might catch some errors, but is
+otherwise an odd restriction.
+        
+TIMESROMAN 
+          TITAN 
+          TITAN 
+          <              
+       P              `                            "                           ^             •       -      Î              Þ             ³             t             "              g              2       
+       T             Y             ¡      = $zº

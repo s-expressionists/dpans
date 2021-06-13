@@ -1,0 +1,721 @@
+*start*
+02517 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:KMP@YUKON.SCRC.Symbolics.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 27 FEB 87 15:19:44 PST
+Received: from SCRC-YUKON.ARPA by SAIL.STANFORD.EDU with TCP; 27 Feb 87  15:18:02 PST
+Received: from RIO-DE-JANEIRO.SCRC.Symbolics.COM by YUKON.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 171Date: Fri, 27 Feb 87 18:10 EST
+From: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: COMPILER-WARNING-STREAM
+To: CL-Cleanup@SAIL.STANFORD.EDU
+cc: KMP@STONY-BROOK.SCRC.Symbolics.COM
+Message-ID: <870227181032.5.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+
+Issue:        COMPILER-WARNING-STREAM
+References:   COMPILE (p438), COMPILE-FILE (p439)
+Category:     CLARIFICATION/CHANGE
+Edit history: Revision 1 by KMP 02/27/87
+Problem Description:
+
+  The description of the COMPILE and COMPILE-FILE functions does
+  not permit them to print warnings. If this is to be allowed,
+  it should be an explicitly expressed part of the contract.
+
+Proposal (COMPILER-WARNING-STREAM:ERROR-OUTPUT)
+
+  The definitions of COMPILE and COMPILE-FILE should state that
+  these functions are permitted to output warnings and that those
+  warnings should go to the stream which is the value of 
+  *ERROR-OUTPUT*.
+
+Rationale:
+
+  Compiler warning output is a widely accepted extension to the
+  compilation.
+
+  Warnings that come via the WARN function will go to the stream
+  which is the value of *ERROR-OUTPUT*.
+
+Current Practice:
+
+  Some implementations send warning output to *ERROR-OUTPUT*.
+  Other implementations send warning output to *STANDARD-OUTPUT*.
+
+Adoption Cost:
+
+  In most cases, the change to the compiler to redirect output is
+  expected to be very slight.
+
+Benefits:
+
+  Currently, it is difficult to redirect the output of COMPILE 
+  and COMPILE-FILE because it isn't clear where it's directed.
+
+Conversion Cost:
+
+  Most user programs that care are probably already tolerant of 
+  both situations or naively expect that output will go to 
+  *ERROR-OUTPUT*. As such, most users will probably perceive this
+  as a clarification.
+
+Aesthetics:
+
+  Most users will probably perceive this change as a simplification
+  because it will allow the kind of warning that comes from WARN
+  and the kind of warning that comes from compilation to be 
+  conceptually grouped.
+
+Discussion:
+
+  This was a problem in adapting MACSYMA to Common Lisp because 
+  Macsyma provides alternate user interfaces to the compiler which
+  it needs to be able to control.
+
+  KMP supports this change.
+
+*start*
+01327 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:FAHLMAN@C.CS.CMU.EDU>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 28 FEB 87 21:17:03 PST
+Received: from C.CS.CMU.EDU by SAIL.STANFORD.EDU with TCP; 28 Feb 87  21:15:07 PST
+Received: ID <FAHLMAN@C.CS.CMU.EDU>; Sun 1 Mar 87 00:15:54-EST
+Date: Sun, 1 Mar 87 00:15 EST
+Message-ID: <FAHLMAN.12282814613.BABYL@C.CS.CMU.EDU>
+Sender: FAHLMAN@C.CS.CMU.EDU
+From: "Scott E. Fahlman" <Fahlman@C.CS.CMU.EDU>
+To: CL-Cleanup@SAIL.STANFORD.EDU
+Subject: COMPILER-WARNING-STREAM
+
+
+I agree with the proposal COMPILER-WARNING-STREAM:ERROR-OUTPUT.
+
+I think that there's a misleading statement in the problem description
+that should be repaired before the proposal goes out to the community.
+The sentence "The description of the COMPILE and COMPILE-FILE functions
+does not permit them to print warnings" is a bit too strong, I think.
+I think it would be more correct to say, "The description of the COMPILE
+and COMPILE-FILE functions does not say anything about where compiler
+warnings may be printed."
+
+(It has been suggested by KMP that no function may print anything to
+*standard-output* unless the manual explicitly says it can.  This has
+not been extensively debated and may be controversial, so I don't want
+to issue a statement that seems to imply that we accept this principle.)
+
+*start*
+01471 00024 USm
+Return-Path: <@SAIL.STANFORD.EDU:Masinter.pa@Xerox.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 02 APR 87 19:45:34 PST
+Received: from XEROX.COM by SAIL.STANFORD.EDU with TCP; 2 Apr 87  19:43:05 PST
+Received: from Cabernet.ms by ArpaGateway.ms ; 02 APR 87 19:13:54 PST
+Date: 2 Apr 87 17:56 PST
+From: Masinter.pa
+Subject: compiler-warning-stream
+From: (Patrick H Dussud <DUSSUD%Jenner@ti-csl.csnet>)
+To: cl-cleanup@sail.stanford.edu
+Message-ID: <870402-191354-1170@Xerox>
+
+
+     ----- Begin Forwarded Messages -----
+
+Return-Path: <DUSSUD%Jenner%ti-csl.csnet@RELAY.CS.NET>
+Received: from RELAY.CS.NET by Xerox.COM ; 02 APR 87 11:34:26 PST
+Received: from relay2.cs.net by RELAY.CS.NET id ab23724; 2 Apr 87 14:27 EST
+Received: from ti-csl by RELAY.CS.NET id aj01125; 2 Apr 87 14:19 EST
+Received: from Jenner (jenner.ARPA) by tilde id AA22003; Thu, 2 Apr 87 12:46:12 cst
+Message-Id: <2753376503-1199148@Jenner>
+Date: Thu, 2 Apr 87 12:48:23 CST
+From: Patrick H Dussud <DUSSUD%Jenner%ti-csl.csnet@RELAY.CS.NET>
+To: Larry Masinter <Masinter.PA>
+Subject: output from the compiler(compiler-warning-stream)
+
+Larry,
+
+I think the proposal is sound, however as a corollary, dribble ought to
+specify that *error-output* will also be rebound, so someone can do a
+dribble to a log file, invoke his top-level build function ,walk away
+and all the compiler, loader ...  messages will go to the log file.
+
+
+Patrick.
+
+
+
+     ----- End Forwarded Messages -----
+
+*start*
+02524 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:Masinter.pa@Xerox.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 07 APR 87 15:09:32 PDT
+Received: from XEROX.COM by SAIL.STANFORD.EDU with TCP; 7 Apr 87  15:06:39 PDT
+Received: from Cabernet.ms by ArpaGateway.ms ; 07 APR 87 15:05:18 PDT
+Date: 7 Apr 87 15:04 PDT
+From: Masinter.pa
+Subject: Issue: COMPILER-WARNING-STREAM (Revision 3)
+To: cl-cleanup@SAIL.STANFORD.EDU
+Message-ID: <870407-150518-2513@Xerox>
+
+Status:  Released
+	Comment from Dussand, forwarded to cl-cleanup, no response.
+	Need volunteer to respond to Dussand's comment.
+
+Issue:        COMPILER-WARNING-STREAM
+References:   COMPILE (p438), COMPILE-FILE (p439)
+Category:     CLARIFICATION/CHANGE
+Edit history: Revision 1 by KMP 02/27/87
+              Revision 2 at committee meeting 15-Mar-87 14:18:56
+              Revision 3 reformat by Masinter 15-Mar-87 17:42:10
+
+Problem Description:
+
+The description of the COMPILE and COMPILE-FILE functions does not
+explicitly permit them to print warnings. If this is to be allowed, it
+should be an explicitly expressed part of the contract.
+
+Proposal (COMPILER-WARNING-STREAM:ERROR-OUTPUT)
+
+COMPILE and COMPILE-FILE are permitted to output warnings; warnings
+should go to the stream that is the value of *ERROR-OUTPUT*.
+
+Rationale:
+
+Compiler warning output is a widely accepted extension to the
+compilation. Warnings that come via the WARN function will go to the
+stream that is the value of *ERROR-OUTPUT*.
+
+Current Practice:
+
+Some implementations send compiler warning output to *ERROR-OUTPUT*.
+Other implementations send it to *STANDARD-OUTPUT*.
+
+Adoption Cost:
+
+In most cases, the change to the compiler to redirect output is expected
+to be very slight.
+
+Benefits:
+
+Currently, it is difficult to redirect the output of COMPILE and
+COMPILE-FILE because it isn't clear where it's directed.
+
+Conversion Cost:
+
+Most user programs that care are probably already tolerant of both
+situations or naively expect that output will go to *ERROR-OUTPUT*. As
+such, most users will probably perceive this as a clarification.
+
+Aesthetics:
+
+Most users will probably perceive this change as a simplification
+because it will allow the kind of warning that comes from WARN and the
+kind of warning that comes from compilation to be conceptually grouped.
+
+Discussion:
+
+This was a problem in adapting MACSYMA to Common Lisp because Macsyma
+provides alternate user interfaces to the compiler which it needs to be
+able to control.
+
+The cleanup committee supports this change.
+
+*start*
+02915 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:FAHLMAN@C.CS.CMU.EDU>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 17 APR 87 17:39:32 PDT
+Received: from C.CS.CMU.EDU by SAIL.STANFORD.EDU with TCP; 17 Apr 87  17:37:14 PDT
+Received: ID <FAHLMAN@C.CS.CMU.EDU>; Fri 17 Apr 87 20:38:15-EDT
+Date: Fri, 17 Apr 87 20:38 EDT
+Message-ID: <FAHLMAN.12295346987.BABYL@C.CS.CMU.EDU>
+Sender: FAHLMAN@C.CS.CMU.EDU
+From: "Scott E. Fahlman" <Fahlman@C.CS.CMU.EDU>
+To: cl-cleanup@SAIL.STANFORD.EDU
+Subject: Issue: COMPILER-WARNING-STREAM (Revision 4)
+
+
+Status: Released.  This version slightly revised to incorporate Dussud's
+comment about the effect of this change on Dribble and to clean up some
+awkward wording.
+
+Issue:        COMPILER-WARNING-STREAM
+References:   COMPILE (p438), COMPILE-FILE (p439)
+Category:     CLARIFICATION/CHANGE
+Edit history: Revision 1 by KMP 02/27/87
+              Revision 2 at committee meeting 15-Mar-87 14:18:56
+              Revision 3 reformat by Masinter 15-Mar-87 17:42:10
+	      Revision 4, minor revision by SEF 15-Apr-87
+
+Problem Description:
+
+The description of the COMPILE and COMPILE-FILE functions does not
+explicitly permit them to print warnings.  If this is to be allowed, it
+should be specified what stream such warnings are printed on.
+
+Proposal (COMPILER-WARNING-STREAM:ERROR-OUTPUT)
+
+COMPILE and COMPILE-FILE are permitted to output warnings; warnings
+should go to the stream that is the value of *ERROR-OUTPUT*.
+
+As a corollary of this, DRIBBLE is required to record from
+*ERROR-OUTPUT* as well as *STANDARD-INPUT* and *STANDARD-OUTPUT* so that
+it can record any compiler warnings that may be generated while it is in
+effect.
+
+Rationale:
+
+Compiler warning output is a widely accepted feature of compilation.
+Warnings that come via the WARN function will go to the stream that is
+the value of *ERROR-OUTPUT*.
+
+Current Practice:
+
+Some implementations send compiler warning output to *ERROR-OUTPUT*.
+Other implementations send it to *STANDARD-OUTPUT*.
+
+Adoption Cost:
+
+In most cases, the change to the compiler to redirect output is expected
+to be very slight.
+
+Benefits:
+
+Currently, it is difficult to redirect the output of COMPILE and
+COMPILE-FILE because it isn't clear what stream receives the warnings.
+
+Conversion Cost:
+
+Most user programs that care are probably already tolerant of both
+situations or naively expect that output will go to *ERROR-OUTPUT*. As
+such, most users will probably perceive this as a clarification.
+
+Aesthetics:
+
+Most users will probably perceive this change as a simplification
+because it will allow the kind of warning that comes from WARN and the
+kind of warning that comes from compilation to be conceptually grouped.
+
+Discussion:
+
+This was a problem in adapting MACSYMA to Common Lisp because Macsyma
+provides alternate user interfaces to the compiler which it needs to be
+able to control.
+
+The cleanup committee supports this change.
+
+*start*
+04678 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 19 APR 87 20:56:42 PDT
+Received: from SCRC-STONY-BROOK.ARPA by SAIL.STANFORD.EDU with TCP; 19 Apr 87  20:54:05 PDT
+Received: from RIO-DE-JANEIRO.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 119728; Sun 19-Apr-87 23:53:52 EDT
+Date: Sun, 19 Apr 87 23:53 EDT
+From: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: Issue: COMPILER-WARNING-STREAM (Revision 4)
+To: Fahlman@C.CS.CMU.EDU
+cc: KMP@STONY-BROOK.SCRC.Symbolics.COM, cl-cleanup@SAIL.STANFORD.EDU
+In-Reply-To: <FAHLMAN.12295346987.BABYL@C.CS.CMU.EDU>
+Message-ID: <870419235327.5.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+
+    Date: Fri, 17 Apr 1987  20:38 EDT
+    From: "Scott E. Fahlman" <Fahlman@C.CS.CMU.EDU>
+
+    Status: Released.  This version slightly revised to incorporate Dussud's
+    comment about the effect of this change on Dribble and to clean up some
+    awkward wording.
+
+Although an earlier version of this was released, my feeling is that if a
+semantic modification is made to a released proposal, the proposal should
+become unreleased pending discussion in committee so that copies of it don't
+accidentally get distributed too widely before there's been a chance for 
+internal review of `obvious' problems.
+
+    Issue:        COMPILER-WARNING-STREAM
+    References:   COMPILE (p438), COMPILE-FILE (p439)
+    Category:     CLARIFICATION/CHANGE
+    Edit history: Revision 1 by KMP 02/27/87
+		  Revision 2 at committee meeting 15-Mar-87 14:18:56
+		  Revision 3 reformat by Masinter 15-Mar-87 17:42:10
+		  Revision 4, minor revision by SEF 15-Apr-87
+
+    Problem Description:
+
+    The description of the COMPILE and COMPILE-FILE functions does not
+    explicitly permit them to print warnings.  If this is to be allowed, it
+    should be specified what stream such warnings are printed on.
+
+    Proposal (COMPILER-WARNING-STREAM:ERROR-OUTPUT)
+
+    COMPILE and COMPILE-FILE are permitted to output warnings; warnings
+    should go to the stream that is the value of *ERROR-OUTPUT*.
+
+    As a corollary of this, DRIBBLE is required to record from
+    *ERROR-OUTPUT* as well as *STANDARD-INPUT* and *STANDARD-OUTPUT* so that
+    it can record any compiler warnings that may be generated while it is in
+    effect.
+
+I'm worried about potential unintended consequences of a proposal to change
+DRIBBLE that piggybacks on this proposal. 
+
+For example, I could easily imagine someone doing
+ (SETQ *ERROR-OUTPUT* (OPEN filename1))
+ ...stuff...
+and then wanting a transcript so doing
+ (SETQ *ERROR-OUTPUT* (OPEN filename2)) 
+ (DRIBBLE filename3)
+ ...stuff...
+ (DRIBBLE) 
+I would say their clear intent here is that *ERROR-OUTPUT* not be redirected.
+I think that DRIBBLE is supposed to have no visible effect on the interaction
+between (DRIBBLE file) and (DRIBBLE), so I'm surprised that it suggests
+changing *STANDARD-INPUT* and *STANDARD-OUTPUT* rather than *TERMINAL-IO*.
+Similar questions can be asked about *QUERY-IO* and *DEBUG-IO*.
+
+My feeling is that the description of DRIBBLE needs lots of fixing as part of
+a separate proposal unrelated to this one. I'm amenable to such a proposal, but
+I don't think it belongs here because it requires further elaboration and
+justification. 
+
+    Rationale:
+
+    Compiler warning output is a widely accepted feature of compilation.
+    Warnings that come via the WARN function will go to the stream that is
+    the value of *ERROR-OUTPUT*.
+
+    Current Practice:
+
+    Some implementations send compiler warning output to *ERROR-OUTPUT*.
+    Other implementations send it to *STANDARD-OUTPUT*.
+
+    Adoption Cost:
+
+    In most cases, the change to the compiler to redirect output is expected
+    to be very slight.
+
+    Benefits:
+
+    Currently, it is difficult to redirect the output of COMPILE and
+    COMPILE-FILE because it isn't clear what stream receives the warnings.
+
+    Conversion Cost:
+
+    Most user programs that care are probably already tolerant of both
+    situations or naively expect that output will go to *ERROR-OUTPUT*. As
+    such, most users will probably perceive this as a clarification.
+
+    Aesthetics:
+
+    Most users will probably perceive this change as a simplification
+    because it will allow the kind of warning that comes from WARN and the
+    kind of warning that comes from compilation to be conceptually grouped.
+
+    Discussion:
+
+    This was a problem in adapting MACSYMA to Common Lisp because Macsyma
+    provides alternate user interfaces to the compiler which it needs to be
+    able to control.
+
+    The cleanup committee supports this change.
+
+*start*
+01763 00024 USa
+Return-Path: <@SAIL.STANFORD.EDU:FAHLMAN@C.CS.CMU.EDU>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 19 APR 87 21:17:25 PDT
+Received: from C.CS.CMU.EDU by SAIL.STANFORD.EDU with TCP; 19 Apr 87  21:15:21 PDT
+Received: ID <FAHLMAN@C.CS.CMU.EDU>; Mon 20 Apr 87 00:16:22-EDT
+Date: Mon, 20 Apr 87 00:16 EDT
+Message-ID: <FAHLMAN.12295910980.BABYL@C.CS.CMU.EDU>
+Sender: FAHLMAN@C.CS.CMU.EDU
+From: "Scott E. Fahlman" <Fahlman@C.CS.CMU.EDU>
+To: cl-cleanup@SAIL.STANFORD.EDU
+Subject: Issue: COMPILER-WARNING-STREAM (Revision 4)
+In-reply-to: Msg of 19 Apr 1987  23:53-EDT from Kent M Pitman <KMP at STONY-BROOK.SCRC.Symbolics.COM>
+
+
+    Although an earlier version of this was released, my feeling is that if a
+    semantic modification is made to a released proposal, the proposal should
+    become unreleased pending discussion in committee so that copies of it don't
+    accidentally get distributed too widely before there's been a chance for 
+    internal review of `obvious' problems.
+
+I agree.
+
+As for KMP's substantive objections, the problem is that we have already
+said too much about Dribble, and now we're caught in the game of trying
+to specify it exactly.  We can't standardize it in detail, since it
+will have to be handled differently on different systems, depending on
+the details of each system's user interface.  It seems to me that the
+two coherent possibilities are to eliminate it from the standard
+altogether, or to say something like the following:
+
+Some implemenations may provide a mechanism for saving a transcript of
+the top-level user interaction (input and output) to a file.  When such
+a mechanism is present, it is conventionally turned on by (dribble
+<pathname>) and is turned off by (dribble).  Period.
+
+-- Scott
+
+*start*
+01078 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:Masinter.pa@Xerox.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 20 APR 87 14:01:12 PDT
+Received: from XEROX.COM by SAIL.STANFORD.EDU with TCP; 20 Apr 87  13:58:10 PDT
+Received: from Cabernet.ms by ArpaGateway.ms ; 20 APR 87 13:51:00 PDT
+Date: 20 Apr 87 12:25 PDT
+From: Masinter.pa
+Subject: Re: Issue: COMPILER-WARNING-STREAM (Revision 4)
+In-reply-to: "Scott E. Fahlman" <Fahlman@C.CS.CMU.EDU>'s message of Mon,
+ 20 Apr 87 00:16 EDT
+To: cl-cleanup@SAIL.STANFORD.EDU
+Message-ID: <870420-135100-1125@Xerox>
+
+Kent and Scott have pointed out some of the difficulties of
+incorporating Dussand's suggestion into this proposal. I suggest we
+revert to the previous version of the proposal, and add a note in the
+Discussion section that this proposal does further specify the behavior
+of DRIBBLE because of the problems of the current under-specification of
+DRIBBLE. 
+
+We can independently consider proposals either to further specify (or to
+broaden the possible behavior of) DRIBBLE, and relate it to
+ERROR-OUTPUT.
+
+OK?
+
+
+
+*start*
+00704 00024 US 
+Return-Path: <FAHLMAN@C.CS.CMU.EDU>
+Received: from C.CS.CMU.EDU by Xerox.COM ; 20 APR 87 19:12:10 PDT
+Received: ID <FAHLMAN@C.CS.CMU.EDU>; Mon 20 Apr 87 22:11:49-EDT
+Date: Mon, 20 Apr 87 22:11 EDT
+Message-ID: <FAHLMAN.12296150451.BABYL@C.CS.CMU.EDU>
+Sender: FAHLMAN@C.CS.CMU.EDU
+From: "Scott E. Fahlman" <Fahlman@C.CS.CMU.EDU>
+To: Masinter.pa
+Cc: cl-cleanup@SAIL.STANFORD.EDU
+Subject: Issue: COMPILER-WARNING-STREAM (Revision 4)
+In-reply-to: Msg of 20 Apr 1987  15:25-EDT from Masinter.pa at Xerox.COM
+
+
+Yes, I support reverting to the previous version of
+Compiler-Warning-Stream (with no mention of Dribble) and that we
+consider some fix to Dribble as a separate item.
+
+-- Scott
+*start*
+03038 00024 USf
+Date: 29 May 87 21:32 PDT
+From: Masinter.pa
+Subject: Issue: COMPILER-WARNING-STREAM (Version 5)
+To: cl-cleanup@sail.stanford.edu
+cc: Masinter.pa
+
+Status:  ready for re-release. (I almost called this Version 3, but with the addition of the comments of DRIBBLE it really is different.)
+
+Issue:        COMPILER-WARNING-STREAM
+References:   COMPILE (p438), COMPILE-FILE (p439)
+Category:     CLARIFICATION/CHANGE
+Edit history: Revision 1 by KMP 02/27/87
+              Revision 2 at committee meeting 15-Mar-87 14:18:56
+              Revision 3 reformat by Masinter 15-Mar-87 17:42:10
+              Revision 4 by Fahlman, incorporate Dribble
+              Revision 5 by Masinter, 29-May-87
+                revert to version 3 with comment about Dribble.
+
+Problem Description:
+
+The description of the COMPILE and COMPILE-FILE functions does not explicitly permit them to print warnings. If this is to be allowed, it should be an explicitly expressed part of the contract.
+
+Proposal (COMPILER-WARNING-STREAM:ERROR-OUTPUT)
+
+COMPILE and COMPILE-FILE are permitted to output warnings; warnings should go to the stream that is the value of *ERROR-OUTPUT*.
+
+Rationale:
+
+Compiler warning output is a widely accepted extension to the compilation. Warnings that come via the WARN function will go to the stream that is the value of *ERROR-OUTPUT*.
+
+Current Practice:
+
+Some implementations send compiler warning output to *ERROR-OUTPUT*. Other implementations send it to *STANDARD-OUTPUT*.
+
+Adoption Cost:
+
+In most cases, the change to the compiler to redirect output is expected to be very slight.
+
+Benefits:
+
+Currently, it is difficult to redirect the output of COMPILE and COMPILE-FILE because it isn't clear where it's directed.
+
+Conversion Cost:
+
+Most user programs that care are probably already tolerant of both situations or naively expect that output will go to *ERROR-OUTPUT*. As such, most users will probably perceive this as a clarification.
+
+Aesthetics:
+
+Most users will probably perceive this change as a simplification because it will allow the kind of warning that comes from WARN and the kind of warning that comes from compilation to be conceptually grouped.
+
+Discussion:
+
+This was a problem in adapting MACSYMA to Common Lisp because Macsyma provides alternate user interfaces to the compiler which it needs to be able to control.
+
+The committee considered extending the proposal to describe the interaction with DRIBBLE on the warning output, but found that DRIBBLE was so underspecified as to make the task impossible. DRIBBLE should be considered in a separate proposal.
+
+The cleanup committee supports this change as stated.
+
+        TITAN           TITAN          
+TIMESROMAN 
+          
+TIMESROMAN 
+           5       *       3       ‹                            $                           G              Ä       0       ƒ              ±              {              ^       
+       |              Í              Ó             Ê             
+I zº*start*
+02950 00024 USf
+Date:  5 Jun 87 22:37 PDT
+From: Masinter.pa
+Subject: Issue: COMPILER-WARNING-STREAM (Version 6)
+To: cl-cleanup@sail.stanford.edu
+cc: Masinter.pa
+
+This one had just revision -> Version and KMP -> Pitman.
+
+Status:  ready for re-release! No ? about it.
+
+
+Issue:        COMPILER-WARNING-STREAM
+References:   COMPILE (p438), COMPILE-FILE (p439)
+Category:     CLARIFICATION/CHANGE
+Edit history: Version 1 by Pitman 02/27/87
+              Version 2 at committee meeting 15-Mar-87
+              Version 3 Masinter 15-Mar-87
+              Version 4 by Fahlman, incorporate Dribble
+              Version 5 by Masinter, 29-May-87, revert to Version 3
+              Version 6 by Masinter,  5-Jun-87, minor formatting
+              
+
+Problem Description:
+
+The description of the COMPILE and COMPILE-FILE functions does not explicitly permit them to print warnings. If this is to be allowed, it should be an explicitly expressed part of the contract.
+
+Proposal (COMPILER-WARNING-STREAM:ERROR-OUTPUT)
+
+COMPILE and COMPILE-FILE are permitted to output warnings; warnings should go to the stream that is the value of *ERROR-OUTPUT*.
+
+Rationale:
+
+Compiler warning output is a widely accepted extension to the compilation. Warnings that come via the WARN function will go to the stream that is the value of *ERROR-OUTPUT*.
+
+Current Practice:
+
+Some implementations send compiler warning output to *ERROR-OUTPUT*. Other implementations send it to *STANDARD-OUTPUT*.
+
+Adoption Cost:
+
+In most cases, the change to the compiler to redirect output is expected to be very slight.
+
+Benefits:
+
+Currently, it is difficult to redirect the output of COMPILE and COMPILE-FILE because it isn't clear where it's directed.
+
+Conversion Cost:
+
+Most user programs that care are probably already tolerant of both situations or naively expect that output will go to *ERROR-OUTPUT*. As such, most users will probably perceive this as a clarification.
+
+Aesthetics:
+
+Most users will probably perceive this change as a simplification because it will allow the kind of warning that comes from WARN and the kind of warning that comes from compilation to be conceptually grouped.
+
+Discussion:
+
+This was a problem in adapting MACSYMA to Common Lisp because Macsyma provides alternate user interfaces to the compiler which it needs to be able to control.
+
+The committee considered extending the proposal to describe the interaction with DRIBBLE on the warning output, but found that DRIBBLE was so underspecified as to make the task impossible. DRIBBLE should be considered in a separate proposal.
+
+The cleanup committee supports this change as stated.
+        TITAN           TITAN          
+TIMESROMAN 
+           ý                            $                           L              Ä       0       ƒ              ±              {              ^       
+       |              Í              Ó             Ê      
+- zº*start*
+00659 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:FAHLMAN@C.CS.CMU.EDU>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 07 JUN 87 17:56:52 PDT
+Received: from C.CS.CMU.EDU by SAIL.STANFORD.EDU with TCP; 7 Jun 87  17:55:56 PDT
+Received: ID <FAHLMAN@C.CS.CMU.EDU>; Sun 7 Jun 87 20:54:49-EDT
+Date: Sun, 7 Jun 87 20:54 EDT
+Message-ID: <FAHLMAN.12308719347.BABYL@C.CS.CMU.EDU>
+Sender: FAHLMAN@C.CS.CMU.EDU
+From: "Scott E. Fahlman" <Fahlman@C.CS.CMU.EDU>
+To: Masinter.pa
+Cc: cl-cleanup@SAIL.STANFORD.EDU
+Subject: Issue: COMPILER-WARNING-STREAM (Version 6)
+In-reply-to: Msg of 6 Jun 1987  01:37-EDT from Masinter.pa at Xerox.COM
+
+
+Looks good to me.
+
+-- Scott
+
+*start*
+02877 00024 USm
+Date: 11 Jun 87 13:15 PDT
+From: Masinter.pa
+Subject: Issue: COMPILER-WARNING-STREAM (Version 6)
+To: X3J13@sail.stanford.edu
+cc: Masinter
+reply-to: CL-cleanup@sail.stanford.edu
+
+
+
+Issue:        COMPILER-WARNING-STREAM
+References:   COMPILE (p438), COMPILE-FILE (p439)
+Category:     CLARIFICATION/CHANGE
+Edit history: Version 1 by Pitman 02/27/87
+              Version 2 at committee meeting 15-Mar-87
+              Version 3 Masinter 15-Mar-87
+              Version 4 by Fahlman, incorporate Dribble
+              Version 5 by Masinter, 29-May-87, revert to Version 3
+              Version 6 by Masinter,  5-Jun-87, minor formatting
+              
+
+Problem Description:
+
+The description of the COMPILE and COMPILE-FILE functions does not explicitly permit them to print warnings. If this is to be allowed, it should be an explicitly expressed part of the contract.
+
+Proposal (COMPILER-WARNING-STREAM:ERROR-OUTPUT)
+
+COMPILE and COMPILE-FILE are permitted to output warnings; warnings should go to the stream that is the value of *ERROR-OUTPUT*.
+
+Rationale:
+
+Compiler warning output is a widely accepted extension to the compilation. Warnings that come via the WARN function will go to the stream that is the value of *ERROR-OUTPUT*.
+
+Current Practice:
+
+Some implementations send compiler warning output to *ERROR-OUTPUT*. Other implementations send it to *STANDARD-OUTPUT*.
+
+Adoption Cost:
+
+In most cases, the change to the compiler to redirect output is expected to be very slight.
+
+Benefits:
+
+Currently, it is difficult to redirect the output of COMPILE and COMPILE-FILE because it isn't clear where it's directed.
+
+Conversion Cost:
+
+Most user programs that care are probably already tolerant of both situations or naively expect that output will go to *ERROR-OUTPUT*. As such, most users will probably perceive this as a clarification.
+
+Aesthetics:
+
+Most users will probably perceive this change as a simplification because it will allow the kind of warning that comes from WARN and the kind of warning that comes from compilation to be conceptually grouped.
+
+Discussion:
+
+This was a problem in adapting MACSYMA to Common Lisp because Macsyma provides alternate user interfaces to the compiler which it needs to be able to control.
+
+The committee considered extending the proposal to describe the interaction with DRIBBLE on the warning output, but found that DRIBBLE was so underspecified as to make the task impossible. DRIBBLE should be considered in a separate proposal.
+
+The cleanup committee supports this change as stated.
+        TITAN           TITAN          
+TIMESROMAN 
+           ´                            $                           L              Ä       0       ƒ              ±              {              ^       
+       |              Í              Ó             Ê      	ä zº

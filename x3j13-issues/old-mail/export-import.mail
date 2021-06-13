@@ -1,0 +1,729 @@
+*start*
+03786 00024 US 
+Return-Path: <CL-Cleanup-mailer@SAIL.Stanford.EDU>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 26 JAN 88 13:09:46 PST
+Received: from STONY-BROOK.SCRC.Symbolics.COM (SCRC-STONY-BROOK.ARPA) by SAIL.Stanford.EDU with TCP; 26 Jan 88  13:07:09 PST
+Received: from RIO-DE-JANEIRO.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via INTERNET with SMTP id 328851; 26 Jan 88 16:07:13 EST
+Date: Tue, 26 Jan 88 16:07 EST
+From: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: Issue: EXPORT-IMPORT
+To: CL-Cleanup@SAIL.STANFORD.EDU
+cc: KMP@STONY-BROOK.SCRC.Symbolics.COM
+Message-ID: <880126160702.9.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+
+Issue:        EXPORT-IMPORT
+References:   EXPORT (p186)
+Category:     CLARIFICATION
+Edit history: 26-Jan-88, Version 1 by Pitman
+Status:	      For Internal Discussion
+
+Problem Description:
+
+  The description of EXPORT in CLtL says that it makes its argument symbols
+  ``become accessible as external symbols in PACKAGE.'' It does not specify
+  how much work EXPORT should be willing to go through in order to make this
+  happen.
+
+Proposal (EXPORT-IMPORT:YES):
+
+  Clarify that if the symbols which are specified to EXPORT are not in
+  [the argument] PACKAGE then EXPORT should do an implicit IMPORT of those
+  symbols and then should EXPORT them. 
+
+  Rationale:
+
+    In most cases where a package is going to export symbols from another
+    package, the idiom
+     (IMPORT '(symbol-a symbol-b ...)) (EXPORT '(symbol-a symbol-b ...))
+    must be written. Maintaining both lists consistently is more error-prone
+    and it would be simpler if one could just write the EXPORT call and not
+    worry about the import.
+
+Proposal (EXPORT-IMPORT:NO):
+
+  Clarify that if the symbols which are specified to EXPORT are not in
+  [the argument] PACKAGE then EXPORT should signal a continuable error.
+  If continued, EXPORT should IMPORT the indicated symbols and continue.
+
+  Rationale:
+
+    The package system is very tricky and setting things up correctly is
+    very difficult. The programmer should be asked to be explicit about
+    intent so that the system can diagnose as many potential errors as possible.
+
+Test Case:
+
+  (MAKE-PACKAGE 'EXPORT-TEST-PACKAGE :USE '())
+  (EXPORT '(CAR CDR CONS) (FIND-PACKAGE "EXPORT-TEST-PACKAGE"))
+
+Current Practice:
+
+  Symbolics implements EXPORT-IMPORT:NO. (The error we signal says you can
+  "Proceed without any special action." which doesn't make it completely clear
+  that it will do the implicit import, but that's apparently what happens.)
+
+  [Pitman is pretty sure several implementations implement EXPORT-IMPORT:YES
+   because we get a lot of bug reports from people who seem to think this is
+   something guaranteed but who cannot cite a passage saying where. Hopefully
+   people will volunteer more cases here.]
+
+Cost to Implementors:
+
+  Presumably this change would be very isolated and easy for implementors to make.
+
+Cost to Users:
+
+  EXPORT-IMPORT:YES is upward-compatible, though produces diminished error checking.
+  A change to EXPORT-IMPORT:NO might cause some users to have to write an explicit
+  call to IMPORT in some package declarations. Since continuing the error mentioned
+  in the EXPORT-IMPORT:NO spec will produce the EXPORT-IMPORT:YES behavior, though,
+  the incompatibility should be easy to work around in a transition period.
+
+Cost of Non-Adoption:
+
+  Users will continue to be frustrated by a vague description of EXPORT.
+
+Benefits:
+
+  Users will know clearly what EXPORT does in a case which seems to come up fairly
+  often in practice.
+
+Aesthetics:
+
+  There are aesthetic pluses and minuses to both approaches. The most important
+  thing is to get this nailed down.
+
+Discussion:
+
+  Pitman supports EXPORT-IMPORT:NO.
+
+*start*
+00946 00024 US 
+Return-Path: <CL-Cleanup-mailer@SAIL.Stanford.EDU>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 27 JAN 88 07:16:55 PST
+Received: from C.CS.CMU.EDU by SAIL.Stanford.EDU with TCP; 27 Jan 88  07:14:35 PST
+Received: ID <FAHLMAN@C.CS.CMU.EDU.#Internet>; Wed 27 Jan 88 10:14:51-EST
+Date: Wed, 27 Jan 88 10:14 EST
+Message-ID: <FAHLMAN.12369955463.BABYL@C.CS.CMU.EDU>
+Sender: FAHLMAN@C.CS.CMU.EDU
+From: "Scott E. Fahlman" <Fahlman@C.CS.CMU.EDU>
+To: CL-Cleanup@SAIL.STANFORD.EDU
+Subject: Issue: EXPORT-IMPORT
+In-reply-to: Msg of 26 Jan 1988  16:07-EST from Kent M Pitman <KMP at STONY-BROOK.SCRC.Symbolics.COM>
+
+
+CMU Common Lisp (formerly Spice Lisp) implements NO.  Presumably several
+derived implementations follow us in this.  I don't have a strong
+opinion on this, one way or the other, but the "NO" option seems less
+likely to cause confusion, so I'm mildly in favor of "NO".
+
+-- Scott
+
+*start*
+00998 00024 US 
+Return-Path: <CL-Cleanup-mailer@SAIL.Stanford.EDU>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 28 JAN 88 04:26:49 PST
+Received: from labrea.Stanford.EDU by SAIL.Stanford.EDU with TCP; 28 Jan 88  04:24:17 PST
+Received: by labrea.Stanford.EDU; Thu, 28 Jan 88 04:24:30 PST
+Received: from bhopal.lucid.com by edsel id AA23832g; Thu, 28 Jan 88 04:14:23 PST
+Received: by bhopal id AA03482g; Thu, 28 Jan 88 04:18:15 PST
+Date: Thu, 28 Jan 88 04:18:15 PST
+From: Jon L White <edsel!jonl@labrea.Stanford.EDU>
+Message-Id: <8801281218.AA03482@bhopal.lucid.com>
+To: labrea!CL-Cleanup%SAIL@labrea.Stanford.EDU
+Subject: Issue: EXPORT-IMPORT
+
+Lucid Common Lisp implements NO (offering an error continuation option of
+importing the unavailable symbol).
+
+Although I'll admit that the proposal has some pragmatic merit, it hardly
+seems a pressing issue.  Since Kent favors NO too, then I wonder where the 
+interest if pushing it comes from?
+
+-- JonL --
+
+*start*
+00989 00024 US 
+Return-Path: <CL-Cleanup-mailer@SAIL.Stanford.EDU>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 03 FEB 88 07:57:56 PST
+Received: from STONY-BROOK.SCRC.Symbolics.COM (SCRC-STONY-BROOK.ARPA) by SAIL.Stanford.EDU with TCP; 3 Feb 88  07:55:34 PST
+Received: from EUPHRATES.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 334267; Tue 2-Feb-88 20:22:39 EST
+Date: Tue, 2 Feb 88 20:22 EST
+From: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: Issue: EXPORT-IMPORT
+To: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+cc: CL-Cleanup@SAIL.STANFORD.EDU
+In-Reply-To: <880126160702.9.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+Message-ID: <19880203012230.4.MOON@EUPHRATES.SCRC.Symbolics.COM>
+
+I favor EXPORT-IMPORT:NO.  I don't know of any implementations whose
+current practice is EXPORT-IMPORT:YES.  I agree that it would be good to
+document more explicitly than CLtL which cases are errors.
+
+*start*
+02179 00024 US 
+Return-Path: <CL-Cleanup-mailer@SAIL.Stanford.EDU>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 03 FEB 88 08:36:58 PST
+Received: from STONY-BROOK.SCRC.Symbolics.COM (SCRC-STONY-BROOK.ARPA) by SAIL.Stanford.EDU with TCP; 3 Feb 88  08:35:17 PST
+Received: from RIO-DE-JANEIRO.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 334619; Wed 3-Feb-88 09:11:16 EST
+Date: Wed, 3 Feb 88 11:34 EST
+From: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: Issue: EXPORT-IMPORT
+To: Moon@STONY-BROOK.SCRC.Symbolics.COM
+cc: KMP@STONY-BROOK.SCRC.Symbolics.COM, CL-Cleanup@SAIL.STANFORD.EDU
+In-Reply-To: <19880203012230.4.MOON@EUPHRATES.SCRC.Symbolics.COM>
+Message-ID: <880203113410.5.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+
+The dialect of Common Lisp which Paul Robertson (my boss) wrote for the 386,
+and which later became the basis for the Cloe Runtime system (our native 386 Lisp)
+is an example of a Lisp where the implementor assumed that EXPORT was to do
+an implicit import. As Paul explains it to me, he doesn't see any ambiguity.
+The documentation says it makes the argument symbols accessible as externals
+of the designated package, and the only way to do that is to first import them
+if necessary, so that's what he does. He's not even sure why it needs a
+clarification -- from his point of view, all other implementations are simply
+buggy. I have to say I think he makes perfectly believable case and it's
+arguably reasonable to call this a request for an incompatible change, not just
+a clarification. But in any case, I think there's no question that there's at
+least an ambiguity.  (By the way, Paul's preference is for EXPORT-IMPORT:YES,
+but I'm pretty sure he can be talked into EXPORT-IMPORT:NO if that's what everyone
+seems to think is best.)
+
+The reason for this issue in the first place is that we have an outstanding
+bug report from a Cloe customer who says that EXPORT is not doing an implicit
+IMPORT on the 3600 (while it is doing the IMPORT on the 386) and I'm trying
+to figure out which side to fix. So this is not a contrived issue (as Jonl
+suggested it might be).
+
+*start*
+02270 00024 US 
+Return-Path: <CL-Cleanup-mailer@SAIL.Stanford.EDU>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 03 FEB 88 09:54:23 PST
+Received: from STONY-BROOK.SCRC.Symbolics.COM (SCRC-STONY-BROOK.ARPA) by SAIL.Stanford.EDU with TCP; 3 Feb 88  09:51:44 PST
+Received: from EUPHRATES.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 334859; Wed 3-Feb-88 12:51:44 EST
+Date: Wed, 3 Feb 88 12:51 EST
+From: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: Issue: EXPORT-IMPORT
+To: CL-Cleanup@SAIL.STANFORD.EDU
+In-Reply-To: <880203113410.5.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+Message-ID: <19880203175149.8.MOON@EUPHRATES.SCRC.Symbolics.COM>
+
+    Date: Wed, 3 Feb 88 11:34 EST
+    From: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+
+    The dialect of Common Lisp which Paul Robertson (my boss) wrote for the 386,
+    and which later became the basis for the Cloe Runtime system (our native 386 Lisp)
+    is an example of a Lisp where the implementor assumed that EXPORT was to do
+    an implicit import.
+
+That changes the Current Practice picture from what I had thought based
+on the proposal and the ensuing discussion, which was that all known
+implementations had adopted EXPORT-IMPORT:NO.
+
+However, section 11.4, referenced from the description of EXPORT, is
+quite explicit.  At the bottom of CLtL p.177 and the top of p.178, the
+operation of EXPORT is described in quite explicit terms that are not
+consistent with EXPORT-IMPORT:YES.  Thus I suggest that the
+EXPORT-IMPORT issue should be dropped, as there is no ambiguity in the
+language definition.  Steele's knuckles should be rapped for writing a
+book that contained explicit information which several highly skilled
+Lisp experts were unable to find even after repeated readings of the
+book.  (No offense.  It's a good book for what it was intended to be,
+it's just that we all turned around and asked it to be more.  Blame
+all of us old Common Lisp folks for not realizing from the beginning
+that a more precise specification would be demanded.)
+
+Aside to Kent: We need to be a little more careful about the phrase "the
+Symbolics implementation" in the Current Practice writeups now, since there
+is more than one.
+
+*start*
+01653 00024 US 
+Return-Path: <CL-Cleanup-mailer@SAIL.Stanford.EDU>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 03 FEB 88 18:46:24 PST
+Received: from labrea.Stanford.EDU by SAIL.Stanford.EDU with TCP; 3 Feb 88  18:43:50 PST
+Received: by labrea.Stanford.EDU; Wed, 3 Feb 88 18:44:08 PST
+Received: from bhopal.lucid.com by edsel id AA03576g; Wed, 3 Feb 88 17:34:44 PST
+Received: by bhopal id AA12488g; Wed, 3 Feb 88 17:38:55 PST
+Date: Wed, 3 Feb 88 17:38:55 PST
+From: Jon L White <edsel!jonl@labrea.Stanford.EDU>
+Message-Id: <8802040138.AA12488@bhopal.lucid.com>
+To: labrea!KMP%STONY-BROOK.SCRC.Symbolics.COM@labrea.Stanford.EDU
+Cc: labrea!CL-Cleanup%SAIL@labrea.Stanford.EDU
+In-Reply-To: Kent M Pitman's message of Wed, 3 Feb 88 11:34 EST <880203113410.5.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+Subject: Issue: EXPORT-IMPORT
+
+re: The reason for this issue in the first place is that we have an outstanding
+    bug report from a Cloe customer who says that EXPORT is not doing an 
+    implicit IMPORT . . . and I'm trying to figure out which side to fix. 
+    So this is not a contrived issue (as Jonl suggested it might be).
+
+No, I didn't suggest that it was somehow contrived.  Your original proposal
+mentioned that "some users" erroneously though that export was defined to 
+do an import first, and I too have seen persons make this mistake.  Instead,
+I question why IMPORT-EXPORT:YES comes up as a cleanup proposal (rather than
+as a topic for discussion on, say, the common-lisp mailing list).  At best,
+more emphasis in the documentation might be needed, if users continue to
+be misled here.
+
+-- JonL --
+
+*start*
+01678 00024 US 
+Return-Path: <CL-Cleanup-mailer@SAIL.Stanford.EDU>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 03 FEB 88 18:47:35 PST
+Received: from labrea.Stanford.EDU by SAIL.Stanford.EDU with TCP; 3 Feb 88  18:44:10 PST
+Received: by labrea.Stanford.EDU; Wed, 3 Feb 88 18:44:26 PST
+Received: from bhopal.lucid.com by edsel id AA03683g; Wed, 3 Feb 88 17:43:28 PST
+Received: by bhopal id AA12513g; Wed, 3 Feb 88 17:47:47 PST
+Date: Wed, 3 Feb 88 17:47:47 PST
+From: Jon L White <edsel!jonl@labrea.Stanford.EDU>
+Message-Id: <8802040147.AA12513@bhopal.lucid.com>
+To: labrea!KMP%STONY-BROOK.SCRC.Symbolics.COM@labrea.Stanford.EDU
+Cc: labrea!CL-Cleanup%SAIL@labrea.Stanford.EDU, labrea!common-lisp%sail@labrea.Stanford.EDU
+In-Reply-To: Kent M Pitman's message of Wed, 3 Feb 88 11:34 EST <880203113410.5.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+Subject: Issue: EXPORT-IMPORT
+
+The reason why some users may be mislead about EXPORT is that they fail to
+heed the directive on the second line of p186: "See section 11.4 for details".
+
+The one paragraph description of EXPORT on p186 is grossly incomplete without
+reference to that other section, which cleary states: (p177, last paragraph) 
+"The function EXPORT takes a symbol that is *accessible* in some specified
+package ...  If the symbols is not accessible at all in the specified
+package, a correctable error is signalled that, upon continuing, asks the
+user whether the symbol should be imported." [my emphasis].
+
+Every implementation I'm familiar with seems to implement the above
+semantics rigidly; no one quietly imports the symbol without first
+signalling an error.
+
+
+-- JonL --
+
+
+
+*start*
+01491 00024 US 
+Return-Path: <CL-Cleanup-mailer@SAIL.Stanford.EDU>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 03 FEB 88 19:00:05 PST
+Received: from STONY-BROOK.SCRC.Symbolics.COM (SCRC-STONY-BROOK.ARPA) by SAIL.Stanford.EDU with TCP; 3 Feb 88  18:57:17 PST
+Received: from RIO-DE-JANEIRO.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 335471; Wed 3-Feb-88 21:56:43 EST
+Date: Wed, 3 Feb 88 21:56 EST
+From: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: Issue: EXPORT-IMPORT
+To: edsel!jonl@labrea.stanford.edu
+cc: CL-Cleanup@SAIL.STANFORD.EDU, KMP@STONY-BROOK.SCRC.Symbolics.COM
+In-Reply-To: <8802040138.AA12488@bhopal.lucid.com>
+Message-ID: <880203215637.3.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+
+I spoke to Paul and we're content to withdraw this issue based on Moon's reference to
+an authoritative (albeit slightly misplaced) section.
+
+I guess I try never to bring -anything- up on the Common-Lisp mailing list ever because
+it is too large to be of any practical value to me. I'm personally not interested in the
+simultaneous opinion of tens of thousands of implementors, users, and none-of-the-aboves
+if we can decide an issue amongst ourselves. I assume we all read Common-Lisp so it's
+hardly like having sent this out to Common-Lisp would have spared any of us.
+I treat Common-Lisp as a potential source for more topics for our discussions, not as
+an alternative forum for our discussions.
+
+*start*
+02912 00024 USa
+Originator: Common-Lisp-mailer%SAIL.Stanford:EDU:Xerox
+Date:  3 Feb 88 20:24
+From: CL.BOYER%R20.UTEXAS:EDU:Xerox
+Subject: EXPORT-IMPORT and the other random commands
+In-Reply-to: <8802040147.AA12513@bhopal.lucid.com>
+To: edsel!jonl%LABREA.STANFORD:EDU:Xerox
+cc: labrea!KMP%STONY-BROOK.SCRC.Symbolics.COM%LABREA.STANFORD:EDU:Xerox, 
+labrea!CL-Cleanup%SAIL%LABREA.STANFORD:EDU:Xerox, common-lisp%SAIL.STANFORD:EDU:Xerox
+
+GVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGV
+From: Bob Boyer <CL.BOYER@R20.UTEXAS.EDU>
+Subject: EXPORT-IMPORT and the other random commands
+To: edsel!jonl@LABREA.STANFORD.EDU
+cc: labrea!KMP%STONY-BROOK.SCRC.Symbolics.COM@LABREA.STANFORD.EDU, labrea!CL-Cleanup%SAIL@LABREA.STANFORD.EDU, common-lisp@SAIL.STANFORD.EDU
+In-Reply-To: <8802040147.AA12513@bhopal.lucid.com>
+Return-Path: <Common-Lisp-mailer@SAIL.Stanford.EDU>
+Redistributed: Xerox-Common-Lisp^.x
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 03 FEB 88 20:24:58 PST
+Received: from R20.UTEXAS.EDU by SAIL.Stanford.EDU with TCP; 3 Feb 88  19:49:34 PST
+Original-Date: Wed, 3 Feb 88 21:48:23 CST
+Message-ID: <12371927656.13.CL.BOYER@R20.UTEXAS.EDU>
+GVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGV
+
+I think that the "Put in seven extremely random user
+commands" stuff needs to be documented much more rigorously.
+I don't think that any collection of cross-references in
+CLTL will suffice to make things clear.  I am no authority
+on Common Lisp, but I have tried my best to use packages and
+modules according to the rules I have read and according to
+the implementations of the half dozen Common Lisps I could
+get my hands on.  I have failed, badly, and given up on the
+PISERUC for the time being, pending clarification and
+convergence on implementations.  I stay in package USER and
+don't use modules; it's rude, but it seems more portable
+than the alternatives.
+
+I think that it would be wonderful to have a test collection
+of about a dozen short files that create and use about a
+dozen packages, all importing and exporting from one
+another, with a half dozen modules, some requiring others,
+all of which interacted with compilers and loaders and Lisp
+machine editors and ran under the available major Common
+Lisp implementations.  I do not currently believe in the
+existence of such a collection of files and operations, one
+which is consistent with every reasonable reading of the
+PISERUC rules.  I believe that someone's implementation will
+break under the loading/compiling/using/requiring/editing
+sequence no matter how you write such a set of files.
+Whoever's implementation breaks will probably have a good
+argument justifying their implementation, citing chapter and
+verse from CLTL.
+
+If an example collection of files could be agreed upon it
+would, of course, still only be a start, and no substitute
+for regular documentation, but it might start convergence
+between implementations.
+-------
+
+
+*start*
+01218 00024 US 
+Return-Path: <CL.BOYER@R20.UTEXAS.EDU>
+Received: from R20.UTEXAS.EDU by Xerox.COM ; 04 FEB 88 15:59:57 PST
+Date: Thu, 4 Feb 88 17:59:28 CST
+From: Bob Boyer <CL.BOYER@R20.UTEXAS.EDU>
+Subject: Re: EXPORT-IMPORT and the other random commands
+To: Masinter.pa
+In-Reply-To: <880204-142525-1029@Xerox>
+Message-ID: <12372148126.33.CL.BOYER@R20.UTEXAS.EDU>
+
+I fear I am much too out of touch with the design history to
+be a decent contributor.  I can imagine that anything I
+would suggest would be laughed out of consideration for good
+reason.  (My first suggestion would be, when the reader sees
+a foo:bar or a fo::bar and doesn't know anything about a
+package named foo, it creates a foo package right then and
+there instead of causing an error.)
+
+But I do think my suggestion of a test suite is a good idea.
+It seems to me that if a wizard from each of the 6 or 10
+major implementations sat down together for a day and tried
+to build a system that did almost nothing but that
+excercised all the features of the PISERUC and ran under all
+the lisps, they could get convergence pretty quick.  And
+first witness the embarrassment of problems that currently
+confront the user seeking portability.
+-------
+*start*
+03022 00024 US 
+Originator: Common-Lisp-mailer%SAIL.Stanford:EDU:Xerox
+Date:  5 Feb 88 21:26
+From: RWK%AI.AI.MIT:EDU:Xerox
+Subject: {Improved version} EXPORT-IMPORT and the other random commands
+To: CL.BOYER%R20.UTEXAS:EDU:Xerox
+cc: common-lisp%SAIL.STANFORD:EDU:Xerox, edsel!jonl%LABREA.STANFORD:EDU:Xerox, labrea!CL-Cleanup%SAIL%LABREA.STANFORD:EDU:Xerox, labrea!KMP%STONY-BROOK.SCRC.Symbolics.COM%LABREA.STANFORD:EDU:Xerox
+
+GVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGV
+From: "Robert W. Kerns" <RWK@AI.AI.MIT.EDU>
+Subject: {Improved version} EXPORT-IMPORT and the other random commands
+To: CL.BOYER@R20.UTEXAS.EDU
+cc: common-lisp@SAIL.STANFORD.EDU, edsel!jonl@LABREA.STANFORD.EDU, labrea!CL-Cleanup%SAIL@LABREA.STANFORD.EDU, labrea!KMP%STONY-BROOK.SCRC.Symbolics.COM@LABREA.STANFORD.EDU
+Return-Path: <Common-Lisp-mailer@SAIL.Stanford.EDU>
+Redistributed: Xerox-Common-Lisp^.x
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 05 FEB 88 21:27:00 PST
+Received: from AI.AI.MIT.EDU by SAIL.Stanford.EDU with TCP; 5 Feb 88  20:55:10 PST
+Original-Date: Fri, 5 Feb 88 23:56:53 EST
+Message-ID: <322178.880205.RWK@AI.AI.MIT.EDU>
+GVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGV
+
+T    Date: Wed 3 Feb 88 21:48:23-CST
+    From: Bob Boyer <CL.BOYER at R20.UTEXAS.EDU>
+    I think that the "Put in seven extremely random user
+    commands" stuff needs to be documented much more rigorously.
+    I don't think that any collection of cross-references in
+    CLTL will suffice to make things clear.
+
+You've identified an important issue, *BUT*:
+
+Frankly, I think this approach would be a waste of time.  I don't
+think ANY amount of documenting and test suites has any chance
+of working.  The underlying idea that you define the package
+environment by performing a series of side-effects on the package
+system is so wrong it is beyond repair.  It is so entirely sensitive
+to complex and obscure order-of-events issues that even if you
+were successful in getting all implementations to do exactly the
+same thing, real-life users could not adaquately standardize their
+workstyles and interactions to avoid problems, even if they could
+understand all the rules!
+
+I think the time would be better spent on specifying and adopting
+a DEFPACKAGE macro.  This would always be the first form of the first
+file loaded.  (Or at least, before any IN-PACKAGE's for that package).
+I think it is much easier to specify the behaviour when you don't have
+to consider all the order-of-operations issues.  Of course, it still needs
+to be carefully specified, but the problem is more constrained, and you're
+not so burdened with issues of compatibilty or programing environment
+issues.
+
+There are quite a number of us who think the DEFPACKAGE issue is important,
+but so far as I know there aren't any actual proposals being written up.
+Presumably the issue is one of manpower to address it, not of lack of
+interest, so I would be dissapointed to see us discuss ways of "fixing"
+this rather bleak area of CL, rather than working on DEFPACKAGE.
+
+*start*
+03124 00024 US 
+Originator: Common-Lisp-mailer%SAIL.Stanford:EDU:Xerox
+Date:  7 Feb 88 00:53
+From: hilfingr%tully.Berkeley.EDU%berkeley:EDU:Xerox
+Subject: Re: {Improved version} EXPORT-IMPORT and the other random commands
+In-Reply-to: Your message of Fri, 05 Feb 88 23:56:53 EST.             <322178.880205.RWK@AI.AI.MIT.EDU>
+To: RWK%ai.ai.mit:EDU:Xerox
+cc: CL.BOYER%r20.utexas:EDU:Xerox, common-lisp%sail.stanford:EDU:Xerox, edsel!jonl%labrea.stanford:EDU:Xerox, labrea!CL-Cleanup%SAIL%labrea.stanford:EDU:Xerox, labrea!KMP%STONY-BROOK.SCRC.Symbolics.COM%labrea.stanford:EDU:Xerox
+
+GVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGV
+From: hilfingr%tully.Berkeley.EDU@berkeley.edu (Paul Hilfinger)
+To: "Robert W. Kerns" <RWK@ai.ai.mit.edu>
+Cc: CL.BOYER@r20.utexas.edu, common-lisp@sail.stanford.edu, edsel!jonl@labrea.stanford.edu, labrea!CL-Cleanup%SAIL@labrea.stanford.edu, labrea!KMP%STONY-BROOK.SCRC.Symbolics.COM@labrea.stanford.edu
+Subject: Re: {Improved version} EXPORT-IMPORT and the other random commands
+In-Reply-To: Your message of Fri, 05 Feb 88 23:56:53 EST.             <322178.880205.RWK@AI.AI.MIT.EDU>
+Return-Path: <Common-Lisp-mailer@SAIL.Stanford.EDU>
+Redistributed: Xerox-Common-Lisp^.x
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 07 FEB 88 00:53:32 PST
+Received: from tully.Berkeley.EDU ([128.32.150.44]) by SAIL.Stanford.EDU with TCP; 7 Feb 88  00:15:34 PST
+Received: by tully.Berkeley.EDU (5.57/1.25)	id AA07693; Sun, 7 Feb 88 00:15:20 PST
+Message-Id: <8802070815.AA07693@tully.Berkeley.EDU>
+Original-Date: Sun, 07 Feb 88 00:15:12 PST
+GVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGV
+
+
+I'm also interested in seeing the "package problem" cleared up.  I
+have two questions.
+
+1) Has anyone written a definitive "why CL packages stink" article 
+   or message, preferably one that someone regards as definitive?
+
+2) You write
+
+       > ... The underlying idea that you define the package environment
+       > by performing a series of side-effects on the package system
+       > is so wrong it is beyond repair.  It is so entirely sensitive
+       > to complex and obscure order-of-events issues that even if
+       > you were successful in getting all implementations to do
+       > exactly the same thing, real-life users could not adaquately
+       > standardize their workstyles and interactions to avoid
+       > problems, even if they could understand all the rules!
+       > 
+       > I think the time would be better spent on specifying and
+       > adopting a DEFPACKAGE macro.  This would always be the first
+       > form of the first file loaded.  (Or at least, before any
+       > IN-PACKAGE's for that package)....
+
+   Are you saying that this DEFPACKAGE macro would NOT have any side-effects
+   on the package system?  How would it have its effect?  Or, more
+   generally, what is the underlying idea with which you want to
+   replace "side-effects on the package system"?  (Somehow, electronic
+   mail adds an unwonted note of harshness to my syntax; that last
+   question was meant to be straight, not rhetorical.)
+
+Paul Hilfinger
+U. C. Berkeley
+Hilfinger@Berkeley.EDU
+
+
+ 
+
+
+*start*
+04687 00024 US 
+Originator: Common-Lisp-mailer%SAIL.Stanford:EDU:Xerox
+Date:  7 Feb 88 04:45
+From: RWK%AI.AI.MIT:EDU:Xerox
+Subject: {Improved version} EXPORT-IMPORT and the other random commands
+In-Reply-to: Msg of Sun 07 Feb 88 00:15:12 PST from hilfingr%tully.Berkeley.EDU at berkeley.edu (Paul Hilfinger)
+To: hilfingr%tully.Berkeley.EDU%UCBVAX.BERKELEY:EDU:Xerox
+cc: common-lisp%SAIL.STANFORD:EDU:Xerox, CL.BOYER%R20.UTEXAS:EDU:Xerox, edsel!jonl%LABREA.STANFORD:EDU:Xerox, labrea!CL-Cleanup%SAIL%LABREA.STANFORD:EDU:Xerox, labrea!KMP%STONY-BROOK.SCRC.Symbolics.COM%LABREA.STANFORD:EDU:Xerox
+
+GVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGV
+From: "Robert W. Kerns" <RWK@AI.AI.MIT.EDU>
+Subject: {Improved version} EXPORT-IMPORT and the other random commands
+To: hilfingr%tully.Berkeley.EDU@UCBVAX.BERKELEY.EDU
+cc: common-lisp@SAIL.STANFORD.EDU, CL.BOYER@R20.UTEXAS.EDU, edsel!jonl@LABREA.STANFORD.EDU, labrea!CL-Cleanup%SAIL@LABREA.STANFORD.EDU, labrea!KMP%STONY-BROOK.SCRC.Symbolics.COM@LABREA.STANFORD.EDU
+In-reply-to: Msg of Sun 07 Feb 88 00:15:12 PST from hilfingr%tully.Berkeley.EDU at berkeley.edu (Paul Hilfinger)
+Return-Path: <Common-Lisp-mailer@SAIL.Stanford.EDU>
+Redistributed: Xerox-Common-Lisp^.x
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 07 FEB 88 04:45:47 PST
+Received: from AI.AI.MIT.EDU by SAIL.Stanford.EDU with TCP; 7 Feb 88  04:04:20 PST
+Original-Date: Sun, 7 Feb 88 07:04:36 EST
+Message-ID: <322657.880207.RWK@AI.AI.MIT.EDU>
+GVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGV
+
+    Date: Sun, 07 Feb 88 00:15:12 PST
+    From: hilfingr%tully.Berkeley.EDU at berkeley.edu (Paul Hilfinger)
+
+    I'm also interested in seeing the "package problem" cleared up.  I
+    have two questions.
+
+    1) Has anyone written a definitive "why CL packages stink" article 
+       or message, preferably one that someone regards as definitive?
+I don't think there's complete agreement on all the
+reasons why "CL packages stink".  Personally, in fact,
+I think they're not bad, in use, but the setup is what
+stinks.  Others would disagree.
+
+But I think there's pretty good agreement that the
+seven extremely perverse functions are perverse.
+
+    2) You write
+
+           > ... The underlying idea that you define the package environment
+           > by performing a series of side-effects on the package system
+           > is so wrong it is beyond repair.  It is so entirely sensitive
+           > to complex and obscure order-of-events issues that even if
+           > you were successful in getting all implementations to do
+           > exactly the same thing, real-life users could not adaquately
+           > standardize their workstyles and interactions to avoid
+           > problems, even if they could understand all the rules!
+           > 
+           > I think the time would be better spent on specifying and
+           > adopting a DEFPACKAGE macro.  This would always be the first
+           > form of the first file loaded.  (Or at least, before any
+           > IN-PACKAGE's for that package)....
+
+       Are you saying that this DEFPACKAGE macro would NOT have any side-effects
+       on the package system?  How would it have its effect?  Or, more
+       generally, what is the underlying idea with which you want to
+       replace "side-effects on the package system"?  
+No, the important word up there was "series".  There's no
+problem with a single declarative form, at the very start.
+It's when you dribble things out over several files with
+a series of "functions" which have to be treated specially
+by the compiler, that you start running into problems.
+Not to mention the confusion factor.  The very fact that this
+silly mnemonic (which I can never remember) is needed to
+keep the order straight should be a dead givaway that something
+is wrong with splitting up declaring the package into a series
+of micro-steps.  You might think of these as "package microcode".
+It shouldn't be supprising that there are dependencies on the
+particular way an implementation does its environment.
+
+If you declare imports, exports, inheritences, etc. at the
+same time you CREATE the package, you can't have any problems
+with symbols accidentally getting created before things are
+set up right.  (Just for one example).
+						      (Somehow, electronic
+       mail adds an unwonted note of harshness to my syntax; that last
+       question was meant to be straight, not rhetorical.)
+
+I know the problem.  You'll notice I sent an improved version of
+my note, when I noticed it sounded like I was being critical of
+Bob Boyer's complaint.  (Instead of urging a different approach to
+solving it).
+
+    Paul Hilfinger
+    U. C. Berkeley
+    Hilfinger@Berkeley.EDU
+
+
+*start*
+04173 00024 US 
+Originator: Common-Lisp-mailer%SAIL.Stanford:EDU:Xerox
+Date: 11 Feb 88 17:13
+From: mike%acorn%LIVE-OAK.LCS.MIT:EDU:Xerox
+Subject: {Improved version} EXPORT-IMPORT and the other random commands
+To: RWK%AI.AI.MIT:EDU:Xerox
+cc: hilfingr%tully.Berkeley.EDU%UCBVAX.BERKELEY:EDU:Xerox, common-lisp%SAIL.STANFORD:EDU:Xerox, CL.BOYER%R20.UTEXAS:EDU:Xerox, edsel!jonl%LABREA.STANFORD:EDU:Xerox, labrea!CL-Cleanup%SAIL%LABREA.STANFORD:EDU:Xerox, labrea!KMP%STONY-BROOK.SCRC.Symbolics.COM%LABREA.STANFORD:EDU:Xerox
+
+Return-Path: <Common-Lisp-mailer@SAIL.Stanford.EDU>
+Redistributed: Xerox-Common-Lisp^.x
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 11 FEB 88 17:13:39 PST
+Received: from XX.LCS.MIT.EDU by SAIL.Stanford.EDU with TCP; 11 Feb 88  16:35:18 PST
+Received: from LIVE-OAK.LCS.MIT.EDU by XX.LCS.MIT.EDU via Chaosnet; 11 Feb 88 19:28-EST
+Received: from ACORN.Gold-Hill.DialNet.Symbolics.COM by MIT-LIVE-OAK.DialNet.Symbolics.COM via DIAL with SMTP id 80142; 11 Feb 88 19:27:38-EST
+Received: from BOSTON.Gold-Hill.DialNet.Symbolics.COM by ACORN.Gold-Hill.DialNet.Symbolics.COM via CHAOS with CHAOS-MAIL id 93873; Wed 10-Feb-88 16:25:21-EST
+Original-Date: Thu, 11 Feb 88 19:26 est
+
+
+        I'm also interested in seeing the "package problem" cleared up.  I
+        have two questions.
+    
+        1) Has anyone written a definitive "why CL packages stink" article 
+           or message, preferably one that someone regards as definitive?
+    I don't think there's complete agreement on all the
+    reasons why "CL packages stink".  Personally, in fact,
+    I think they're not bad, in use, but the setup is what
+    stinks.  Others would disagree.
+
+I concur that they're ok, and even necessary for a symbolic language.
+The problem I feel is that they are good for preventing "symbol"
+mixups, but not "modularization".  E.G., suppose you have a symbolic
+differentiator, and so do I, and we don't want my dx/ds symbol to be
+confused with your dx/ds symbol lest they not be able to work
+together on an expression being differentiated.
+
+Unfortunately, what packages are mostly used for is for some notion
+of "modules" or "subsystems". (I agree that in lisp systems which
+cons up expressions and eval or compile them that there is little
+difference between these two scenarios, and we have to allow for
+them, but most systems just don't do that kind of thing.)  This is
+why I think the notion of LOCALE's from scheme or T or whatever keeps
+cropping up. My belief is that all "environment" (as opposed to
+package or "obarray") based approaches to solving name conflict
+problems are really designed to solve the problems of "modules" or
+"subsystems" for software engineering. This is a different problem
+from what packages can really solve.
+
+    But I think there's pretty good agreement that the
+    seven extremely perverse functions are perverse.
+
+The last thing I saw on the subject which was under consideration by
+the x3j13 compiler committee was a proposal to treat the "seven"
+specially as a compiled file header. This is more than just
+implicitly evaling them at compile time. Basically, this would clean up
+the issue of what "side effects" these have at compile time vs.
+load time of the compiled file. It would also bless specifically the 
+notion of a file-format for common lisp programs, thereby 
+making it clearly a lose to put IN-PACKAGE calls in the middle
+of files, etc. This has not been firmed up yet.
+
+What I think is needed is really a STYLE GUIDE to common lisp.
+Something that says how you OUGHT to program to avoid the majority
+of problems with things like the package system, etc. I think most
+package problems come from misuse.
+
+For instance, I would recommend that people be encouraged to 
+avoid USE-PACKAGE other than for package LISP, and instead 
+enumerate symbols one by one using the other package functions.
+My experience is that noone wants to qualify any names so what
+they do is carefully use every package that they've ever seen,
+not realizing that 
+
+(let ((string "abcd"))
+  ....)
+
+in their code is creating a spec-bind because they are using a package
+where string is a special.
+
+nuff said.
+
+...mike beckerle
+
+
+
+
+
+
+
+

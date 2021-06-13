@@ -1,0 +1,1294 @@
+*start*
+19563 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:Masinter.pa@Xerox.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 07 APR 87 15:29:53 PDT
+Received: from XEROX.COM by SAIL.STANFORD.EDU with TCP; 7 Apr 87  15:25:07 PDT
+Received: from Cabernet.ms by ArpaGateway.ms ; 07 APR 87 15:14:35 PDT
+Date: 7 Apr 87 15:15 PDT
+From: Masinter.pa
+Subject: Issue: DO-SYMBOLS-DUPLICATES (Revision 1)
+To: cl-cleanup@SAIL.STANFORD.EDU
+Message-ID: <870407-151435-2535@Xerox>
+
+Status:  Received but not discussed
+	Need volunteer to put proposal in standard format
+
+
+Edit history: Revision 1
+Issue: DO-SYMBOLS-DUPLICATES
+Reference: Steele, p. 187
+Category: Simple Clarification
+Description:
+The book does not specify whether do-symbols can repeat. Avoiding
+duplicates in do-symbols in all cases is computationally prohibitive in
+some implementations.  The authors of the manual intended that
+DO-SYMBOLS iterates over all symbols accessible to this package,
+including ones that are inherited from other packages. 
+
+Proposal: DO-SYMBOLS-DUPLICATES:ALLOWED
+Add to the specification to DO-SYMBOLS a note that it may execute the
+body more than once for some symbols. 
+
+!
+
+Discussion:
+04-Mar-85  0934	RAM@CMU-CS-C.ARPA 	do-xxx-symbols  
+Received: from CMU-CS-C.ARPA by SU-AI.ARPA with TCP; 4 Mar 85  09:34:29
+PST
+Received: ID <RAM@CMU-CS-C.ARPA>; Mon 4 Mar 85 12:33:31-EST
+Date: Mon, 4 Mar 1985  12:33 EST
+Message-ID: <RAM.12092370210.BABYL@CMU-CS-C.ARPA>
+From: Rob MacLachlan <RAM@CMU-CS-C.ARPA>
+To:   Charles Hedrick <HEDRICK@RUTGERS.ARPA>
+cc:   common-lisp@SU-AI.ARPA
+Subject: do-xxx-symbols
+In-reply-to: Msg of 3 Mar 1985  21:43-EST from Charles Hedrick <HEDRICK
+at RUTGERS.ARPA>
+
+
+    Date: Sunday, 3 March 1985  21:43-EST
+    From: Charles Hedrick <HEDRICK at RUTGERS.ARPA>
+    To:   ram
+    Re:   do-xxx-symbols
+
+    The definition of DO-SYMBOLS says that it iterates over all symbols
+    accessible in the specified package, and that it does each once.
+The
+    term "accessible in" is ambiguous. The code I have from Spice simply
+    iterates over the externals and internals of that package. One could
+    also interpret that as including packages used by the specified
+package.
+    In that case, some interesting code would be needed to prevent a
+given
+    symbol from being used more than once, since if IMPORT was done, a
+    symbol could appear in several packages.  Does Spice still make the
+    interpretation that DO-SYMBOLS looks only at the package specified?
+
+    Similarly, APROPOS talks about symbols "available in" a given
+package.
+    The wording talks about inheritance paths, so the implication seems
+    fairly clear that APROPOS does look at used packages.
+
+Even after staring at the manual, I was unable to determine what the
+intent was.  It is unfortunate that after spending N pages developing
+the theory and terminology, the actual function description blows it.
+The two possibilities are to iterate over all symbols available in the
+package, or only over those present in the package.
+
+If Do-Symbols is supposed to iterate over all symbols available in the
+package, then it is clearly impractical to guarantee that each symbol is
+only done once, so there probably should be a caveat similar to that for
+Do-All-Symbols in the Do-Symbols description.  I think that with some
+imagination, one could read the statement that each symbol is done once
+to mean that each symbol is done at least once.
+
+There is another problem with this interpretation, though.  Before you
+can iterate over any symbol for a used package, you must check to see if
+the symbol is shadowed in the inheriting package.  This could cause a
+substantial performance penalty in Do-Symbols, since it would be forced
+to do a hashtable lookup for each inherited symbol iterated over.  This
+means that doing an apropos in any package using the lisp package would
+require doing 1000 hashtable lookups.
+
+On the other hand, the word accessible could be replaced with present,
+and everyone would be happy.  Apropos would have to be changed to do a
+Do-External-Symbols on each used package, and would ignore details such
+as shadowed symbols.
+
+  Rob
+
+!04-Mar-85  1048	FAHLMAN@CMU-CS-C.ARPA 	do-xxx-symbols   
+Received: from CMU-CS-C.ARPA by SU-AI.ARPA with TCP; 4 Mar 85  10:47:57
+PST
+Received: ID <FAHLMAN@CMU-CS-C.ARPA>; Mon 4 Mar 85 13:46:53-EST
+Date: Mon, 4 Mar 1985  13:46 EST
+Message-ID: <FAHLMAN.12092383554.BABYL@CMU-CS-C.ARPA>
+Sender: FAHLMAN@CMU-CS-C.ARPA
+From: "Scott E. Fahlman" <Fahlman@CMU-CS-C.ARPA>
+To:   Rob MacLachlan <RAM@CMU-CS-C.ARPA>
+Cc:   common-lisp@SU-AI.ARPA, Charles Hedrick <HEDRICK@RUTGERS.ARPA>
+Subject: do-xxx-symbols
+In-reply-to: Msg of 4 Mar 1985  12:33-EST from Rob MacLachlan <RAM>
+
+
+I don't think that the term "accessible in" is ambiguous, given the
+definition on page 172.  Where is the ambiguity?  So DO-SYMBOLS wants to
+iterate over all of the internal and external symbols directly present
+in the current package, and also those symbols that are present because
+they are external in the packages used by the specified package.
+
+I don't think we need to worry about eliminating duplicates that result
+from explicit calls to IMPORT.  That would entail a lot of extra
+bookkeeping and would usually not be important.  The business about
+shadowing is a bit more complex.  Technically, a symbol shadowed in
+package P is not accessible in P, but again a lot of bookkeeping would
+be required to eliminate these.  Unless someone has a clever idea for
+how to do this efficiently, we should probably revise the description of
+DO-SYMBOLS to allow it to ignore this problem.  In the reare case where
+a user really cares, he can check for shadowed symbols himself.  In any
+event, the manual should be clarified on these two points.
+
+In the description of APROPOS, the term "available in" is supposed to be
+"accessible in", so the rules for DO-SYMBOLS should apply if the package
+is specified, and DO-ALL-SYMBOLS if all packages are to be searched.
+
+By the way, several groups have decided that the default for no package
+specified is bogus, and that if no package is specified the user
+probably should be given all symbols ACCESSIBLE IN the current package.
+An argument of T could mean that you really do want to see ALL the
+symbols, including internal compiler symbols, etc.  Opinions?
+
+-- Scott
+
+!
+04-Mar-85  1606	HEDRICK@RUTGERS.ARPA 	Re: do-xxx-symbols
+Received: from RUTGERS.ARPA by SU-AI.ARPA with TCP; 4 Mar 85  16:06:25
+PST
+Date: 4 Mar 85 19:05:43 EST
+From: Charles Hedrick <HEDRICK@RUTGERS.ARPA>
+Subject: Re: do-xxx-symbols
+To: RAM@CMU-CS-C.ARPA
+cc: common-lisp@SU-AI.ARPA
+In-Reply-To: Message from "Rob MacLachlan <RAM@CMU-CS-C.ARPA>" of 4 Mar
+85 12:33:00 EST
+
+My current implementation is the following:
+  DO-ALL-SYMBOLS - all symbols in all packages
+  DO-MOST-SYMBOLS - all symbols in all packages except not internals in
+	LISP or COMPILER (which I claim the user is not interested in
+	seeing in many cases)
+  DO-SYMBOLS - all symbols in the package mentioned
+  DO-ACCESSIBLE-SYMBOLS - all symbols in the package, and all externals
+	in used packages.  No attempt to remove shadowed symbols.
+  APROPOS
+   if package is omitted or NIL: DO-MOST-SYMBOLS
+   if package is T:  DO-ALL-SYMBOLS
+   otherwise: DO-ACCESSIBLE-SYMBOLS -------
+
+
+04-Mar-85  1851	HEDRICK@RUTGERS.ARPA 	Re: do-xxx-symbols
+Received: from RUTGERS.ARPA by SU-AI.ARPA with TCP; 4 Mar 85  18:50:55
+PST
+Date: 4 Mar 85 21:50:06 EST
+From: Charles Hedrick <HEDRICK@RUTGERS.ARPA>
+Subject: Re: do-xxx-symbols
+To: Fahlman@CMU-CS-C.ARPA
+cc: RAM@CMU-CS-C.ARPA, common-lisp@SU-AI.ARPA
+In-Reply-To: Message from ""Scott E. Fahlman" <Fahlman@CMU-CS-C.ARPA>"
+of 4 Mar 85 13:46:00 EST
+
+There are at least four reasons why the description of DO-SYMBOLS does
+not appear to include symbols in used packages:
+
+1) "do-symbols provides straightforward iteration over the symbols of a
+package".  Searching all the used packages is not straightforward
+iteration over the package.
+
+2) There is an implication that UNINTERN can be called to remove symbols
+from the package.  UNINTERN'ing a symbol in a used package does not
+exactly remove it from the package under discussion.
+
+3) It is said that every symbol is processed once.  In DO-ALL-SYMBOLS
+there is an explicit warning that symbols may occur more than once. The
+implication is that this is not true for DO-SYMBOLS.  If DO-SYMBOLS was
+supposed to look at used packages, then the same warning would apply to
+it.
+
+4) DO-EXTERNAL-SYMBOLS says that it is like DO-SYMBOLS, but only the
+external symbols of the specified package are used.  The wording of
+DO-EXTERNAL-SYMBOLS seems to imply even more clearly that only the
+specified package is scanned, not any used packages.  It also seems to
+imply that DO-SYMBOLS does the same thing, but for both internal and
+external symbols.
+
+Can we get an authoritative statement about what is covered by
+DO-SYMBOLS and DO-EXTERNAL-SYMBOLS, and about whether duplicates and
+shadowed symbols should be removed?  I think this question is separate
+from the APROPOS question.  APROPOS with no argument is documented as
+using DO-ALL-SYMBOLS.  But with an argument it is not said to use
+DO-SYMBOLS.  So it would be perfectly acceptable to say that DO-SYMBOLS
+looks only at the symbols in a particular 
+package, whereas APROPOS following the used chain.  (Indeed that is what
+I have done for the moment.) -------
+
+!04-Mar-85  2026	FAHLMAN@CMU-CS-C.ARPA 	do-xxx-symbols   
+Received: from CMU-CS-C.ARPA by SU-AI.ARPA with TCP; 4 Mar 85  20:25:46
+PST
+Received: ID <FAHLMAN@CMU-CS-C.ARPA>; Mon 4 Mar 85 23:24:38-EST
+Date: Mon, 4 Mar 1985  23:24 EST
+Message-ID: <FAHLMAN.12092488741.BABYL@CMU-CS-C.ARPA>
+Sender: FAHLMAN@CMU-CS-C.ARPA
+From: "Scott E. Fahlman" <Fahlman@CMU-CS-C.ARPA>
+To:   Charles Hedrick <HEDRICK@RUTGERS.ARPA>
+Cc:   common-lisp@SU-AI.ARPA
+Subject: do-xxx-symbols
+In-reply-to: Msg of 4 Mar 1985  21:50-EST from Charles Hedrick <HEDRICK
+at RUTGERS.ARPA>
+
+
+    Can we get an authoritative statement about what is covered by
+    DO-SYMBOLS and DO-EXTERNAL-SYMBOLS, and about whether duplicates and
+    shadowed symbols should be removed?
+
+Well, I think that the machinery for issuing authoritative statements is
+pretty rusty right now.  I hope that we will soon have some sort of duly
+constituted authority, but right now all we have is the ad hoc executive
+committee of which I am the ad hoc chairman.
+
+Hedrick's note points out that the description in the manual is
+ambiguous at best.  OK.  I wrote most of that (with input from Moon and
+Steele, among others) and I'm sure that DO-SYMBOLS was meant to include
+symbols inherited from used packages.  It never occurred to me that
+explicit IMPORT statements could set up a situation in which a symbol
+might show up twice unless you go to a lot of trouble to prevent this. I
+also didn't think about shadowed symbols.
+
+In my earlier note, I sent out my view of how to patch the existing
+description.  This is my view of "how it ought to be" rather than "what
+the manual says".  Does anyone object to adopting this as the "official"
+interpretation?  The only thing I'm uneasy about is letting DO-SYMBOLS
+generate shadowed symbols, but I don't see any good alternative.
+
+-- Scott
+
+!07-Mar-85  2130	KMP@SCRC-STONY-BROOK.ARPA 	DO-SYMBOLS finding shadowed
+symbols   
+Received: from SCRC-STONY-BROOK.ARPA by SU-AI.ARPA with TCP; 7 Mar 85
+21:30:01 PST
+Received: from SCRC-RIO-DE-JANEIRO by SCRC-STONY-BROOK via CHAOS with
+CHAOS-MAIL id 192222; Fri 8-Mar-85 00:28:37-EST
+Date: Fri, 8 Mar 85 00:29 EST
+From: Kent M Pitman <KMP@SCRC-STONY-BROOK.ARPA>
+Subject: DO-SYMBOLS finding shadowed symbols
+To: Fahlman@CMU-CS-C.ARPA
+cc: common-lisp@SU-AI.ARPA
+In-Reply-To: <FAHLMAN.12092488741.BABYL@CMU-CS-C.ARPA>
+Message-ID: <850308002930.5.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+
+    Date: Mon, 4 Mar 1985  23:24 EST
+    From: "Scott E. Fahlman" <Fahlman@CMU-CS-C.ARPA>
+
+    In my earlier note, I sent out my view of how to patch the existing
+    description.  This is my view of "how it ought to be" rather than
+"what
+    the manual says".  Does anyone object to adopting this as the
+"official"
+    interpretation?  The only thing I'm uneasy about is letting
+DO-SYMBOLS
+    generate shadowed symbols, but I don't see any good alternative.
+
+I'm also quite uneasy about this shadowed symbols issue. I see two
+situations:
+
+The first is interactive. When working interactively, you resort to
+mapping when the space of things you're frobbing is too large to do
+manually. In that case, you want all the help you can get and writing
+the code to keep out shadowed symbols may be something you forget or
+find very hard to write 
+correctly the first time (and you may only get one chance, unless you're
+very careful). Undoing an incorrect mapping operation involving INTERN
+may be massively hard.
+
+The second is non-interactive. There you have the time to write and
+debug an algorithm, but you may not be thinking about the shadowed
+symbol case and may forget to write it in because it doesn't occur in
+the scenario you're thinking about or whatever ... so you release code
+that mostly works but has a bug sitting in it just waiting to happen.
+
+If you make DO-SYMBOLS find symbols that are technically not accessible,
+you'd better document it well. But personally, I don't advise it, even 
+if it makes coding it much harder. Better you, the implementor, spend
+the time doing it once right than users spend the time over and over
+again correcting for your ... I was going to say laziness, but that's
+obviously the wrong word for people like all the CL implementors are.
+Nevertheless, 
+you get my point. "An ounce of prevention, ..." and all that.
+
+As to worrying about duplicated symbols, that doesn't strike me as as
+big a deal, though I'm open to arguments to the contrary. -kmp
+
+!08-Mar-85  0827	FAHLMAN@CMU-CS-C.ARPA 	DO-SYMBOLS finding shadowed
+symbols  
+Received: from CMU-CS-C.ARPA by SU-AI.ARPA with TCP; 8 Mar 85  08:27:04
+PST
+Received: ID <FAHLMAN@CMU-CS-C.ARPA>; Fri 8 Mar 85 11:26:08-EST
+Date: Fri, 8 Mar 1985  11:25 EST
+Message-ID: <FAHLMAN.12093406500.BABYL@CMU-CS-C.ARPA>
+Sender: FAHLMAN@CMU-CS-C.ARPA
+From: "Scott E. Fahlman" <Fahlman@CMU-CS-C.ARPA>
+To:   Kent M Pitman <KMP@SCRC-STONY-BROOK.ARPA>
+Cc:   common-lisp@SU-AI.ARPA
+Subject: DO-SYMBOLS finding shadowed symbols
+In-reply-to: Msg of 8 Mar 1985  00:29-EST from Kent M Pitman <KMP at
+SCRC-STONY-BROOK.ARPA>
+
+
+I've been having some second thoughts about shadowed symbols in
+DO-SYMBOLS myself.  It really is pretty dirty conceptually to have
+DO-SYMBOLS supply anything that is not really accessible in the package.
+
+I guess there are some ways that implementors could hack this without
+incurring unacceptable costs.  For example, we could set a bit
+somewhere, either in the symbol itself or in the hash-table entry, for
+any symbol that has ever been shadowed in any other package.  For the
+small minority of symbols with this bit set, we would have to do the
+extra checking to make sure that it really is accessible; for all other
+symbols, we could skip this.  We wouldn't have to worry about un-setting
+this bit if a symbol gets un-shadowed -- it's just a heuristic.  There
+are lots of variations on this theme.  The point is that it need not
+involve unacceptable overhead to eliminate shadowed symbols, though it
+does make a bit of extra work for implementors.  I guess I'd opt in this
+case to keep the language clean rather than the implementation.
+
+So my revised suggestion is that DO-SYMBOLS does provide all accessible
+symbols including those inherited via USE-PACKAGE.  It will present each
+symbol at least once (may be more than once in cases of explicit
+importantion), but will not present any symbols that are not really
+accessible in the package in question due to shadowing.
+
+-- Scott
+
+!
+19-Mar-85  0717	FAHLMAN@CMU-CS-C.ARPA 	DO-SYMBOLS: duplicates and
+shadowings     
+Received: from CMU-CS-C.ARPA by SU-AI.ARPA with TCP; 19 Mar 85  07:17:43
+PST
+Received: ID <FAHLMAN@CMU-CS-C.ARPA>; Tue 19 Mar 85 10:05:40-EST
+Date: Tue, 19 Mar 1985  10:05 EST
+Message-ID: <FAHLMAN.12096275453.BABYL@CMU-CS-C.ARPA>
+Sender: FAHLMAN@CMU-CS-C.ARPA
+From: "Scott E. Fahlman" <Fahlman@CMU-CS-C.ARPA>
+To:   Jon White <JLW@SU-AI.ARPA>
+Cc:   common-lisp@SU-AI.ARPA
+Subject: DO-SYMBOLS: duplicates and shadowings  
+
+
+The Spice Lisp system has now been changed by Rob Maclachlan so that
+DO-SYMBOLS does the right thing (according to my latest proposal):
+inherited symbols are presented, there is no special effort to eliminate
+duplicates, and shadowed symbols are eliminated.  As I understand it,
+the latter is accomplished by keeping track of which packages contain
+*any* shadowed symbols, and for symbols exported by these packages doing
+what amounts to a call to FIND-SYMBOL on each candidate.  Rob tells me
+that even when this extra checking is being done, it doesn't hurt us too
+much in speed.
+
+-- Scott
+
+
+27-Mar-85  1807	Moon@SCRC-STONY-BROOK.ARPA 	do-xxx-symbols   
+Received: from SCRC-STONY-BROOK.ARPA by SU-AI.ARPA with TCP; 27 Mar 85
+13:35:07 PST
+Received: from SCRC-EUPHRATES by SCRC-STONY-BROOK via CHAOS with
+CHAOS-MAIL id 204359; Wed 27-Mar-85 16:05:30-EST
+Date: Wed, 27 Mar 85 16:06 EST
+From: David A. Moon <Moon@SCRC-STONY-BROOK.ARPA>
+Subject: do-xxx-symbols
+To: Rob MacLachlan <RAM@CMU-CS-C.ARPA>,
+    Scott E. Fahlman <Fahlman@CMU-CS-C.ARPA>,
+    Charles Hedrick <HEDRICK@RUTGERS.ARPA>
+cc: common-lisp@SU-AI.ARPA, Moon@SCRC-STONY-BROOK.ARPA
+In-Reply-To: <RAM.12092370210.BABYL@CMU-CS-C.ARPA>,
+             <FAHLMAN.12092383554.BABYL@CMU-CS-C.ARPA>,
+             The message of 4 Mar 85 19:05-EST from Charles Hedrick
+<HEDRICK@RUTGERS.ARPA>,
+             The message of 4 Mar 85 21:50-EST from Charles Hedrick
+<HEDRICK@RUTGERS.ARPA>,
+             <FAHLMAN.12092488741.BABYL@CMU-CS-C.ARPA>,
+             The message of 4 Mar 85 23:34-EST from Charles Hedrick
+<HEDRICK@RUTGERS.ARPA>
+Message-ID: <850327160624.1.MOON@EUPHRATES.SCRC.Symbolics.COM>
+Comment: Message remailed after delay caused by distribution list error.
+
+Due to some kind of mail problem I didn't see this conversation until
+today.
+
+We take DO-SYMBOLS to mean to iterate over all symbols accessible to
+this package, including ones that are inherited from other packages.
+That seems like the most reasonable interpretation of what the manual
+says.  I agree with Scott that the authors of the manual never imagined
+that other interpretations were possible.
+
+We provide DO-LOCAL-SYMBOLS as an extension.  It iterates over only
+symbols present in the specified package.
+
+Our DO-SYMBOLS has the usual bug with shadowed symbols: its iteration
+includes symbols that would have been inherited had they not been
+shadowed.  I think it's clear that this is a bug and not an allowable
+interpretation of the manual.
+
+Our DO-SYMBOLS has the usual bug with unnecessarily imported or exported
+symbols: its iteration sees a symbol more than once if that symbol is
+imported even though it would have been inherited, or is exported from
+two used packages. Perhaps this case is rare enough in practice, and
+difficult enough to test for, that the manual should be changed to say
+that a symbol can be seen more than once, as Scott suggested.
+
+Of course, certain implementations of packages (ones that hash symbols
+redundantly in every package that inherits them, so that INTERN need do
+only a single hash lookup regardless of the length of the use-list)
+would never encounter such bugs.  Perhaps the language should be based
+on such a simple implementation as a standard, and other implementations
+that try to save space are responsible for not deviating from that
+standard.  Opinions?
+
+ 
+
+*start*
+02541 00024 USf
+Return-Path: <@SAIL.STANFORD.EDU:FAHLMAN@C.CS.CMU.EDU>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 17 APR 87 20:10:00 PDT
+Received: from C.CS.CMU.EDU by SAIL.STANFORD.EDU with TCP; 17 Apr 87  20:07:39 PDT
+Received: ID <FAHLMAN@C.CS.CMU.EDU>; Fri 17 Apr 87 23:08:34-EDT
+Date: Fri, 17 Apr 87 23:08 EDT
+Message-ID: <FAHLMAN.12295374347.BABYL@C.CS.CMU.EDU>
+Sender: FAHLMAN@C.CS.CMU.EDU
+From: "Scott E. Fahlman" <Fahlman@C.CS.CMU.EDU>
+To: cl-cleanup@SAIL.STANFORD.EDU
+Subject: Issue: DO-SYMBOLS-DUPLICATES (Revision 1)
+
+
+Status:  New Proposal (in the CL-Cleanup process, anyway)
+
+Issue:        DO-SYMBOLS-DUPLICATES
+References:   Do-Symbols, Page 187
+Category:     Clarification
+Edit history: Revision 1 by SEF 17-Apr-87
+
+Problem Description:
+
+CLtL specifies that Do-Symbols executes the body once for each symbol
+accessible in the package.  It does not say whether it is permissible
+for the body to be executed more than once for some accessible symbols.
+The term "accessible" is defined on page 172 to include symbols
+inherited from other packages (not including any symbols that may be
+shadowed).  It is very expensive in some implementations to eliminate
+duplications that occur because the same symbol is inherited from
+multiple packages.
+
+Proposal: DO-SYMBOLS-DUPLICATES:ALLOWED
+
+Add to the specification of DO-SYMBOLS a note that it may execute the
+body more than once for some symbols.
+
+Rationale:
+
+Most uses of DO-PACKAGE would not be harmed by the presence of
+duplicates.  For these applications it is unreasonable to force users to
+pay the high cost of filtering out the duplications.  Users who really
+want the duplicates to be removed can add additional code to do this job.
+
+Current Practice:
+
+Many implementations have always produced duplicate values.
+
+Adoption Cost:
+
+None.  Implemenations would still be free to eliminate the duplications,
+though code will not be assuming that this has been done.
+
+Benefits:
+
+Clarification of a situation that is currently ambiguous.
+
+Conversion Cost:
+
+Users who have been assuming that DO-SYMBOLS eliminates duplications
+will have to be modified, but such code would run on few existing Common
+Lisp systems.
+
+Aesthetics:
+
+It would be cleaner to present each symbol exactly once.  This is a
+clear case of choosing efficiency over elegance.
+
+Discussion:
+
+This issue was discussed on the Common Lisp mailing list in 1985, and
+the solution proposed here seems to have been informally agreed to at
+the time -- there was no formal decision-making process in place then.
+
+*start*
+02315 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 19 APR 87 21:12:51 PDT
+Received: from SCRC-STONY-BROOK.ARPA by SAIL.STANFORD.EDU with TCP; 19 Apr 87  21:10:35 PDT
+Received: from RIO-DE-JANEIRO.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 119735; Mon 20-Apr-87 00:10:32 EDT
+Date: Mon, 20 Apr 87 00:10 EDT
+From: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: Issue: DO-SYMBOLS-DUPLICATES (Revision 1)
+To: Fahlman@C.CS.CMU.EDU
+cc: cl-cleanup@SAIL.STANFORD.EDU
+In-Reply-To: <FAHLMAN.12295374347.BABYL@C.CS.CMU.EDU>
+Message-ID: <870420001008.6.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+
+While I agree it might be somewhat expensive to filter duplicates in
+some cases, I wonder how often the efficiency matters.  In my personal
+experience, DO-SYMBOLS and friends is never used in realtime because
+it usually pages like crazy anyway.
+
+In my code, it's generally used in environment initialization situations
+where efficiency is not my chief concern, and where not making a mistake
+is sometimes critical. I think it would be nicer if programmers didn't
+have to worry about duplication. Sometimes I do very complicated package
+surgery using DO-SYMBOLS where I think terrifying things might happen if
+I hit a duplicate. Usually by the time I've debugged the code I make it
+a goal to make repeat calls to the body not hurt things so I can test
+the code more than once, but having it try to help me as much as
+possible until I've gotten all the glitches out would be nice.
+
+Does anyone care to make an estimate of exactly how much things get
+slowed down if you don't duplicate any symbols and/or an estimate of how
+often this slowdown would cause an adverse performance impact?
+Including such assumptions in this proposal would be useful so that they
+can be discussed or contested.
+
+Personally, I'd rather see a keyword argument added someplace saying
+that I'm willing to accept seeing duplications so that naive expectations
+would not be violated in the default situation. As a straw man, something
+like:
+
+ (DO-SYMBOLS (SYMBOL (FIND-PACKAGE "FRED") NIL
+	       :ALLOW-DUPLICATES T
+	       :EXTERNAL-ONLY NIL)
+   ...)
+
+Note that this could eliminate the need for DO-EXTERNAL-SYMBOLS...
+
+*start*
+01593 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:FAHLMAN@C.CS.CMU.EDU>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 19 APR 87 21:36:09 PDT
+Received: from C.CS.CMU.EDU by SAIL.STANFORD.EDU with TCP; 19 Apr 87  21:34:03 PDT
+Received: ID <FAHLMAN@C.CS.CMU.EDU>; Mon 20 Apr 87 00:35:01-EDT
+Date: Mon, 20 Apr 87 00:34 EDT
+Message-ID: <FAHLMAN.12295914368.BABYL@C.CS.CMU.EDU>
+Sender: FAHLMAN@C.CS.CMU.EDU
+From: "Scott E. Fahlman" <Fahlman@C.CS.CMU.EDU>
+To: Kent M Pitman <KMP@SCRC-STONY-BROOK.ARPA>
+Cc: cl-cleanup@SAIL.STANFORD.EDU
+Subject: Issue: DO-SYMBOLS-DUPLICATES (Revision 1)
+In-reply-to: Msg of 20 Apr 1987  00:10-EDT from Kent M Pitman <KMP at STONY-BROOK.SCRC.Symbolics.COM>
+
+
+It's hard to estimate the cost of eliminating duplicates in DO-SYMBOLS.
+The obvious strategy is to cons up (or keep around) a hash-table and to
+note symbols as they go by.  That would be a big hash-table for some
+packages, and might double the paging required (or push a non-paging
+program into thrash-land.  Let's guess that it doubles the time required
+on the average.
+
+I wouldn't mind adding a non-duplicating version of DO-SYMBOLS, as long
+as this isn't the default.  I don't want to pay the price for KMP's
+occasional hairy applications every time I scan the symbol table looking
+for something.  I don't really object to the keyword idea (with
+duplicates-allowed as the default), but the minimum-incompatibility
+solution now would be to keep the two functions we have and add
+DO-SYMBOLS-NO-DUPLICATES as either a new built-in function or a yellow
+pages package for people who want it.
+
+-- Scott
+
+*start*
+04022 00024 USf
+Date: 29 May 87 21:16 PDT
+From: Masinter.pa
+To: cl-cleanup@SAIL.STANFORD.EDU
+Subject: Issue: DO-SYMBOLS-DUPLICATES (Version 2)
+CC: Masinter
+
+
+Status:  I merged in various comments. Ready for release? [use ballot]
+
+Issue:        DO-SYMBOLS-DUPLICATES
+References:   Do-Symbols, Page 187
+Category:     Clarification
+Edit history: Revision 1 by SEF 17-Apr-87
+              Version 2 by Masinter, add other options
+
+Problem Description:
+
+CLtL specifies that Do-Symbols executes the body once for each symbol
+accessible in the package.  It does not say whether it is permissible
+for the body to be executed more than once for some accessible symbols.
+The term "accessible" is defined on page 172 to include symbols
+inherited from other packages (not including any symbols that may be
+shadowed).  It is very expensive in some implementations to eliminate
+duplications that occur because the same symbol is inherited from
+multiple packages.
+
+Proposal: DO-SYMBOLS-DUPLICATES:ALLOWED
+
+Add to the specification of DO-SYMBOLS a note that it may execute the
+body more than once for some symbols.
+
+Rationale:
+
+Most uses of DO-PACKAGE would not be harmed by the presence of
+duplicates.  For these applications it is unreasonable to force users to
+pay the high cost of filtering out the duplications.  Users who really
+want the duplicates to be removed can add additional code to do this job.
+
+Current Practice:
+
+Many implementations have always produced duplicate values.
+
+Adoption Cost:
+
+None.  Implemenations would still be free to eliminate the duplications,
+though code will not be assuming that this has been done.
+
+Benefits:
+
+Clarification of a situation that is currently ambiguous.
+
+Conversion Cost:
+
+Users who have been assuming that DO-SYMBOLS eliminates duplications
+will have to be modified, but such code would run on few existing Common
+Lisp systems.
+
+Aesthetics:
+
+It would be cleaner to present each symbol exactly once.  This is a
+clear case of choosing efficiency over elegance.
+
+Discussion:
+
+This issue was discussed on the Common Lisp mailing list in 1985, and
+the solution proposed here seems to have been informally agreed to at
+the time -- there was no formal decision-making process in place then.
+
+The need for do-symbols to be efficient is questionable, however; for 
+many applications (e.g., global package manipulation), duplicate values
+would create havoc. 
+
+For some implementations, the performance penalty would be well over 
+a factor of two.
+
+Proposal: DO-SYMBOLS-DUPLICATES:ADD-KEYWORDS
+
+Add a keyword argument to the DO-SYMBOLS macro :ALLOW-DUPLICATES (default
+value T) which would make the choice explicit. E.g., 
+
+ (DO-SYMBOLS (SYMBOL (FIND-PACKAGE "FRED") NIL
+	       :ALLOW-DUPLICATES T
+	       :EXTERNAL-ONLY NIL)
+   ...)
+
+Rationale:
+
+This proposal allows applications which need to be careful the 
+opportunity to do so.
+
+Current Practice:
+
+No current implementation has this feature.
+
+Adoption Cost:
+
+Implementations which currently can produce duplicates would have
+to keep track of symbols which were previously in the macro expansion.
+
+Benefits:
+
+The default case would run efficiently, and yet users could also have
+code that guaranteed that there were no duplicates.
+
+Conversion Cost:
+
+Users who have been assuming that DO-SYMBOLS eliminates duplications
+would only have to add a :ALLOW-DUPLICATES T.
+
+Aesthetics:
+
+This proposal makes the language slightly more complex, but allows 
+for both efficiency and accuracy. 
+
+Discussion:
+
+Should the default value of :allow-duplicates be nil instead?
+        TITAN          TITAN           
+TIMESROMAN 
+           Ž       H                                   	                     T             ö       (       n                           >              …       
+       <              ž              w             Ò       -       ò              X              .              ‹       
+       |              u              i              ?      
+Ä ,zº*start*
+01486 00024 USh
+Return-Path: <@SAIL.STANFORD.EDU:Pavel.pa@Xerox.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 01 JUN 87 18:23:18 PDT
+Received: from XEROX.COM by SAIL.STANFORD.EDU with TCP; 1 Jun 87  18:22:24 PDT
+Received: from Cabernet.ms by ArpaGateway.ms ; 01 JUN 87 18:21:57 PDT
+Date: 1 Jun 87 18:21 PDT
+From: Pavel.pa
+Subject: DO-SYMBOLS-DUPLICATES
+To: CL-Cleanup@SAIL.Stanford.Edu
+Message-ID: <870601-182157-3303@Xerox>
+
+I think that I favor something like the DO-SYMBOLS:ADD-KEYWORD proposal,
+but I'm not willing to vote for it as it.  The problem is that the
+example in the proposal contains a keyword not described by the
+proposal, namely :EXTERNAL-ONLY.  Also, the proposal does not specify
+which, if any, of the arguments following the return-value expression
+are to be evaluated.  In short, it is not a complete proposal.
+
+I like the idea of having a single package-iteration macro, flushing
+ones like DO-EXTERNAL-SYMBOLS.  Probably the best way to do this is to
+have some set of orthogonal attributes selectable by keyword.  It would
+be nice if the same keywords were the arguments to some functional
+interface to package-iteration, such as the MAPATOMS function in
+Interlisp.  Then the flavor of the iterative macro would be more like
+WITH-OPEN-FILE, whose options are just those available from OPEN.
+
+In any case, I think that allowing the duplicates is probably the wrong
+thing in general, so I can't vote in favor of either of the two
+proposals.
+
+	Pavel
+
+*start*
+02352 00024 USh
+Return-Path: <@SAIL.STANFORD.EDU:Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 03 JUN 87 19:07:32 PDT
+Received: from SCRC-STONY-BROOK.ARPA by SAIL.STANFORD.EDU with TCP; 3 Jun 87  19:05:30 PDT
+Received: from EUPHRATES.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 163448; Wed 3-Jun-87 22:04:49 EDT
+Date: Wed, 3 Jun 87 22:04 EDT
+From: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: DO-SYMBOLS
+To: Guy Steele <gls@Think.COM>
+cc: cl-cleanup@sail.stanford.edu
+In-Reply-To: <870603162917.0.GLS@BOETHIUS.THINK.COM>
+Message-ID: <870603220443.1.MOON@EUPHRATES.SCRC.Symbolics.COM>
+
+    Date: Wed, 3 Jun 87 16:29 EDT
+    From: Guy Steele <gls@Think.COM>
+
+    So suppose each of two packages uses the other,
+    and each happens to export the same symbol?
+
+    (SETQ A (MAKE-PACKAGE 'A))
+    (SETQ B (MAKE-PACKAGE 'B))
+    (EXPORT (INTERN "ASYM" A) A)
+    (USE-PACKAGE A B)
+    (EXPORT 'B:ASYM B)
+    (USE-PACKAGE B A)
+    (DO-ALL-SYMBOLS (X B) (PRINT X))  ;will this print ASYM once, twice,
+				      ; an infinite number of times, or what?
+
+DO-SYMBOLS:ALLOWED proposes to allow it to print ASYM once or twice, the
+way I read it.  I don't see how it could print it an infinite number of
+times.  (package-use-list (find-package 'a)) has no effect on
+(package-external-symbols (find-package 'a)), hence should have no effect
+on (do-symbols (x b) ...).  Or are you saying that the specification
+should be loosened up to the point where do-symbols is allowed to
+recurse on packages used, and then only look at a subset of the symbols
+in those packages?
+
+Nit picking: I assume you meant (DO-SYMBOLS (X B) (PRINT X)) rather
+than (DO-ALL-SYMBOLS (X B) (PRINT X)).  I have no idea how many times
+the latter should print ASYM, before it returns the value of B, except
+that it shouldn't be an infinite number.
+
+package-external-symbols is missing from the Common Lisp language for
+some unfathomable reason, but you can define it in terms of do-external-symbols.
+
+The example didn't run until I changed B:ASYM to B::ASYM.
+
+End of nit picking: Does this mean the DO-SYMBOLS issue file needs to be
+beefed up to discuss these issues, or are you and I just rambling while
+waiting for our Thinking Machines (TM) central nervous system prosthetics
+to be installed?
+
+*start*
+01182 00024 USh
+Return-Path: <@SAIL.STANFORD.EDU:Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 03 JUN 87 11:03:21 PDT
+Received: from SCRC-STONY-BROOK.ARPA by SAIL.STANFORD.EDU with TCP; 3 Jun 87  11:01:09 PDT
+Received: from EUPHRATES.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 162940; Wed 3-Jun-87 14:00:15 EDT
+Date: Wed, 3 Jun 87 14:00 EDT
+From: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: DO-SYMBOLS
+To: Guy Steele <gls@Think.COM>
+cc: cl-cleanup@sail.stanford.edu
+In-Reply-To: <870603103149.3.GLS@BOETHIUS.THINK.COM>
+Message-ID: <870603140012.7.MOON@EUPHRATES.SCRC.Symbolics.COM>
+
+    Date: Wed, 3 Jun 87 10:31 EDT
+    From: Guy Steele <gls@Think.COM>
+
+    I favor DO-SYMBOLS:ALLOWED, except that I would like to have
+    the following issue addressed: if duplicates are allowed, it
+    may admit an implementation that would not terminate in the
+    situation where each of two packages USEd the other?  
+
+I don't think this is a problem, since using a package does not
+inherit symbols that are -accessible- to that package, only
+symbols that are -exported- by that package.
+
+*start*
+01557 00024 USh
+Return-Path: <@SAIL.STANFORD.EDU:gls@Think.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 03 JUN 87 13:33:47 PDT
+Received: from THINK.COM by SAIL.STANFORD.EDU with TCP; 3 Jun 87  13:31:51 PDT
+Received: from boethius by Think.COM via CHAOS; Wed, 3 Jun 87 16:31:30 EDT
+Date: Wed, 3 Jun 87 16:29 EDT
+From: Guy Steele <gls@Think.COM>
+Subject: DO-SYMBOLS
+To: Moon@stony-brook.scrc.symbolics.com, gls@think.com
+Cc: cl-cleanup@sail.stanford.edu, gls@think.com
+In-Reply-To: <870603140012.7.MOON@EUPHRATES.SCRC.Symbolics.COM>
+Message-Id: <870603162917.0.GLS@BOETHIUS.THINK.COM>
+
+    Date: Wed, 3 Jun 87 14:00 EDT
+    From: David A. Moon <Moon@stony-brook.scrc.symbolics.com>
+
+	Date: Wed, 3 Jun 87 10:31 EDT
+	From: Guy Steele <gls@Think.COM>
+
+	I favor DO-SYMBOLS:ALLOWED, except that I would like to have
+	the following issue addressed: if duplicates are allowed, it
+	may admit an implementation that would not terminate in the
+	situation where each of two packages USEd the other?  
+
+    I don't think this is a problem, since using a package does not
+    inherit symbols that are -accessible- to that package, only
+    symbols that are -exported- by that package.
+
+Right.  Sorry.  So suppose each of two packages uses the other,
+and each happens to export the same symbol?
+
+(SETQ A (MAKE-PACKAGE 'A))
+(SETQ B (MAKE-PACKAGE 'B))
+(EXPORT (INTERN "ASYM" A) A)
+(USE-PACKAGE A B)
+(EXPORT 'B:ASYM B)
+(USE-PACKAGE B A)
+(DO-ALL-SYMBOLS (X B) (PRINT X))  ;will this print ASYM once, twice,
+				  ; an infinite number of times, or what?
+
+--Guy
+
+*start*
+00854 00024 USh
+Return-Path: <@SAIL.STANFORD.EDU:gls@Think.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 03 JUN 87 07:33:29 PDT
+Received: from THINK.COM by SAIL.STANFORD.EDU with TCP; 3 Jun 87  07:31:42 PDT
+Received: from boethius by Think.COM via CHAOS; Wed, 3 Jun 87 10:34:03 EDT
+Date: Wed, 3 Jun 87 10:31 EDT
+From: Guy Steele <gls@Think.COM>
+Subject: DO-SYMBOLS
+To: cl-cleanup@sail.stanford.edu
+Cc: gls@think.com
+Message-Id: <870603103149.3.GLS@BOETHIUS.THINK.COM>
+
+I favor DO-SYMBOLS:ALLOWED, except that I would like to have
+the following issue addressed: if duplicates are allowed, it
+may admit an implementation that would not terminate in the
+situation where each of two packages USEd the other?  Do we
+need a provision that DO-SYMBOLS must terminate, at least
+for cases where the body does not aletr the packages involved?
+--Guy
+
+*start*
+01316 00024 USh
+Return-Path: <@SAIL.STANFORD.EDU:FAHLMAN@C.CS.CMU.EDU>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 03 JUN 87 21:45:40 PDT
+Received: from C.CS.CMU.EDU by SAIL.STANFORD.EDU with TCP; 3 Jun 87  21:44:53 PDT
+Received: ID <FAHLMAN@C.CS.CMU.EDU>; Thu 4 Jun 87 00:44:18-EDT
+Date: Thu, 4 Jun 87 00:44 EDT
+Message-ID: <FAHLMAN.12307712547.BABYL@C.CS.CMU.EDU>
+Sender: FAHLMAN@C.CS.CMU.EDU
+From: "Scott E. Fahlman" <Fahlman@C.CS.CMU.EDU>
+To: cl-cleanup@SAIL.STANFORD.EDU
+Subject: Issue: DO-SYMBOLS-DUPLICATES (Version 2)
+In-reply-to: Msg of 30 May 1987  00:16-EDT from Masinter.pa at Xerox.COM
+
+
+I support DO-SYMBOLS-DUPLICATES:ALLOWED.
+
+I don't think we should present X3J13 with two alterantives on a dumb
+issue like this.  If someone really feels strongly about the keyword
+version and wants to produce a correct and complete version of the
+keyword proposal in the next couple of days, I would be willing to go
+along with that instead.  But in any case, I think we should decide
+among ourselves and only bring one proposal out of this committee.
+
+If we do go with a keyword version, I feel rather strongly that the
+default must be to allow duplicates.  In most cases, the issue of
+duplicates really doesn't matter, and we don't want to saddle users with
+a much more expensive default.
+
+-- Scott
+
+*start*
+03780 00024 US 
+Date: 23 Nov 87 14:02 PST
+From: Masinter.pa
+To: cl-cleanup@SAIL.STANFORD.EDU
+Subject: Issue: DO-SYMBOLS-DUPLICATES (Version 3)
+CC: Masinter
+
+
+There is no apparent consensus on this issue. Various folks
+said they would like a version that had keywords and didn't like
+allowing duplicates, but in lieu of a consensus for change, we're
+left with the status quo. 
+
+This version removes the ADD-KEYWORDS alternative proposal, and
+adds to the discussion.
+
+I removed an awkward phrase which read 
+
+"Users who have been assuming [no duplicates]...
+will have to be modified."
+
+although perhaps that is what we mean.
+
+
+
+Issue:        DO-SYMBOLS-DUPLICATES
+References:   DO-SYMBOLS, CLtL p.187
+Category:     Clarification
+Edit history: Version 1 by Fahlman 17-Apr-87
+              Version 2 by Masinter 29-May-87
+              Version 3 by Masinter 23-Nov-87
+
+Problem Description:
+
+CLtL specifies that DO-SYMBOLS executes the body once for each symbol
+accessible in the package.  It does not say whether it is permissible
+for the body to be executed more than once for some accessible symbols.
+The term "accessible" is defined on page 172 to include symbols
+inherited from other packages (not including any symbols that may be
+shadowed).  It is very expensive in some implementations to eliminate
+duplications that occur because the same symbol is inherited from
+multiple packages.
+
+Proposal: DO-SYMBOLS-DUPLICATES:ALLOWED
+
+Add to the specification of DO-SYMBOLS a note that it may execute the
+body more than once for some symbols.
+
+Example:
+
+(SETQ A (MAKE-PACKAGE 'A))
+(SETQ B (MAKE-PACKAGE 'B))
+(EXPORT (INTERN "ASYM" A) A)
+(USE-PACKAGE A B)
+(EXPORT 'B::ASYM B)
+(USE-PACKAGE B A)
+(DO-SYMBOLS (X B) (PRINT X)) 
+;; this may print ASYM once or twice.
+
+Rationale:
+
+Most uses of DO-PACKAGE would not be harmed by the presence of
+duplicates.  For these applications it is unreasonable to force users to
+pay the high cost of filtering out the duplications.  Users who really
+want the duplicates to be removed can add additional code to do this job.
+
+Current Practice:
+
+Many implementations have always produced duplicate values.
+
+Cost to implementors:
+
+None.  Implemenations would still be free to eliminate the duplications,
+though code will not be assuming that this has been done.
+
+Cost to users:
+
+Code written assuming that DO-SYMBOLS eliminates duplications
+will have to be modified. (Such code was not truly portable.)
+
+Benefits:
+
+Clarification of a situation that is currently ambiguous.
+
+Aesthetics:
+
+It would be cleaner to present each symbol exactly once.  This is a
+clear case of choosing efficiency over elegance.
+
+Discussion:
+
+This issue was discussed on the Common Lisp mailing list in 1985, and
+the solution proposed here seems to have been informally agreed to at
+the time -- there was no formal decision-making process in place then.
+
+The need for do-symbols to be efficient is questionable, however; for 
+many applications (e.g., global package manipulation), duplicate values
+would create havoc. 
+
+For some implementations, the performance penalty would be well over 
+a factor of two.
+
+Several proposals were considered for adding keyword arguments
+to DO-SYMBOLS which might specify :ALLOW-DUPLICATES, adding keywords
+and eliminating DO-EXTERNAL-SYMBOLS, etc., but no clear consensus
+was reached for making additions.
+
+This version is the closest to the status quo.
+
+        TITAN           TITAN          TITAN           
+TIMESROMAN 
+           Ž      Õ                                   	                     |             ö       (       n       	              Ï                                  >              …              ~       
+       <              w             ë      
++  zº*start*
+03745 00024 USm
+Return-Path: <CL-Cleanup-mailer@SAIL.Stanford.EDU>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 23 NOV 87 14:04:58 PST
+Received: from XEROX.COM by SAIL.STANFORD.EDU with TCP; 23 Nov 87  14:03:03 PST
+Received: from Cabernet.ms by ArpaGateway.ms ; 23 NOV 87 14:02:49 PST
+Date: 23 Nov 87 14:02 PST
+From: Masinter.pa
+To: cl-cleanup@SAIL.STANFORD.EDU
+Subject: Issue: DO-SYMBOLS-DUPLICATES (Version 3)
+CC: Masinter.pa
+Message-ID: <871123-140249-2744@Xerox>
+
+
+There is no apparent consensus on this issue. Various folks
+said they would like a version that had keywords and didn't like
+allowing duplicates, but in lieu of a consensus for change, we're
+left with the status quo. 
+
+This version removes the ADD-KEYWORDS alternative proposal, and
+adds to the discussion.
+
+I removed an awkward phrase which read 
+
+"Users who have been assuming [no duplicates]...
+will have to be modified."
+
+although perhaps that is what we mean.
+
+
+!
+Issue:        DO-SYMBOLS-DUPLICATES
+References:   DO-SYMBOLS, CLtL p.187
+Category:     Clarification
+Edit history: Version 1 by Fahlman 17-Apr-87
+              Version 2 by Masinter 29-May-87
+              Version 3 by Masinter 23-Nov-87
+
+Problem Description:
+
+CLtL specifies that DO-SYMBOLS executes the body once for each symbol
+accessible in the package.  It does not say whether it is permissible
+for the body to be executed more than once for some accessible symbols.
+The term "accessible" is defined on page 172 to include symbols
+inherited from other packages (not including any symbols that may be
+shadowed).  It is very expensive in some implementations to eliminate
+duplications that occur because the same symbol is inherited from
+multiple packages.
+
+Proposal: DO-SYMBOLS-DUPLICATES:ALLOWED
+
+Add to the specification of DO-SYMBOLS a note that it may execute the
+body more than once for some symbols.
+
+Example:
+
+(SETQ A (MAKE-PACKAGE 'A))
+(SETQ B (MAKE-PACKAGE 'B))
+(EXPORT (INTERN "ASYM" A) A)
+(USE-PACKAGE A B)
+(EXPORT 'B::ASYM B)
+(USE-PACKAGE B A)
+(DO-SYMBOLS (X B) (PRINT X)) 
+;; this may print ASYM once or twice.
+
+Rationale:
+
+Most uses of DO-PACKAGE would not be harmed by the presence of
+duplicates.  For these applications it is unreasonable to force users to
+pay the high cost of filtering out the duplications.  Users who really
+want the duplicates to be removed can add additional code to do this job.
+
+Current Practice:
+
+Many implementations have always produced duplicate values.
+
+Cost to implementors:
+
+None.  Implemenations would still be free to eliminate the duplications,
+though code will not be assuming that this has been done.
+
+Cost to users:
+
+Code written assuming that DO-SYMBOLS eliminates duplications
+will have to be modified. (Such code was not truly portable.)
+
+Benefits:
+
+Clarification of a situation that is currently ambiguous.
+
+Aesthetics:
+
+It would be cleaner to present each symbol exactly once.  This is a
+clear case of choosing efficiency over elegance.
+
+Discussion:
+
+This issue was discussed on the Common Lisp mailing list in 1985, and
+the solution proposed here seems to have been informally agreed to at
+the time -- there was no formal decision-making process in place then.
+
+The need for do-symbols to be efficient is questionable, however; for 
+many applications (e.g., global package manipulation), duplicate values
+would create havoc. 
+
+For some implementations, the performance penalty would be well over 
+a factor of two.
+
+Several proposals were considered for adding keyword arguments
+to DO-SYMBOLS which might specify :ALLOW-DUPLICATES, adding keywords
+and eliminating DO-EXTERNAL-SYMBOLS, etc., but no clear consensus
+was reached for making additions.
+
+This version is the closest to the status quo.
+
+*start*
+00976 00024 US 
+Return-Path: <@STONY-BROOK.SCRC.Symbolics.COM,@EUPHRATES.SCRC.Symbolics.COM:Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Received: from STONY-BROOK.SCRC.Symbolics.COM (SCRC-STONY-BROOK.ARPA) by Xerox.COM ; 23 NOV 87 14:43:12 PST
+Received: from EUPHRATES.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via INTERNET with SMTP id 287159; 23 Nov 87 17:42:48 EST
+Date: Mon, 23 Nov 87 17:42 EST
+From: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: Issue: DO-SYMBOLS-DUPLICATES (Version 3)
+To: Masinter.pa
+cc: cl-cleanup@SAIL.STANFORD.EDU
+In-Reply-To: <871123-140249-2744@Xerox>
+Message-ID: <19871123224244.6.MOON@EUPHRATES.SCRC.Symbolics.COM>
+Line-fold: No
+
+    Date: 23 Nov 87 14:02 PST
+    From: Masinter.pa@Xerox.COM
+
+    I removed an awkward phrase which read 
+
+    "Users who have been assuming [no duplicates]...
+    will have to be modified."
+
+    although perhaps that is what we mean.
+
+Perhaps "Users who" was a typo for "Uses which".
+
+
+*start*
+00727 00024 US 
+Return-Path: <CL-Cleanup-mailer@SAIL.Stanford.EDU>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 23 NOV 87 18:41:33 PST
+Received: from SCRC-STONY-BROOK.ARPA by SAIL.STANFORD.EDU with TCP; 23 Nov 87  18:39:43 PST
+Received: from EUPHRATES.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via INTERNET with SMTP id 287428; 23 Nov 87 21:39:27 EST
+Date: Mon, 23 Nov 87 21:39 EST
+From: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: Issue: DO-SYMBOLS-DUPLICATES (Version 3)
+To: cl-cleanup@SAIL.STANFORD.EDU
+In-Reply-To: <871123-140249-2744@Xerox>
+Message-ID: <19871124023928.9.MOON@EUPHRATES.SCRC.Symbolics.COM>
+
+This looks fine.  Simple and elegant.
+
+
+*start*
+03394 00024 US 
+Date: 14 Feb 88 11:37 PST
+From: Masinter.pa
+Subject: Issue: DO-SYMBOLS-DUPLICATES (Version 3)
+To: X3J13@Sail.stanford.edu
+cc: Masinter
+reply-to: CL-CLEANUP@Sail.Stanford.EDU
+
+This issue has not been distributed to X3J13 before. 
+
+
+Issue:        DO-SYMBOLS-DUPLICATES
+References:   DO-SYMBOLS, CLtL p.187
+Category:     Clarification
+Edit history: Version 1 by Fahlman 17-Apr-87
+              Version 2 by Masinter 29-May-87
+              Version 3 by Masinter 23-Nov-87
+
+Problem Description:
+
+CLtL specifies that DO-SYMBOLS executes the body once for each symbol accessible in the package.  It does not say whether it is permissible for the body to be executed more than once for some accessible symbols. The term "accessible" is defined on page 172 to include symbols inherited from other packages (not including any symbols that may be shadowed).  It is very expensive in some implementations to eliminate duplications that occur because the same symbol is inherited from multiple packages.
+
+Proposal: DO-SYMBOLS-DUPLICATES:ALLOWED
+
+Add to the specification of DO-SYMBOLS a note that it may execute the body more than once for some symbols.
+
+Example:
+
+(SETQ A (MAKE-PACKAGE 'A))
+(SETQ B (MAKE-PACKAGE 'B))
+(EXPORT (INTERN "ASYM" A) A)
+(USE-PACKAGE A B)
+(EXPORT 'B::ASYM B)
+(USE-PACKAGE B A)
+(DO-SYMBOLS (X B) (PRINT X)) 
+;; this may print ASYM once or twice.
+
+Rationale:
+
+Most uses of DO-PACKAGE would not be harmed by the presence of duplicates.  For these applications it is unreasonable to force users to pay the high cost of filtering out the duplications.  Users who really want the duplicates to be removed can add additional code to do this job.
+
+Current Practice:
+
+Many implementations have always produced duplicate values.
+
+Cost to implementors:
+
+None.  Implemenations would still be free to eliminate the duplications, though code will not be assuming that this has been done.
+
+Cost to users:
+
+Code written assuming that DO-SYMBOLS eliminates duplications will have to be modified. (Such code was not truly portable.)
+
+Benefits:
+
+Clarification of a situation that is currently ambiguous.
+
+Aesthetics:
+
+It would be cleaner to present each symbol exactly once.  This is a clear case of choosing efficiency over elegance.
+
+Discussion:
+
+This issue was discussed on the Common Lisp mailing list in 1985, and the solution proposed here seems to have been informally agreed to at the time -- there was no formal decision-making process in place then.
+
+The need for DO-SYMBOLS to be efficient is questionable, however; for many applications (e.g., global package manipulation), duplicate values would create havoc. 
+
+For some implementations, the performance penalty would be well over a factor of two.
+
+Several proposals were considered for adding keyword arguments to DO-SYMBOLS which might specify :ALLOW-DUPLICATES, adding keywords and eliminating DO-EXTERNAL-SYMBOLS, etc., but no clear consensus was reached for making additions.
+
+This version is the closest to the status quo.
+        TITAN 
+         TITAN 
+          
+TIMESROMAN 
+          
+TIMESROMAN 
+           ^       P       :                                                        |             ö       (       n       	       Ñ                           >              …              ~       
+       <              w             è      ­ zº*start*
+00634 00024 US 
+Return-Path: <CL-Cleanup-mailer@SAIL.Stanford.EDU>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 15 FEB 88 16:36:31 PST
+Received: from Xerox.COM by SAIL.Stanford.EDU with TCP; 15 Feb 88  16:34:29 PST
+Received: from Cabernet.ms by ArpaGateway.ms ; 15 FEB 88 16:30:38 PST
+Date: 15 Feb 88 16:29 PST
+From: Daniels.pa
+Subject: Re: Issue: DO-SYMBOLS-DUPLICATES (Version 3)
+In-reply-to: Masinter.pa's message of 14 Feb 88 11:37 PST
+To: CL-CLEANUP@Sail.Stanford.EDU
+Message-ID: <880215-163038-2296@Xerox>
+
+The rationale contains a type: DO-PACKAGE for DO-SYMBOLS.
+
+		-- Andy. --
+

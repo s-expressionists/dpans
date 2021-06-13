@@ -1,0 +1,201 @@
+*start*
+04567 00024 US 
+Originator: Common-Lisp-mailer%SAIL.Stanford:EDU:Xerox
+Date: 12 Nov 87 23:38
+From: Kanef%spar-20.spar.slb:COM:Xerox
+Subject: Missing and desired sequence function.
+In-Reply-to: <19871111230324.4.DCP@SWAN.SCRC.Symbolics.COM>
+To: common-lisp%sail.stanford:EDU:Xerox
+
+GVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGV
+From: Bob Kanefsky <Kanef@spar-20.spar.slb.com>
+Subject: Missing and desired sequence function.
+To: common-lisp@sail.stanford.edu
+In-Reply-To: <19871111230324.4.DCP@SWAN.SCRC.Symbolics.COM>
+Return-Path: <Common-Lisp-mailer@SAIL.Stanford.EDU>
+Redistributed: Xerox-Common-Lisp^.x
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 12 NOV 87 23:38:08 PST
+Received: from SPAR-20.ARPA by SAIL.STANFORD.EDU with TCP; 11 Nov 87  22:08:30 PST
+Received: from MANTIS.SPAR.CAS.SLB.COM (MANTIS.#Internet) by SPAR-20.SPAR.SLB.COM with TCP; Wed 11 Nov 87 22:09:53-PST
+Original-Date: Wed, 11 Nov 87 22:09 PST
+References: <870923091026.7.7THSON@MOTH.SPAR.CAS.SLB.COM>
+Message-ID: <871111220942.4.KANEF@MANTIS.SPAR.CAS.SLB.COM>
+GVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGV
+
+I agree with you that this is a useful feature that is an obvious hole in
+Common Lisp's sequence functions.  As evidence that it's obviously needed, I
+thought of it six weeks ago independently (or did you see my suggestion to
+Symbolics Customer Reports, referenced above?).
+
+Below is the implementation I used.  It's an iterative approach using the MIT
+LOOP macro, made ugly by the need to handle lists and vectors separately.
+It's not as elegant as using SORT or REDUCE, but later I realized I wanted it
+to return the position as well as the element; see below.
+
+					--Kanef
+
+(defun minimize (sequence &key (key 'identity) (test '<))
+  ;;A generalization of MIN that takes :KEY and :TEST arguments
+  ;;as other Common-Lisp functions do.
+  ;;Examples:   (minimize '(1 2 3 4)) is the same as (min 1 2 3 4) but slower.
+  ;;		(minimize *people* :key 'height) finds the shortest person.
+  ;;		(minimize *people* :key 'age) finds the youngest person.
+  ;;		(minimize *people* :key 'age :test '>) finds the oldest person.
+  (declare (values element position key-value))
+  (macrolet ((doit (type)
+	       ;;I know the Symbolics implementations of the other sequence functions use a macro
+	       ;;for this called CLI::SEQUENCE-ITERATOR, but the callers of it are all in a restricted
+	       ;;source.  This macro is the same idea.
+	       (let ((iterator (case type
+				 (list '(in))
+				 (vector '(being the array-elements of)))))
+		 `(loop with best-candidate = (elt sequence 0)
+			with best-offer = (funcall key best-candidate)
+			with best-index = 0
+			for index from 0
+			for candidate ,@iterator sequence
+			for offer = (funcall key candidate)
+			when (funcall test offer best-offer)
+			  do (setq best-candidate candidate
+				   best-offer offer
+				   best-index index)
+			finally (return (values best-candidate best-index best-offer))))))
+    (etypecase sequence
+      (list (doit list))
+      (vector (doit vector)))))
+
+As soon as I went back to writing the caller of the MINIMIZE function, I
+realized that it would be convenient to have it return the index as well as
+the element (ala POSITION as well as FIND).
+
+(defun minimize (sequence &key (key 'identity) (test '<))
+  ;;A generalization of MIN that takes :KEY and :TEST arguments
+  ;;as other Common-Lisp functions do.
+  ;;Examples:   (minimize '(1 2 3 4)) is the same as (min 1 2 3 4) but slower.
+  ;;		(minimize *people* :key 'height) finds the shortest person.
+  ;;		(minimize *people* :key 'age) finds the youngest person.
+  ;;		(minimize *people* :key 'age :test '>) finds the oldest person.
+  (declare (values element position key-value))
+  (macrolet ((doit (type)
+	       ;;I know the Symbolics implementations of the other sequence functions use a macro
+	       ;;for this called CLI::SEQUENCE-ITERATOR, but the callers of it are all in a restricted
+	       ;;source.  This macro is the same idea.
+	       (let ((iterator (case type
+				 (list '(in))
+				 (vector '(being the array-elements of)))))
+		 `(loop with best-candidate = (elt sequence 0)
+			with best-offer = (funcall key best-candidate)
+			with best-index = 0
+			for index from 0
+			for candidate ,@iterator sequence
+			for offer = (funcall key candidate)
+			when (funcall test offer best-offer)
+			  do (setq best-candidate candidate
+				   best-offer offer
+				   best-index index)
+			finally (return (values best-candidate best-index best-offer))))))
+    (etypecase sequence
+      (list (doit list))
+      (vector (doit vector)))))
+
+
+*start*
+01631 00024 US 
+Originator: Common-Lisp-mailer%SAIL.Stanford:EDU:Xerox
+Date: 12 Nov 87 23:42
+From: Wholey%C.CS.CMU:EDU:Xerox
+Subject: Missing and desired sequence function.
+To: common-lisp%SAIL.STANFORD:EDU:Xerox
+
+GVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGV
+From: Skef Wholey <Wholey@C.CS.CMU.EDU>
+To: common-lisp@SAIL.STANFORD.EDU
+Subject: Missing and desired sequence function.
+Return-Path: <Common-Lisp-mailer@SAIL.Stanford.EDU>
+Redistributed: Xerox-Common-Lisp^.x
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 12 NOV 87 23:42:40 PST
+Received: from C.CS.CMU.EDU by SAIL.STANFORD.EDU with TCP; 12 Nov 87  22:55:23 PST
+Received: ID <WHOLEY@C.CS.CMU.EDU>; Thu 12 Nov 87 14:31:38-EST
+Original-Date: Thu, 12 Nov 87 02:47 EST
+Message-ID: <WHOLEY.12349951032.BABYL@C.CS.CMU.EDU>
+GVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGV
+
+    Date: Thursday, 12 November 1987  01:09-EST
+    From: Bob Kanefsky <Kanef at SPAR.SLB.COM>
+
+    [...] later I realized I wanted it [the BEST function]
+    to return the position as well as the element; [...]
+
+Following the lead of FIND, POSITION, and perhaps even COUNT, we could
+add a few new functions: FIND-BEST, POSITION-BEST (I think BEST-POSITION
+sounds nicer, though), and COUNT-BEST.  This gives a picture of "BEST"
+functions having a kind of orthagonalilty with the -IF and -IF-NOT forms
+of these functions; indeed, the argument lists of these forms would be
+identical to those of the -IF and -IF-NOT functions.
+
+Also note that functions of this sort should take a :FROM-END keyword
+(defaulting to NIL), so that one has control over which "best" item is
+selected.
+
+--Skef
+
+
+*start*
+02371 00024 US 
+Originator: Common-Lisp-mailer%SAIL.Stanford:EDU:Xerox
+Date: 11 Nov 87 20:06
+From: DCP%QUABBIN.SCRC.Symbolics:COM:Xerox
+Subject: Missing and desired sequence function.
+To: common-lisp%sail.stanford:EDU:Xerox
+
+GVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGV
+From: David C. Plummer <DCP@QUABBIN.SCRC.Symbolics.COM>
+Subject: Missing and desired sequence function.
+To: common-lisp@sail.stanford.edu
+Return-Path: <Common-Lisp-mailer@SAIL.Stanford.EDU>
+Redistributed: Xerox-Common-Lisp^.x
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 11 NOV 87 20:06:44 PST
+Received: from [128.81.41.234] by SAIL.STANFORD.EDU with TCP; 11 Nov 87  19:12:24 PST
+Received: from SWAN.SCRC.Symbolics.COM by MEAD.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 109603; Wed 11-Nov-87 18:03:54 EST
+Original-Date: Wed, 11 Nov 87 18:03 EST
+Message-ID: <19871111230324.4.DCP@SWAN.SCRC.Symbolics.COM>
+GVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGV
+
+I would like a sequence function that gives me the "best" element of a
+sequence.  I want to give it a sequence, a predicate and (with keywords)
+the bounds of the sequence and a key to extract the arguments for the
+predicate.  It returns the element of the sequence that is "predicate"
+(e.g., less than) all the other elements.  There are a couple ways to
+implement this using existing functions, but it would be nice if CLtL
+had this as part of the language if others find it a sibling of existing
+functions.
+
+Implementation 1: User SORT.  Running time is n*log(n).  Sort the list
+and return the first element.  Guarenteed to cons.  This fails for zero
+length sequences. Zero length sequences may want to be or signal an
+error.
+
+	(defun best (sequence predicate &key key start end)
+	  (elt (sort (subseq sequence start end) predicate :key key)
+	       0))
+
+Implementation 2: Use REDUCE.  Running time is linear.  Make a reduction
+function which compares two elements and returns the best.
+
+	(defun best (sequence predicate &key key start end)
+	  (reduce #'(lambda (elt1 elt2)
+		      (if (funcall predicate
+				   (funcall key elt1)
+				   (funcall key elt2))
+			  elt1
+			  elt2))
+		  sequence
+		  :start start
+		  :end end))
+
+There are obviously some details missing in the above implementations;
+they are to convey the concept.  A better name might be CHOOSE.
+
+Does this seem reasonably useful to add to the language?
+
+

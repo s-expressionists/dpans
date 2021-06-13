@@ -1,0 +1,573 @@
+*start*
+01158 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:FAHLMAN@C.CS.CMU.EDU>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 08 MAR 87 14:59:16 PST
+Received: from C.CS.CMU.EDU by SAIL.STANFORD.EDU with TCP; 8 Mar 87  14:56:36 PST
+Received: ID <FAHLMAN@C.CS.CMU.EDU>; Sun 8 Mar 87 17:57:11-EST
+Date: Sun, 8 Mar 87 17:57 EST
+Message-ID: <FAHLMAN.12284842825.BABYL@C.CS.CMU.EDU>
+Sender: FAHLMAN@C.CS.CMU.EDU
+From: "Scott E. Fahlman" <Fahlman@C.CS.CMU.EDU>
+To: CL-Cleanup@SAIL.STANFORD.EDU
+Subject: SHARPSIGN-PLUS-MINUS-NUMBER
+In-reply-to: Msg of 1 Mar 1987  17:37-EST from Kent M Pitman <KMP at STONY-BROOK.SCRC.Symbolics.COM>
+
+
+I somewhat reluctantly support this proposal.
+
+I think that it's lousy style to use a bare number as a feature -- I
+know what Symbolics-3600 or SYMBOLICS:3600 means, but reasonable people
+might disagree on what 3600 means.  I'm tempted to rush to the registrar
+(if we had one) and grab all the good numbers in advance: 1, 2, 666...
+
+But in this case, since it is a portability issue and numbers are OK in
+some other Lisps, I'm willing to go with the flow.  Did we ever decide
+what should happen with potential numbers?
+
+-- Scott
+
+*start*
+05028 00024 USf
+Return-Path: <@SAIL.STANFORD.EDU:KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 09 MAR 87 11:41:08 PST
+Received: from SCRC-STONY-BROOK.ARPA by SAIL.STANFORD.EDU with TCP; 9 Mar 87  11:35:35 PST
+Received: from RIO-DE-JANEIRO.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL Date: Mon, 9 Mar 87 14:34 EST
+From: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: SHARPSIGN-PLUS-MINUS-NUMBER (revision 2)
+To: CL-Cleanup@SAIL.STANFORD.EDU
+cc: KMP@STONY-BROOK.SCRC.Symbolics.COM
+References: <870301173706.5.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>,
+            <FAHLMAN.12284842825.BABYL@C.CSMessage-ID: <870309143446.8.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+
+Issue:        SHARPSIGN-PLUS-MINUS-NUMBER
+References:   #+ (p358), #- (p359), *features* (p448),
+	      Parsing of Numbers and Symbols (p339-342)
+Category:     ENHANCEMENT
+Edit history: Revision 1 by KMP 03/01/87,
+	      Revision 2 by KMP 03/09/87 (address potential numbers)
+Problem Description:
+
+  Features which are not symbols are currently not allowed.
+
+  Unfortunately, machine names are desirable as features. Since
+  some machines are named only by a number (eg, 360, 3600, 8600,
+  8080, ...) there is no way to use these names as features. 
+  Alternate, less mnemonic feature names, must be contrived.
+
+  `Potential numbers' (as described on p341) should be addressed
+  specifically if only to say that they are still illegal. There
+  should be no ambiguity about what is legal and what is not.
+  An example of such a symbol is 68020A .
+
+Proposal (SHARPSIGN-PLUS-MINUS-NUMBER:OK)
+
+  Extend the definition of #+ and #- on pp358-359 to say that 
+  integers are allowable as features. Define that the feature-spec 
+  reader binds base to 10 so that people don't have to do #+7020 to
+  find the 3600 feature in base 8.
+
+  In the case of `potential numbers' (as per p341) in a feature
+  spec, say that they are allowed for use in this context. If the
+  implementation does not support the syntax in question, it is
+  permitted to treat the syntax as if it denoted a feature which
+  was known not to be present. That is, in any implementation where
+  a potential number which is denoted by a character sequence <X> can
+  be parsed by the reader as either a number or a symbol, then
+  #+<X> will skip the next form iff the expression 
+  (MEMBER (LET ((*READ-BASE* 10.)
+		(*PACKAGE* (FIND-PACKAGE "KEYWORD")))
+	    (READ-FROM-STRING "<X>"))
+	  *FEATURES*)
+  yields false, without prejudice to decision about whether <X>
+  denotes a number or a symbol. If <X> cannot be read by the reader
+  because it is a potential number, then #+<X> will skip the next 
+  form as if any feature <X> might have been intended to denote was 
+  not present.
+
+  [We also need to nail down the rules for what package is used in 
+   the feature-spec reader. I've put that in a separate proposal.]
+
+  Extend the definition of *features* on p448 to say that it is a
+  "list of symbols and/or numbers".
+
+Rationale:
+
+  There is no deep-rooted reason why numbers shouldn't work. 
+  The current restrictions are somewhat arbitrary. This would 
+  allow arbitrary alphanumeric strings (subject to restrictions
+  about potential numbers) to be used as identifiers in a
+  well-defined way. 
+
+Current Practice:
+
+  Some implementations already allow this (though most probably 
+  do not bind base to 10 -- I've seen some octal feature names).
+
+  Other implementations signal an error if they see what they
+  believe to be an invalid feature name (such as a number).
+
+Adoption Cost:
+
+  Changes to implementations not already supporting this feature
+  would probably be very minor. 
+
+Benefits:
+
+  A restriction which seems arbitrary to some people would be removed.
+
+Conversion Cost:
+
+  Some users would view this as an enhancement; others as a bug fix.
+  I don't think it would be seen in a negative light.
+
+Aesthetics:
+
+  No issues not already addressed above.
+
+Discussion:
+
+  KMP initiated this proposal and thinks that it would be a
+  worthwhile extension.
+
+  Steele asks about treatment of potential numbers, such as #+68020a .
+  Revision 2 of this proposal addresses that issue, by explicitly
+  stating that this is allowed.
+
+  Fahlman reluctantly supported version 1 of this proposal since 
+  some implementations support numbers here and since the purpose of
+  this feature is to allow selection of such implementations. He 
+  wishes people would write Symbolics-3600 rather than 3600 since it
+  isn't clear that 3600 is meaningful in the abstract. He wants to
+  see the potential number issue treated, however.
+
+  KMP thinks that the problem of meaningfulness is not unique
+  to numbers. Many feature names with only alphabetic characters
+  could be likewise criticized. In practice, brevity is important
+  because AND and OR will greatly increase horizontal size of
+  feature-spec expressions and often it's desirable to still have
+  enough room to the right to grind the conditionalized expression.
+
+*start*
+01100 00024 US 
+Return-Path: <RPG@SAIL.STANFORD.EDU>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 10 MAR 87 10:37:05 PST
+Date: 10 Mar 87 10:33 PST
+From: Dick Gabriel <RPG@SAIL.STANFORD.EDU>
+Subject: SHARPSIGN-PLUS-MINUS-NUMBER  
+To: cl-cleanup@SAIL.STANFORD.EDU 
+
+
+I oppose this proposal. The reason is that unless there is a compelling
+reason to do otherwise, it is best to have as few different rules and
+concepts in a language as possible.
+
+Let `#+' represent either `#+' or `#-'. Currently #+<object> can be such
+that <object> is a symbol or a boolean expression. I don't see any gain in
+expressive power if we extend this to include numbers, yet we've extended
+the complexity of the language a little bit.
+
+Furthermore, the examples given are not compelling at all - someday soon
+some people will not know what I mean when I say I mailed this message
+from a 10.
+
+Symbolics-3600, IBM-360, MC68020A - these are proper machine names and
+hence proper feature names.
+
+Finally, an expression like #-3600 looks like an arithmetic expression
+or a slip of the TIP for simply -3600.
+
+			-rpg-
+
+*start*
+00775 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:gls@Think.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 03 MAR 87 09:19:35 PST
+Received: from THINK.COM by SAIL.STANFORD.EDU with TCP; 3 Mar 87  09:17:32 PST
+Received: from boethius by Think.COM via CHAOS; Tue, 3 Mar 87 12:16:25 EST
+Date: Tue, 3 Mar 87 12:18 EST
+From: Guy Steele <gls@Think.COM>
+Subject: SHARPSIGN-PLUS-MINUS-NUMBER
+To: KMP@stony-brook.scrc.symbolics.com, CL-Cleanup@sail.stanford.edu
+Cc: gls@think.com
+In-Reply-To: <870301173706.5.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+Message-Id: <870303121816.2.GLS@BOETHIUS.THINK.COM>
+
+I support this proposal.  Question: what about potential numbers?
+Should we require that a name such as 68020a be treated as a keyword
+when reading for #+ or #- ?
+--Guy
+
+*start*
+05799 00024 USf
+Return-Path: <CL-Cleanup-mailer@SAIL.Stanford.EDU>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 23 MAY 88 17:57:45 PDT
+Received: from Xerox.COM by SAIL.Stanford.EDU with TCP; 23 May 88  17:41:01 PDT
+Received: from Cabernet.ms by ArpaGateway.ms ; 23 MAY 88 17:38:49 PDT
+Date: 23 May 88 17:38 PDT
+From: masinter.pa
+Subject: Issue: SHARPSIGN-PLUS-MINUS-NUMBER (Version 3)
+To: CL-Cleanup@SAIL.STANFORD.EDU
+line-fold: no
+Message-ID: <880523-173849-5795@Xerox>
+
+My notes from the last meeting were "Codify current practice: allowed, read in base 10."
+Here 'tis. If it hasn't aged, maybe we have.
+
+
+!
+Issue:        SHARPSIGN-PLUS-MINUS-NUMBER
+References:   #+ (p358), #- (p359), *features* (p448),
+	      Parsing of Numbers and Symbols (p339-342)
+Category:     ENHANCEMENT
+Edit history: Revision 1 by KMP 03/01/87,
+	      Revision 2 by KMP 03/09/87 (address potential numbers)
+	      Version 3 by Masinter 23-May-88, revive
+
+Problem Description:
+
+  Features which are not symbols are currently not allowed.
+
+  Unfortunately, machine names are desirable as features. Since
+  some machines are named only by a number (eg, 360, 3600, 8600,
+  8080, ...) there is no way to use these names as features. 
+  Alternate, less mnemonic feature names, must be contrived.
+
+  `Potential numbers' (as described on p341) should be addressed
+  specifically if only to say that they are still illegal. There
+  should be no ambiguity about what is legal and what is not.
+  An example of such a symbol is 68020A .
+
+Proposal (SHARPSIGN-PLUS-MINUS-NUMBER:OK)
+
+  Extend the definition of #+ and #- on pp358-359 to say that 
+  integers are allowable as features. Define that the feature-spec 
+  reader binds base to 10 so that people don't have to do #+7020 to
+  find the 3600 feature in base 8.
+
+  In the case of `potential numbers' (as per p341) in a feature
+  spec, say that they are allowed for use in this context. If the
+  implementation does not support the syntax in question, it is
+  permitted to treat the syntax as if it denoted a feature which
+  was known not to be present. That is, in any implementation where
+  a potential number which is denoted by a character sequence <X> can
+  be parsed by the reader as either a number or a symbol, then
+  #+<X> will skip the next form iff the expression 
+  (MEMBER (LET ((*READ-BASE* 10.)
+		(*PACKAGE* (FIND-PACKAGE "KEYWORD")))
+	    (READ-FROM-STRING "<X>"))
+	  *FEATURES*)
+  yields false, without prejudice to decision about whether <X>
+  denotes a number or a symbol. If <X> cannot be read by the reader
+  because it is a potential number, then #+<X> will skip the next 
+  form as if any feature <X> might have been intended to denote was 
+  not present.
+
+  [We also need to nail down the rules for what package is used in 
+   the feature-spec reader. I've put that in a separate proposal.]
+
+  Extend the definition of *features* on p448 to say that it is a
+  "list of symbols and/or numbers".
+
+Rationale:
+
+  There is no deep-rooted reason why numbers shouldn't work. 
+  The current restrictions are somewhat arbitrary. This would 
+  allow arbitrary alphanumeric strings (subject to restrictions
+  about potential numbers) to be used as identifiers in a
+  well-defined way. 
+
+Current Practice:
+
+  Some implementations already allow this (though most probably 
+  do not bind base to 10 -- I've seen some octal feature names).
+
+  Other implementations signal an error if they see what they
+  believe to be an invalid feature name (such as a number).
+
+Cost to implementors:
+
+  Changes to implementations not already supporting this feature
+  would probably be very minor. 
+
+Cost to Users:
+
+  Some users would view this as an enhancement; others as a bug fix.
+  I don't think it would be seen in a negative light.
+
+Benefits:
+
+  A restriction which seems arbitrary to some people would be removed.
+
+Aesthetics:
+
+  No issues not already addressed above.
+
+Discussion:
+
+  KMP initiated this proposal and thinks that it would be a
+  worthwhile extension.
+
+  Steele asks about treatment of potential numbers, such as #+68020a .
+  Revision 2 of this proposal addresses that issue, by explicitly
+  stating that this is allowed.
+
+  Fahlman reluctantly supported version 1 of this proposal since 
+  some implementations support numbers here and since the purpose of
+  this feature is to allow selection of such implementations. He 
+  wishes people would write Symbolics-3600 rather than 3600 since it
+  isn't clear that 3600 is meaningful in the abstract. He wants to
+  see the potential number issue treated, however.
+
+  KMP thinks that the problem of meaningfulness is not unique
+  to numbers. Many feature names with only alphabetic characters
+  could be likewise criticized. In practice, brevity is important
+  because AND and OR will greatly increase horizontal size of
+  feature-spec expressions and often it's desirable to still have
+  enough room to the right to grind the conditionalized expression.
+
+
+Dick Gabriel opposed this proposal: "unless there is a compelling
+reason to do otherwise, it is best to have as few different rules and
+concepts in a language as possible.
+
+Let `#+' represent either `#+' or `#-'. Currently #+<object> can be such
+that <object> is a symbol or a boolean expression. I don't see any gain in
+expressive power if we extend this to include numbers, yet we've extended
+the complexity of the language a little bit.
+
+Furthermore, the examples given are not compelling at all - someday soon
+some people will not know what I mean when I say I mailed this message
+from a 10.
+
+Symbolics-3600, IBM-360, MC68020A - these are proper machine names and
+hence proper feature names.
+
+Finally, an expression like #-3600 looks like an arithmetic expression
+or a slip of the TIP for simply -3600."
+
+
+
+
+*start*
+01512 00024 US 
+Return-Path: <CL-Cleanup-mailer@SAIL.Stanford.EDU>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 24 MAY 88 02:04:55 PDT
+Received: from labrea.stanford.edu by SAIL.Stanford.EDU with TCP; 24 May 88  02:04:00 PDT
+Received: by labrea.stanford.edu; Tue, 24 May 88 02:04:19 PDT
+Received: from bhopal.lucid.com by edsel id AA04640g; Tue, 24 May 88 01:52:43 PDT
+Received: by bhopal id AA04794g; Tue, 24 May 88 01:56:36 PDT
+Date: Tue, 24 May 88 01:56:36 PDT
+From: Jon L White <edsel!jonl@labrea.stanford.edu>
+Message-Id: <8805240856.AA04794@bhopal.lucid.com>
+To: masinter.pa
+Cc: CL-Cleanup@sail.stanford.edu
+In-Reply-To: masinter.pa@Xerox.COM's message of 23 May 88 17:38 PDT <880523-173849-5795@Xerox>
+Subject: Issue: SHARPSIGN-PLUS-MINUS-NUMBER (Version 3)
+
+Nit:  the Category: should be ADDITION rather than ENHANCEMENT
+
+The References: section should mention Issue: SHARPSIGN-PLUS-MINUS-PACKAGE.
+
+Between these two issues -- SHARPSIGN-PLUS-MINUS-PACKAGE and this one --
+somewhere it should be mentioned that comparison is performed by EQL.  Then
+the Rationale: section of this issue can be expanded to note that it simply
+makes available to the #+ syntax a means of using "features" that would 
+otherwise not be denotable.  More complex "features", such as strings or 
+cons's still wouldn't be supported in the #+ syntax.
+
+You can also add under the Current Practice: section that Lucid and Symbolics
+both implement the proposed behaviour.
+ 
+
+-- JonL --
+
+*start*
+00837 00024 US 
+Return-Path: <CL-Cleanup-mailer@SAIL.Stanford.EDU>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 24 MAY 88 12:11:59 PDT
+Received: from JASPER.SCRC.Symbolics.COM ([128.81.41.58]) by SAIL.Stanford.EDU with TCP; 24 May 88  12:10:06 PDT
+Received: from EUPHRATES.SCRC.Symbolics.COM by JASPER.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 191865; Tue 24-May-88 15:09:54 EDT
+Date: Tue, 24 May 88 15:10 EDT
+From: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: Issue: SHARPSIGN-PLUS-MINUS-NUMBER (Version 3)
+To: CL-Cleanup@SAIL.STANFORD.EDU
+In-Reply-To: <880523-173849-5795@Xerox>
+Message-ID: <19880524191004.2.MOON@EUPHRATES.SCRC.Symbolics.COM>
+
+I approve SHARPSIGN-PLUS-MINUS-NUMBER:OK.  By the way, I think
+it simplifies the language, rather than complicating it.
+
+*start*
+00931 00024 US 
+Return-Path: <CL-Cleanup-mailer@SAIL.Stanford.EDU>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 31 MAY 88 07:18:45 PDT
+Received: from STONY-BROOK.SCRC.Symbolics.COM (SCRC-STONY-BROOK.ARPA) by SAIL.Stanford.EDU with TCP; 31 May 88  07:16:58 PDT
+Received: from PEWEE.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 412314; Tue 31-May-88 10:17:04 EDT
+Date: Tue, 31 May 88 10:16 EDT
+From: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: Issue: SHARPSIGN-PLUS-MINUS-NUMBER (Version 3)
+To: CL-Cleanup@SAIL.STANFORD.EDU
+In-Reply-To: <880523-173849-5795@Xerox>
+Message-ID: <880531101652.5.KMP@PEWEE.SCRC.Symbolics.COM>
+
+I support SHARPSIGN-PLUS-MINUS-NUMBER:OK, version 3.
+
+Non-preemptive remarks:
+ I would mention the "codifying current practice" remark in the rationale.
+ I would also change "KMP" to "Pitman" where it occurs.
+
+*start*
+05678 00024 US 
+Date: 10 Jun 88 00:54 PDT
+From: Masinter.pa
+Subject: Issue: SHARPSIGN-PLUS-MINUS-NUMBER (Version 4)
+To: x3j13@SAIL.STANFORD.EDU
+line-fold: no
+cc: Masinter
+REPLY-TO: CL-CLEANUP@SAIL.STANFORD.EDU
+
+
+Issue:        SHARPSIGN-PLUS-MINUS-NUMBER
+
+References:   #+ (p358), #- (p359), *features* (p448),
+	      Parsing of Numbers and Symbols (p339-342)
+	      Issue: SHARPSIGN-PLUS-MINUS-PACKAGE
+
+Category:     ENHANCEMENT
+
+Edit history: Version 1 by Pitman 03/01/87,
+	      Version 2 by Pitman 03/09/87 (address potential numbers)
+	      Version 3 by Masinter 23-May-88, revive
+	      Version 4 by Masinter 10-Jun-88, fix nits
+
+Problem Description:
+
+  Features which are not symbols are currently not allowed.
+
+  Unfortunately, machine names are used as features. Since
+  some machines are named only by a number (eg, 360, 3600, 8600,
+  8080, ...) there is no way to use these names as features. 
+  Alternate, less mnemonic feature names, must be contrived.
+
+  `Potential numbers' (as described on p341) should be addressed
+  specifically if only to say that they are still illegal. There
+  should be no ambiguity about what is legal and what is not.
+  An example of such a symbol is 68020A .
+
+Proposal (SHARPSIGN-PLUS-MINUS-NUMBER:OK)
+
+  Extend the definition of #+ and #- on pp358-359 to say that 
+  integers are allowable as features. Define that the feature-spec 
+  reader binds base to 10 so that people don't have to do #+7020 to
+  find the 3600 feature in base 8.
+
+  In the case of `potential numbers' (as per p341) in a feature
+  spec, say that they are allowed for use in this context. If the
+  implementation does not support the syntax in question, it is
+  permitted to treat the syntax as if it denoted a feature which
+  was known not to be present. That is, in any implementation where
+  a potential number which is denoted by a character sequence <X> can
+  be parsed by the reader as either a number or a symbol, then
+  #+<X> will skip the next form iff the expression 
+  (MEMBER (LET ((*READ-BASE* 10.)
+		(*PACKAGE* (FIND-PACKAGE "KEYWORD")))
+	    (READ-FROM-STRING "<X>"))
+	  *FEATURES*)
+  yields false, without prejudice to decision about whether <X>
+  denotes a number or a symbol. If <X> cannot be read by the reader
+  because it is a potential number, then #+<X> will skip the next 
+  form as if any feature <X> might have been intended to denote was 
+  not present.
+
+   Extend the definition of *features* on p448 to say that it is a
+  "list of symbols and/or numbers".
+
+   Comparison is performed by EQL.
+
+Rationale:
+
+  There is no deep-rooted reason why numbers shouldn't work. 
+  The current restrictions are somewhat arbitrary. This would 
+  allow arbitrary alphanumeric strings (subject to restrictions
+  about potential numbers) to be used as identifiers in a
+  well-defined way. 
+
+Current Practice:
+
+  Some implementations already allow this (though most probably 
+  do not bind base to 10 -- I've seen some octal feature names).
+
+  Other implementations signal an error if they see what they
+  believe to be an invalid feature name (such as a number).
+
+Cost to implementors:
+
+  Changes to implementations not already supporting this feature
+  would probably be very minor. 
+
+Cost to Users:
+
+  Some users would view this as an enhancement; others as a bug fix.
+  I don't think it would be seen in a negative light.
+
+Benefits:
+
+  A restriction which seems arbitrary to some people would be removed.
+
+Aesthetics:
+
+  No issues not already addressed above.
+
+Discussion:
+
+  Pitman initiated this proposal and thinks that it would be a
+  worthwhile extension.
+
+  Steele asks about treatment of potential numbers, such as #+68020a .
+  Revision 2 of this proposal addresses that issue, by explicitly
+  stating that this is allowed.
+
+  Fahlman reluctantly supported version 1 of this proposal since 
+  some implementations support numbers here and since the purpose of
+  this feature is to allow selection of such implementations. He 
+  wishes people would write Symbolics-3600 rather than 3600 since it
+  isn't clear that 3600 is meaningful in the abstract. He wants to
+  see the potential number issue treated, however.
+
+  KMP thinks that the problem of meaningfulness is not unique
+  to numbers. Many feature names with only alphabetic characters
+  could be likewise criticized. In practice, brevity is important
+  because AND and OR will greatly increase horizontal size of
+  feature-spec expressions and often it's desirable to still have
+  enough room to the right to grind the conditionalized expression.
+
+
+Dick Gabriel opposed this proposal: "unless there is a compelling
+reason to do otherwise, it is best to have as few different rules and
+concepts in a language as possible.
+
+Let `#+' represent either `#+' or `#-'. Currently #+<object> can be such
+that <object> is a symbol or a boolean expression. I don't see any gain in
+expressive power if we extend this to include numbers, yet we've extended
+the complexity of the language a little bit.
+
+Furthermore, the examples given are not compelling at all - someday soon
+some people will not know what I mean when I say I mailed this message
+from a 10.
+
+Symbolics-3600, IBM-360, MC68020A - these are proper machine names and
+hence proper feature names.
+
+Finally, an expression like #-3600 looks like an arithmetic expression
+or a slip of the TIP for simply -3600."
+        TITAN 
+         TITAN 
+          
+TIMESROMAN 
+           Å                            †              
+              ¿             !       *                                 ÿ              d              }       
+       I              +             7      Õ zº

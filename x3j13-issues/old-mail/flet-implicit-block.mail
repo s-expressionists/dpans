@@ -1,0 +1,1094 @@
+*start*
+02409 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:Masinter.pa@Xerox.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 27 JAN 87 14:35:59 PST
+Received: from XEROX.COM by SAIL.STANFORD.EDU with TCP; 27 Jan 87  14:30:19 PST
+Received: from Cabernet.ms by ArpaGateway.ms ; 27 JAN 87 13:41:14 PST
+Date: 27 Jan 87 13:48 PST
+From: Masinter.pa
+Subject: Issue: FLET-IMPLICIT-BLOCK, Version 1: Are functions defined by
+ FLET surrounded by an implicit BLOCK?
+In-reply-to: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>'s
+ message of Tue, 27 Jan 87 14:14 EST
+To: Moon@STONY-BROOK.SCRC.Symbolics.COM
+cc: cl-cleanup@SAIL.STANFORD.EDU
+Message-ID: <870127-134114-5706@Xerox>
+
+Does this summarize the issue? I don't want to have to do this for every
+proposal myself, and would like people who want to propose things to do
+some of the homework necessary. 
+
+Issue: FLET-IMPLICIT-BLOCK
+Reference: >>???<<
+Description: Do flet, labels, and macrolet have an implicit block around
+their bodies like the body of a DEFUN? 
+CLtL is unclear.
+
+Category: Ommission. 
+Proposal: FLET-IMPLICIT-BLOCK:YES
+
+Yes,  FLET, LABELS, and MACROLET have an implicit block around the body
+with the same name.
+
+--- 
+Rationale:
+
+a) This does not generally reflect current practice, for example,
+VaxLisp 2.0 and Xerox Common Lisp (currently) do not add the implicit
+block, while Symbolics and Kyoto Common Lisp do add the implicit block.
+(See test case below.) I don't know what Lucid does.
+
+b) the cost of adopting this change is small, since adding the implicit
+block is a simple extension for any common lisp implementation.
+
+c) the cost of not adopting the change is continued inconsistancy
+between DEFUN-formed functions and FLET defined functions, and
+consistency is valued.
+
+d) the cost of converting existing code is relatively small, in that it
+is unlikely that any code in a current implementation that doesn't have
+an implicit block around FLET code might also do a RETURN-FROM a block
+with the same name, e.g., 
+
+
+Test case: (In cases where there is a simple example which illustrates
+the ambiguity simply, it helps to give it. It makes deciding what
+"current practice" is easily, for example.)
+
+(DEFUN TEST () (FLET ((TEST (X) (IF X (RETURN-FROM TEST 4) 3)))
+		(LIST (TEST NIL) (TEST T))))
+
+
+(TEST)
+
+
+will return either (3 4) if this proposal is adopted, and might return 4
+if an implementation did *not* add an implicit block.
+
+*start*
+03034 00024 US 
+Return-Path: <FAHLMAN@C.CS.CMU.EDU>
+Received: from C.CS.CMU.EDU by Xerox.COM ; 28 JAN 87 07:13:49 PST
+Received: ID <FAHLMAN@C.CS.CMU.EDU>; Wed 28 Jan 87 10:13:10-EST
+Date: Wed, 28 Jan 87 10:13 EST
+Message-ID: <FAHLMAN.12274534737.BABYL@C.CS.CMU.EDU>
+Sender: FAHLMAN@C.CS.CMU.EDU
+From: "Scott E. Fahlman" <Fahlman@C.CS.CMU.EDU>
+To: Masinter.pa
+Cc: cl-cleanup@SAIL.STANFORD.EDU
+Subject: Issue: FLET-IMPLICIT-BLOCK, Version 1: Are functions defined by
+In-reply-to: Msg of 27 Jan 1987  16:48-EST from Masinter.pa at Xerox.COM
+
+
+This issue was already in the ISSUES file.  The following text is taken
+from there:
+
+---------------------------------------------------------------------------
+Page ???:
+
+In addition to DEFUN, the following macros implicitly wrap a BLOCK
+around their bodies: DEFMACRO, DEFSETF, DEFINE-SETF-METHOD, and DEFTYPE.
+Also, LABELS, FLET amd MACROLET should wrap a block around the bodies of
+the locally defined functions.  Users are encouraged to create such
+blocks in their own macros where a body and an obvious block-name are
+present.
+---------------------------------------------------------------------------
+
+Several points and issues:
+
+1. Presumably we want to address DEFMACRO, DEFSETF, DEFINE-SETF-METHOD,
+and DEFTYPE at the same time as FLET, LABELS, and MACROLET?  Do these
+forms raise any issues that are not raised by the others?  I don't see
+any.  Rob tells me that Spice Lisp already installs blocks on all of
+these forms additional forms, though we apparently do not do this on
+FLET, LABELS, and MACROLET.
+
+2. Do we want to suggest in any new manual that users provide such
+blocks for their own macros if they take an arbitrary body?  (Presumably
+the right way to handle this is for our committee to pass along a set of
+non-binding suggestions to the drafting committee.  This would be one of
+them; the business about avoiding confusing uses of the word "intern"
+would be another.  That way these suggestions don't get lost, but we
+don't have to worry about formal votes tying the drafting committee's
+hands in the choice of language.)
+
+3. In the ISSUES file, I say that I think I am opposed to this proposal
+on efficiency grounds.  I no longer believe this to be a serious
+problem.  In compiled code, there is no issue: blocks that are not
+actually used can be eliminated.  I was thinking that this would require
+the interpreter to code-walk in and modify FLET, LABELS, and MACROLET
+forms at defun time, but clearly this is not the right implementation
+strategy.  Instead one would modify FLET and friends to establish the
+block upon entry.  This slows down these forms in the interpreter a bit,
+whether the block is used or not, but this slowdown in relatively rare
+forms, interpreter only, should not hurt much.
+
+4. Is there an issue here with tail-recursion?  Could the presence of
+these implicit blocks make it much harder to do tail-recursion
+optimization?  I don't see the problem now, but I have a note that
+someone raised this issue in earlier discussions.
+
+-- Scott
+*start*
+01417 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:FAHLMAN@C.CS.CMU.EDU>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 28 JAN 87 08:06:02 PST
+Received: from C.CS.CMU.EDU by SAIL.STANFORD.EDU with TCP; 28 Jan 87  08:03:30 PST
+Received: ID <FAHLMAN@C.CS.CMU.EDU>; Wed 28 Jan 87 11:04:01-EST
+Date: Wed, 28 Jan 87 11:03 EST
+Message-ID: <FAHLMAN.12274543996.BABYL@C.CS.CMU.EDU>
+Sender: FAHLMAN@C.CS.CMU.EDU
+From: "Scott E. Fahlman" <Fahlman@C.CS.CMU.EDU>
+To: cl-cleanup@SAIL.STANFORD.EDU
+Subject: [RAM: Issue: FLET-IMPLICIT-BLOCK, Version 1: Are functions defined by]
+
+
+Date: Wednesday, 28 January 1987  10:58-EST
+From: Rob MacLachlan <RAM>
+To:   Scott E. Fahlman <Fahlman>
+Re:   Issue: FLET-IMPLICIT-BLOCK, Version 1: Are functions defined by
+
+    In case nobody else answers, the issue with tail-recursion was
+that Block in the interpreter cannot mindlessly push things on the
+stack if tail recursion is to be preserved.  Implementations that
+always created catch frames for Block were finding that tail recursion
+was being inhibited in Defun due to the implicit block.  The fix is to
+cons the necessary structure on the heap.  Repeated consing can be
+avoided by explicitly passing this "continuation" into tail-recursive
+invocations of eval.
+
+    This issue is almost totally irrelevant in the current discussion,
+since the implicit Defun block already causes these problems and
+isn't going to go away.
+
+  Rob
+
+*start*
+01819 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:FAHLMAN@C.CS.CMU.EDU>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 20 MAR 87 18:07:25 PST
+Received: from C.CS.CMU.EDU by SAIL.STANFORD.EDU with TCP; 20 Mar 87  18:05:20 PST
+Received: ID <FAHLMAN@C.CS.CMU.EDU>; Fri 20 Mar 87 21:05:56-EST
+Date: Fri, 20 Mar 87 21:05 EST
+Message-ID: <FAHLMAN.12288022897.BABYL@C.CS.CMU.EDU>
+Sender: FAHLMAN@C.CS.CMU.EDU
+From: "Scott E. Fahlman" <Fahlman@C.CS.CMU.EDU>
+To: "David A. Moon" <Moon@SCRC-STONY-BROOK.ARPA>
+Cc: cl-cleanup@SAIL.STANFORD.EDU
+Subject: Issue FLET-IMPLICIT-BLOCK
+
+
+I don't think I'm willing to go for any combination of proposals that
+requires both tail-recursion removal in the interpreter and implicit
+blocks around the tail-recursive forms in question.  I grant that a
+"sufficiently smart" interpreter might be able to fight its way through
+this somehow, perhaps by doing a pre-pass over each form to see if any
+blocks are actually referenced or by consing continuations in the heap,
+but I don't want to get into this kind of added hair.
+
+Of course, if the requirement for tail-recursion removal were to apply
+only to compiled code, then there is no conflict with implicit blocks:
+if unused the block is never created; if the block used, the form is not
+tail-optimizable (or maybe special code can be generated to smash the
+block when the tail-recursive call occurs).
+
+So I'd like to hear from Guy just what he wants to propose in the way of
+tail-recursion removal.  Would it be required in the interpreter or only
+in the compiler?  Required only of LABELS, or of DEFUNs as well?  Any
+such requirement is going to be hard to sell, so we should probably not
+let the dim future prospect of such things tie up other proposed
+improvements unless someone wants to come forward with a proposal now.
+
+-- Scott
+
+*start*
+02519 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 20 MAR 87 21:32:50 PST
+Received: from SCRC-STONY-BROOK.ARPA by SAIL.STANFORD.EDU with TCP; 20 Mar 87  21:30:17 PST
+Received: from EUPHRATES.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 98586; Sat 21-Mar-87 00:29:49 EST
+Date: Sat, 21 Mar 87 00:29 EST
+From: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: Issue FLET-IMPLICIT-BLOCK
+To: cl-cleanup@SAIL.STANFORD.EDU
+In-Reply-To: <FAHLMAN.12288022897.BABYL@C.CS.CMU.EDU>
+Message-ID: <870321002931.9.MOON@EUPHRATES.SCRC.Symbolics.COM>
+
+    Date: Fri, 20 Mar 1987  21:05 EST
+    From: "Scott E. Fahlman" <Fahlman@C.CS.CMU.EDU>
+
+    I don't think I'm willing to go for any combination of proposals that
+    requires both tail-recursion removal in the interpreter and implicit
+    blocks around the tail-recursive forms in question.  I grant that a
+    "sufficiently smart" interpreter might be able to fight its way through
+    this somehow, perhaps by doing a pre-pass over each form to see if any
+    blocks are actually referenced or by consing continuations in the heap,
+    but I don't want to get into this kind of added hair.
+
+Scott, I think you missed the point of my comment.  Let me try saying it
+a different way.  Because it has dynamic extent, the block around a
+function has the same lifetime as the return address (aka continuation)
+of that function.  An interpreter that can forget one when it makes a
+tail recursive call can forget the other.  Now, you may be worried about
+the fact that making a tail recursive call does not exit the lexical
+scope of the block, because it might have been captured by a closure of
+an internal function.  The easy answer is that tail-recursive iterations
+don't do this, because if they did they would cons closures, so all you
+need is a bit in a lexical contour to indicate whether it has ever been
+captured in a closure.  Since you don't want to get into added hair, I
+won't go into any more complex answers.  They exist; you can even find
+one in a Le Lisp paper!
+
+    So I'd like to hear from Guy just what he wants to propose in the way of
+    tail-recursion removal.
+
+So would I.  My guess at a reason for the delay is that anyone who tries
+to define "tail recursion removal" in a way that is precise, machine
+independent, and implementation independent discovers it to be
+impossible.  It would be interesting to be proved wrong.
+
+*start*
+01385 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 20 MAR 87 14:33:43 PST
+Received: from SCRC-STONY-BROOK.ARPA by SAIL.STANFORD.EDU with TCP; 20 Mar 87  14:30:02 PST
+Received: from EUPHRATES.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 98373; Fri 20-Mar-87 17:03:26 EST
+Date: Fri, 20 Mar 87 17:02 EST
+From: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: Issue FLET-IMPLICIT-BLOCK
+To: cl-cleanup@sail.stanford.edu
+In-Reply-To: <870315-185544-2035@Xerox>
+Message-ID: <870320170250.0.MOON@EUPHRATES.SCRC.Symbolics.COM>
+
+I really do not believe that there is any justification based on tail
+recursion removal for removing the implicit block from DEFUN.  Blocks
+that are not referenced do not create any run-time code or data
+structure in compiled code in any reasonable implementation, nor in any
+unreasonable implementation that I am aware of.  They might have some
+overhead in the interpreter, but surely tail recursion removal removes
+this sort of overhead just as it removes the other sort, and in any
+case incompatible semantic changes to the language to micro-optimize
+the -interpreter- make no sense.
+
+So I strongly support FLET-IMPLICIT-BLOCK:YES as well as "other
+proposal" referenced within it (which I guess does not have a name yet).
+
+*start*
+02576 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:FAHLMAN@C.CS.CMU.EDU>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 22 MAR 87 09:56:23 PST
+Received: from C.CS.CMU.EDU by SAIL.STANFORD.EDU with TCP; 22 Mar 87  09:53:49 PST
+Received: ID <FAHLMAN@C.CS.CMU.EDU>; Sun 22 Mar 87 12:17:39-EST
+Date: Sun, 22 Mar 87 09:52 EST
+Message-ID: <FAHLMAN.12288424680.BABYL@C.CS.CMU.EDU>
+Sender: FAHLMAN@C.CS.CMU.EDU
+From: "Scott E. Fahlman" <Fahlman@C.CS.CMU.EDU>
+To: "David A. Moon" <Moon@SCRC-STONY-BROOK.ARPA>
+Cc: cl-cleanup@SAIL.STANFORD.EDU
+Subject: Issue FLET-IMPLICIT-BLOCK
+In-reply-to: Msg of 21 Mar 1987  00:29-EST from David A. Moon <Moon at STONY-BROOK.SCRC.Symbolics.COM>
+
+
+    Scott, I think you missed the point of my comment.  Let me try saying it
+    a different way.  Because it has dynamic extent, the block around a
+    function has the same lifetime as the return address (aka continuation)
+    of that function.  An interpreter that can forget one when it makes a
+    tail recursive call can forget the other.
+
+I guess you're right in saying that the existence of the implicit block
+doesn't add too much additional complexity to any interpreter that would
+eliminate tail recursion.  I guess my real position is that I am pretty
+unlikely to swallow any proposal to require such tail-recursion removal,
+with or without the implicit blocks.  I'm not fond of "interpreters"
+that do partial compilation -- the whole point of having an interpreter
+is to allow debugging of code that is close to what the user wrote --
+and I'm even more skeptical of any plan that requires internal consing
+of continuations merely in order to avoid growing the stack by
+recursion.
+
+So I agree with you that considerations of future tail-recursion
+proposals should probably not influence our consideration of this block
+business, though we seem to reach this conclusion by different paths:
+you think it is easy enough in either case, while I think it is too hard
+in either case.
+
+There remains the issue of whether the implicit blocks makes
+code-maintenance harder by putting references to the function name
+within the body of the function object, when these two things ought to
+be unconnected.  But we debated that before and decided to put the
+implicit blocks into Defun.  We might not make the same decision today,
+but I don't think that we've seen anything new that would warrant an
+incompatible change to Defun at this point.  And if we keep the block
+around Defun, we probably should go for consistency by adding the blocks
+in the other places that have been proposed.
+
+-- Scott
+
+*start*
+02576 00024 USa
+Return-Path: <@SAIL.STANFORD.EDU:FAHLMAN@C.CS.CMU.EDU>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 22 MAR 87 09:56:23 PST
+Received: from C.CS.CMU.EDU by SAIL.STANFORD.EDU with TCP; 22 Mar 87  09:53:49 PST
+Received: ID <FAHLMAN@C.CS.CMU.EDU>; Sun 22 Mar 87 12:17:39-EST
+Date: Sun, 22 Mar 87 09:52 EST
+Message-ID: <FAHLMAN.12288424680.BABYL@C.CS.CMU.EDU>
+Sender: FAHLMAN@C.CS.CMU.EDU
+From: "Scott E. Fahlman" <Fahlman@C.CS.CMU.EDU>
+To: "David A. Moon" <Moon@SCRC-STONY-BROOK.ARPA>
+Cc: cl-cleanup@SAIL.STANFORD.EDU
+Subject: Issue FLET-IMPLICIT-BLOCK
+In-reply-to: Msg of 21 Mar 1987  00:29-EST from David A. Moon <Moon at STONY-BROOK.SCRC.Symbolics.COM>
+
+
+    Scott, I think you missed the point of my comment.  Let me try saying it
+    a different way.  Because it has dynamic extent, the block around a
+    function has the same lifetime as the return address (aka continuation)
+    of that function.  An interpreter that can forget one when it makes a
+    tail recursive call can forget the other.
+
+I guess you're right in saying that the existence of the implicit block
+doesn't add too much additional complexity to any interpreter that would
+eliminate tail recursion.  I guess my real position is that I am pretty
+unlikely to swallow any proposal to require such tail-recursion removal,
+with or without the implicit blocks.  I'm not fond of "interpreters"
+that do partial compilation -- the whole point of having an interpreter
+is to allow debugging of code that is close to what the user wrote --
+and I'm even more skeptical of any plan that requires internal consing
+of continuations merely in order to avoid growing the stack by
+recursion.
+
+So I agree with you that considerations of future tail-recursion
+proposals should probably not influence our consideration of this block
+business, though we seem to reach this conclusion by different paths:
+you think it is easy enough in either case, while I think it is too hard
+in either case.
+
+There remains the issue of whether the implicit blocks makes
+code-maintenance harder by putting references to the function name
+within the body of the function object, when these two things ought to
+be unconnected.  But we debated that before and decided to put the
+implicit blocks into Defun.  We might not make the same decision today,
+but I don't think that we've seen anything new that would warrant an
+incompatible change to Defun at this point.  And if we keep the block
+around Defun, we probably should go for consistency by adding the blocks
+in the other places that have been proposed.
+
+-- Scott
+
+*start*
+00776 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:Masinter.pa@Xerox.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 23 MAR 87 09:52:25 PST
+Received: from XEROX.COM by SAIL.STANFORD.EDU with TCP; 23 Mar 87  09:49:39 PST
+Received: from Cabernet.ms by ArpaGateway.ms ; 23 MAR 87 09:49:33 PST
+Date: 23 Mar 87 09:52 PST
+From: Masinter.pa
+Subject: Re: Issue FLET-IMPLICIT-BLOCK
+In-reply-to: "Scott E. Fahlman" <Fahlman@C.CS.CMU.EDU>'s message of Sun,
+ 22 Mar 87 09:52 EST
+To: cl-cleanup@SAIL.STANFORD.EDU
+Message-ID: <870323-094933-9728@Xerox>
+
+Am I correct that there are no more objections to FLET-IMPLICIT-BLOCK?
+
+If not,  can someone volunteer to summarize the discussion about tail
+recursion costs and put it in a revised version of the proposal?
+
+Thanks,
+
+Larry
+
+
+*start*
+05160 00024 USf
+Return-Path: <@SAIL.STANFORD.EDU:FAHLMAN@C.CS.CMU.EDU>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 17 APR 87 14:11:37 PDT
+Received: from C.CS.CMU.EDU by SAIL.STANFORD.EDU with TCP; 17 Apr 87  14:08:33 PDT
+Received: ID <FAHLMAN@C.CS.CMU.EDU>; Fri 17 Apr 87 17:09:27-EDT
+Date: Fri, 17 Apr 87 17:09 EDT
+Message-ID: <FAHLMAN.12295308952.BABYL@C.CS.CMU.EDU>
+Sender: FAHLMAN@C.CS.CMU.EDU
+From: "Scott E. Fahlman" <Fahlman@C.CS.CMU.EDU>
+To: cl-cleanup@SAIL.STANFORD.EDU
+Subject: Issue: FLET-IMPLICIT-BLOCK (Revision 5)
+
+
+Status: New draft, incorporating results of CL-Cleanup discussion.
+
+[ At Masinter's suggestion, this version assumes we agree to add the
+blocks to Defmacro, Defsetf, Define-Setf-Method, and Deftype. ]
+
+Issue: FLET-IMPLICIT-BLOCK
+Reference: CLtL p. 113, 67
+Edit history:   Revision 2 by cleanup committee 15-Mar-87 15:13:33
+		Revision 3 by Masinter (reformatting) 7-Apr-87 17:49:12 
+		Revision 4 by SEF 11-Apr-87
+		Revision 5 by SEF 11-Apr-87
+
+Description:
+
+Do Flet, Labels, Defmacro, Macrolet, Defsetf, Define-Setf-Method, and
+Deftype have an implicit block around their bodies like the body of a
+Defun?  CLtL is silent on this point.  Many users and some implementors
+assume that such blocks should be established, since they view these
+forms as analogous with Defun.
+
+Test case:
+
+(defun test ()
+  (flet ((test (x) (if x (return-from test 4) 3)))
+	(list (test nil) (test t))))
+
+(test)
+
+will return (3 4) if FLET-IMPLICIT-BLOCK:YES is adopted, and would return 4
+in an implementation that did not add an implicit block around Flet.
+
+Category: Ommission. 
+Proposal: FLET-IMPLICIT-BLOCK:YES
+
+Each function created by Flet and Labels and each macro created by
+Defmacro and Macrolet has an implicit block around the body.  The name
+of this block is that same as the (lexical) name of the function or
+macro.  Similarly, the body code in Defsetf, Define-Setf-Method, and
+Deftype is surrounded by a block with the same name as the accessor
+or type.
+
+Current Practice:
+
+Current practice is mixed.  Several implementations do not add the
+implicit block, others do, some add some of these blocks and not others.
+
+Cost of adopting this change:
+Some implementations will have to be modified.  This should be a
+relatively easy modification.
+
+Cost of not adopting the change:
+If the issue is not clarified one way or another, continuing confusion
+will result in portability problems.  Clarifying the issue in any other
+way would also require modifications in some implementations.
+
+Cost of converting existing code:
+It is possible that some user code would break because it does a return
+from within a code body to an outer block that has the same as the
+newly-required block.  Such problems will be rare, and the code in
+question would not run on all current Common Lisp systems because of the
+diverse interpretations currently in effect.  It would be possible to
+detect all such instances automatically, though it seems unlikely that
+anyone will need to use this technique.
+
+Discussion:
+
+The goal is first to clean up an ambiguous situation and, second, to do
+this in a way that provides consistent behavior between local and global
+definitions.  The proposed change would allow a simple rule of thumb:
+any named entity that takes a code body establishes an implicit block
+with the obvious name.
+
+There are two coherent alternatives to the proposal above:
+
+The first would be to keep the implicit block in Defun, and to clearly
+state that the other forms do not create implicit blocks.  This
+violates the goal of consistency between lexical and global definitions,
+and it seems to conflict with users' expectations.
+
+The second alternative is to eliminate the implicit block from Defun
+rather than adding such blocks to other forms.  There is some feeling
+that specifying the implicit block in Defun was a poor design decision
+in the first place, since it hides a reference to the name of a function
+within the code of the function itself.  If a user decides to rename
+some function, he must be careful to rename any return-from forms within
+the body of the function as well.
+
+On the other hand, eliminating the implicit block in Defun would be a
+significant incompatible change.  Some users find this implicit block to
+be a great convenience for popping out of convoluted code, and some
+existing code makes heavy use of this feature.  Such code could be
+repaired automatically by searching for situations in which the user
+returns from a function by name and by adding an appropriate explicit
+block to any function containing such a forms, but it would still
+require more more work on existing user code than the proposal made
+above.
+
+There was considerable discussion in the cleanup committee about whether
+these implicit blocks would interfere with tail-recursion optimization,
+which we hope will become more common (perhaps even required) in future
+Common Lisp implementations.  The outcome of these discussions was
+general agreement that a compiler could easily eliminate the implicit
+block in any case where it is not actually used, and that the impact on
+tail-recursion optimization in compiled code is therefore minimal.
+
+*start*
+05459 00024 USf
+Return-Path: <@SAIL.STANFORD.EDU:Masinter.pa@Xerox.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 07 APR 87 17:57:19 PDT
+Received: from XEROX.COM by SAIL.STANFORD.EDU with TCP; 7 Apr 87  17:52:41 PDT
+Received: from Cabernet.ms by ArpaGateway.ms ; 07 APR 87 17:49:30 PDT
+Date: 7 Apr 87 17:50 PDT
+From: Masinter.pa
+Subject: Issue: FLET-IMPLICIT-BLOCK (Revision 3)
+To: cl-cleanup@SAIL.STANFORD.EDU
+Message-ID: <870407-174930-2716@Xerox>
+
+Status:  Discussion & agreement on cl-cleanup.
+	Needs summary of discussion appended to "Discussion" section, rest of
+discussion cut down.
+	Need volunteer.
+	
+
+Issue: FLET-IMPLICIT-BLOCK
+Reference: CLtL p. 113, 67
+Edit history:   Revision 2 by cleanup committee 15-Mar-87 15:13:33
+			  Revision 3  (move test case to issue section) 7-Apr-87 17:49:12 
+Status: tabled pending further thought of removing DEFUN implicit block
+Description: Do flet, labels, and macrolet have an implicit block around
+their bodies like the body of a DEFUN?  CLtL is unclear.
+
+Test case:
+(DEFUN TEST ()
+     (FLET ((TEST (X) (IF X (RETURN-FROM TEST 4) 3)))
+		(LIST (TEST NIL) (TEST T))))
+
+
+(TEST)
+
+will return either (3 4) if this proposal is adopted, and might return 4
+if an implementation did *not* add an implicit block.
+
+Category: Ommission. 
+Proposal: FLET-IMPLICIT-BLOCK:YES
+
+FLET, LABELS, and MACROLET have an implicit block around the body with
+the same name.
+
+Current Practice:
+
+This does not generally reflect current practice. Several
+implementations do not add the implicit block, others do. 
+
+Cost of adopting this change:
+Small, since adding the implicit block is a simple extension for any
+implementation.
+
+Cost of not adopting the change:
+Continued inconsistancy between DEFUN-formed functions and FLET defined
+functions.
+
+Cost of converting existing code:
+Relatively small, in that it is unlikely that any code in a current
+implementation that doesn't have an implicit block around FLET code
+might also do a RETURN-FROM a block with the same name.
+
+Discussion:
+
+The goal is consistency between the behavior of global and local
+definitions, to make transition between local and global definitions
+easy. The alternative is to remove implicit blocks from DEFUN.
+
+
+---------------------------------------------------------------------------
+Page ???:
+
+In addition to DEFUN, the following macros implicitly wrap a BLOCK
+around their bodies: DEFMACRO, DEFSETF, DEFINE-SETF-METHOD, and DEFTYPE.
+Also, LABELS, FLET amd MACROLET should wrap a block around the bodies of
+the locally defined functions.  Users are encouraged to create such
+blocks in their own macros where a body and an obvious block-name are
+present.
+
+---------------------------------------------------------------------------
+
+Several points and issues:
+
+1. Presumably we want to address DEFMACRO, DEFSETF, DEFINE-SETF-METHOD,
+and DEFTYPE at the same time as FLET, LABELS, and MACROLET?  Do these
+forms raise any issues that are not raised by the others?  I don't see
+any.  Rob tells me that Spice Lisp already installs blocks on all of
+these forms additional forms, though we apparently do not do this on
+FLET, LABELS, and MACROLET.
+
+2. Do we want to suggest in any new manual that users provide such
+blocks for their own macros if they take an arbitrary body?  (Presumably
+the right way to handle this is for our committee to pass along a set of
+non-binding suggestions to the drafting committee.  This would be one of
+them; the business about avoiding confusing uses of the word "intern"
+would be another.  That way these suggestions don't get lost, but we
+don't have to worry about formal votes tying the drafting committee's
+hands in the choice of language.)
+
+3. In the ISSUES file, I say that I think I am opposed to this proposal
+on efficiency grounds.  I no longer believe this to be a serious
+problem.  In compiled code, there is no issue: blocks that are not
+actually used can be eliminated.  I was thinking that this would require
+the interpreter to code-walk in and modify FLET, LABELS, and MACROLET
+forms at defun time, but clearly this is not the right implementation
+strategy.  Instead one would modify FLET and friends to establish the
+block upon entry.  This slows down these forms in the interpreter a bit,
+whether the block is used or not, but this slowdown in relatively rare
+forms, interpreter only, should not hurt much.
+
+4. Is there an issue here with tail-recursion?  Could the presence of
+these implicit blocks make it much harder to do tail-recursion
+optimization?  I don't see the problem now, but I have a note that
+someone raised this issue in earlier discussions.
+
+
+
+Date: Wednesday, 28 January 1987  10:58-EST
+From: Rob MacLachlan <RAM>
+To:   Scott E. Fahlman <Fahlman>
+Re:   Issue: FLET-IMPLICIT-BLOCK, Version 1: Are functions defined by
+
+    In case nobody else answers, the issue with tail-recursion was
+that Block in the interpreter cannot mindlessly push things on the
+stack if tail recursion is to be preserved.  Implementations that
+always created catch frames for Block were finding that tail recursion
+was being inhibited in Defun due to the implicit block.  The fix is to
+cons the necessary structure on the heap.  Repeated consing can be
+avoided by explicitly passing this "continuation" into tail-recursive
+invocations of eval.
+
+    This issue is almost totally irrelevant in the current discussion,
+since the implicit Defun block already causes these problems and
+isn't going to go away.
+
+  Rob
+
+*start*
+05160 00024 USm
+Return-Path: <@SAIL.STANFORD.EDU:FAHLMAN@C.CS.CMU.EDU>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 17 APR 87 14:11:37 PDT
+Received: from C.CS.CMU.EDU by SAIL.STANFORD.EDU with TCP; 17 Apr 87  14:08:33 PDT
+Received: ID <FAHLMAN@C.CS.CMU.EDU>; Fri 17 Apr 87 17:09:27-EDT
+Date: Fri, 17 Apr 87 17:09 EDT
+Message-ID: <FAHLMAN.12295308952.BABYL@C.CS.CMU.EDU>
+Sender: FAHLMAN@C.CS.CMU.EDU
+From: "Scott E. Fahlman" <Fahlman@C.CS.CMU.EDU>
+To: cl-cleanup@SAIL.STANFORD.EDU
+Subject: Issue: FLET-IMPLICIT-BLOCK (Revision 5)
+
+
+Status: New draft, incorporating results of CL-Cleanup discussion.
+
+[ At Masinter's suggestion, this version assumes we agree to add the
+blocks to Defmacro, Defsetf, Define-Setf-Method, and Deftype. ]
+
+Issue: FLET-IMPLICIT-BLOCK
+Reference: CLtL p. 113, 67
+Edit history:   Revision 2 by cleanup committee 15-Mar-87 15:13:33
+		Revision 3 by Masinter (reformatting) 7-Apr-87 17:49:12 
+		Revision 4 by SEF 11-Apr-87
+		Revision 5 by SEF 11-Apr-87
+
+Description:
+
+Do Flet, Labels, Defmacro, Macrolet, Defsetf, Define-Setf-Method, and
+Deftype have an implicit block around their bodies like the body of a
+Defun?  CLtL is silent on this point.  Many users and some implementors
+assume that such blocks should be established, since they view these
+forms as analogous with Defun.
+
+Test case:
+
+(defun test ()
+  (flet ((test (x) (if x (return-from test 4) 3)))
+	(list (test nil) (test t))))
+
+(test)
+
+will return (3 4) if FLET-IMPLICIT-BLOCK:YES is adopted, and would return 4
+in an implementation that did not add an implicit block around Flet.
+
+Category: Ommission. 
+Proposal: FLET-IMPLICIT-BLOCK:YES
+
+Each function created by Flet and Labels and each macro created by
+Defmacro and Macrolet has an implicit block around the body.  The name
+of this block is that same as the (lexical) name of the function or
+macro.  Similarly, the body code in Defsetf, Define-Setf-Method, and
+Deftype is surrounded by a block with the same name as the accessor
+or type.
+
+Current Practice:
+
+Current practice is mixed.  Several implementations do not add the
+implicit block, others do, some add some of these blocks and not others.
+
+Cost of adopting this change:
+Some implementations will have to be modified.  This should be a
+relatively easy modification.
+
+Cost of not adopting the change:
+If the issue is not clarified one way or another, continuing confusion
+will result in portability problems.  Clarifying the issue in any other
+way would also require modifications in some implementations.
+
+Cost of converting existing code:
+It is possible that some user code would break because it does a return
+from within a code body to an outer block that has the same as the
+newly-required block.  Such problems will be rare, and the code in
+question would not run on all current Common Lisp systems because of the
+diverse interpretations currently in effect.  It would be possible to
+detect all such instances automatically, though it seems unlikely that
+anyone will need to use this technique.
+
+Discussion:
+
+The goal is first to clean up an ambiguous situation and, second, to do
+this in a way that provides consistent behavior between local and global
+definitions.  The proposed change would allow a simple rule of thumb:
+any named entity that takes a code body establishes an implicit block
+with the obvious name.
+
+There are two coherent alternatives to the proposal above:
+
+The first would be to keep the implicit block in Defun, and to clearly
+state that the other forms do not create implicit blocks.  This
+violates the goal of consistency between lexical and global definitions,
+and it seems to conflict with users' expectations.
+
+The second alternative is to eliminate the implicit block from Defun
+rather than adding such blocks to other forms.  There is some feeling
+that specifying the implicit block in Defun was a poor design decision
+in the first place, since it hides a reference to the name of a function
+within the code of the function itself.  If a user decides to rename
+some function, he must be careful to rename any return-from forms within
+the body of the function as well.
+
+On the other hand, eliminating the implicit block in Defun would be a
+significant incompatible change.  Some users find this implicit block to
+be a great convenience for popping out of convoluted code, and some
+existing code makes heavy use of this feature.  Such code could be
+repaired automatically by searching for situations in which the user
+returns from a function by name and by adding an appropriate explicit
+block to any function containing such a forms, but it would still
+require more more work on existing user code than the proposal made
+above.
+
+There was considerable discussion in the cleanup committee about whether
+these implicit blocks would interfere with tail-recursion optimization,
+which we hope will become more common (perhaps even required) in future
+Common Lisp implementations.  The outcome of these discussions was
+general agreement that a compiler could easily eliminate the implicit
+block in any case where it is not actually used, and that the impact on
+tail-recursion optimization in compiled code is therefore minimal.
+
+*start*
+00720 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 21 APR 87 09:22:03 PDT
+Received: from SCRC-STONY-BROOK.ARPA by SAIL.STANFORD.EDU with TCP; 21 Apr 87  09:19:32 PDT
+Received: from EUPHRATES.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 120124; Mon 20-Apr-87 18:02:02 EDT
+Date: Mon, 20 Apr 87 18:01 EDT
+From: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: Issue: FLET-IMPLICIT-BLOCK (Revision 5)
+To: CL-Cleanup@SAIL.STANFORD.EDU
+In-Reply-To: <FAHLMAN.12295308952.BABYL@C.CS.CMU.EDU>
+Message-ID: <870420180149.8.MOON@EUPHRATES.SCRC.Symbolics.COM>
+
+I approve, let's release this.
+
+*start*
+04992 00024 USf
+Date: 29 May 87 21:17 PDT
+From: Masinter.pa
+To: cl-cleanup@SAIL.STANFORD.EDU
+cc: Masinter
+Subject: Issue: FLET-IMPLICIT-BLOCK (Version 5)
+
+Status:       Ready for release? [Use ballot]
+
+Issue:        FLET-IMPLICIT-BLOCK
+Reference:    CLtL p. 113, 67
+Edit history: Revision 2 by cleanup committee 15-Mar-87 15:13:33
+              Revision 3 by Masinter (reformatting) 7-Apr-87 17:49:12 
+              Revision 4 by SEF 11-Apr-87
+              Revision 5 by SEF 11-Apr-87
+
+Problem Description:
+
+Do Flet, Labels, Defmacro, Macrolet, Defsetf, Define-Setf-Method, and
+Deftype have an implicit block around their bodies like the body of a
+Defun?  CLtL is silent on this point.  Many users and some implementors
+assume that such blocks should be established, since they view these
+forms as analogous with Defun.
+
+Test case:
+
+(defun test ()
+  (flet ((test (x) (if x (return-from test 4) 3)))
+	(list (test nil) (test t))))
+
+(test)
+
+will return (3 4) if FLET-IMPLICIT-BLOCK:YES is adopted, and would return 4
+in an implementation that did not add an implicit block around Flet.
+
+Category: Ommission. 
+Proposal: FLET-IMPLICIT-BLOCK:YES
+
+Each function created by Flet and Labels and each macro created by
+Defmacro and Macrolet has an implicit block around the body.  The name
+of this block is that same as the (lexical) name of the function or
+macro.  Similarly, the body code in Defsetf, Define-Setf-Method, and
+Deftype is surrounded by a block with the same name as the accessor
+or type.
+
+Current Practice:
+
+Current practice is mixed.  Several implementations do not add the
+implicit block, others do, some add some of these blocks and not others.
+
+Cost of adopting this change:
+
+Some implementations will have to be modified.  This should be a
+relatively easy modification.
+
+Cost of not adopting the change:
+
+If the issue is not clarified one way or another, continuing confusion
+will result in portability problems.  Clarifying the issue in any other
+way would also require modifications in some implementations.
+
+Cost of converting existing code:
+
+It is possible that some user code would break because it does a return
+from within a code body to an outer block that has the same as the
+newly-required block.  Such problems will be rare, and the code in
+question would not run on all current Common Lisp systems because of the
+diverse interpretations currently in effect.  It would be possible to
+detect all such instances automatically, though it seems unlikely that
+anyone will need to use this technique.
+
+Discussion:
+
+The goal is first to clean up an ambiguous situation and, second, to do
+this in a way that provides consistent behavior between local and global
+definitions.  The proposed change would allow a simple rule of thumb:
+any named entity that takes a code body establishes an implicit block
+with the obvious name.
+
+There are two coherent alternatives to the proposal above:
+
+The first would be to keep the implicit block in Defun, and to clearly
+state that the other forms do not create implicit blocks.  This
+violates the goal of consistency between lexical and global definitions,
+and it seems to conflict with users' expectations.
+
+The second alternative is to eliminate the implicit block from Defun
+rather than adding such blocks to other forms.  There is some feeling
+that specifying the implicit block in Defun was a poor design decision
+in the first place, since it hides a reference to the name of a function
+within the code of the function itself.  If a user decides to rename
+some function, he must be careful to rename any return-from forms within
+the body of the function as well.
+
+On the other hand, eliminating the implicit block in Defun would be a
+significant incompatible change.  Some users find this implicit block to
+be a great convenience for popping out of convoluted code, and some
+existing code makes heavy use of this feature.  Such code could be
+repaired automatically by searching for situations in which the user
+returns from a function by name and by adding an appropriate explicit
+block to any function containing such a forms, but it would still
+require more more work on existing user code than the proposal made
+above.
+
+There was considerable discussion in the cleanup committee about whether
+these implicit blocks would interfere with tail-recursion optimization,
+which we hope will become more common (perhaps even required) in future
+Common Lisp implementations.  The outcome of these discussions was
+general agreement that a compiler could easily eliminate the implicit
+block in any case where it is not actually used, and that the impact on
+tail-recursion optimization in compiled code is therefore minimal.
+        TITAN          TITAN           
+TIMESROMAN 
+           ‹       /                                          Ï             :              ü       
+              "      b              Ž              `       "       Î       #      Í             ^      0 zº*start*
+00540 00024 US 
+Date:  1 Jun 87 18:25 PDT
+From: Pavel.pa
+Subject: Re: Issue: FLET-IMPLICIT-BLOCK (Version 5)
+In-reply-to: Masinter.pa's message of 29 May 87 21:17 PDT
+To: Masinter.pa
+
+Typo in the proposal:
+
+	Category: Ommission. 
+should be
+	Category: Omission.
+
+It would be nice if all of the proposals followed the same formatting rules.  In particular, this proposal and others authored by Scott use *PRINT-CASE* = :CAPTIALIZE while the others all use *PRINT-CASE* = :UPCASE.  Perhaps you could canonicalize them somehow?
+
+	Pavel
+*start*
+05137 00024 USf
+Date:  5 Jun 87 21:57 PDT
+From: Masinter.pa
+To: cl-cleanup@SAIL.STANFORD.EDU
+cc: Masinter
+Subject: Issue: FLET-IMPLICIT-BLOCK (Version 6)
+
+I think all I did was minor formatting changes (e.g., Defun => DEFUN, Revision -> Version, SEF -> Fahlman, etc.) although it was a long time ago today and I'm not 100% sure.
+
+Status: Ready for release?
+
+
+Issue:        FLET-IMPLICIT-BLOCK
+Reference:    CLtL p. 113, 67
+Category:     Omission. 
+Edit history: Version 2 by cleanup committee 15-Mar-87 15:13:33
+              Version 3 by Masinter (reformatting) 7-Apr-87 17:49:12 
+              Versions 4,5 by Fahlman 11-Apr-87
+              Version 6 by Masinter  5-Jun-87
+
+
+Problem Description:
+
+Do FLET, LABELS, DEFMACRO, MACROLET, DEFSETF, DEFINE-SETF-METHOD, and DEFTYPE have an implicit block around their bodies like the body of a DEFUN?  CLtL is silent on this point.  Many users and some implementors assume that such blocks should be established, since they view these forms as analogous with DEFUN.
+
+Test case:
+
+(defun test ()
+  (flet ((test (x) (if x (return-from test 4) 3)))
+	(list (test nil) (test t))))
+
+(test)
+
+will return (3 4) if FLET-IMPLICIT-BLOCK:YES is adopted, and would return 4 in an implementation that did not add an implicit block around Flet.
+
+Proposal: FLET-IMPLICIT-BLOCK:YES
+
+Each function created by FLET and LABELS and each macro created by DEFMACRO and MACROLET has an implicit block around the body.  The name of this block is that same as the (lexical) name of the function or macro.  Similarly, the body code in DEFSETF, DEFINE-SETF-METHOD, and DEFTYPE is surrounded by a block with the same name as the accessor or type.
+
+Current Practice:
+
+Current practice is mixed.  Several implementations do not add the implicit block, others do, some add some of these blocks and not others.
+
+Cost of adopting this change:
+
+Some implementations will have to be modified.  This should be a relatively easy modification.
+
+Cost of not adopting the change:
+
+If the issue is not clarified one way or another, continuing confusion will result in portability problems.  Clarifying the issue in any other way would also require modifications in some implementations.
+
+Cost of converting existing code:
+
+It is possible that some user code would break because it does a return from within a code body to an outer block that has the same as the newly-required block.  Such problems will be rare, and the code in question would not run on all current Common Lisp systems because of the diverse interpretations currently in effect.  It would be possible to detect all such instances automatically, though it seems unlikely that anyone will need to use this technique.
+
+Discussion:
+
+The goal is first to clean up an ambiguous situation and, second, to do this in a way that provides consistent behavior between local and global definitions.  The proposed change would allow a simple rule of thumb: any named entity that takes a code body establishes an implicit block with the obvious name.
+
+Two alternatives to the proposal were considered and rejected:
+
+The first would be to keep the implicit block in DEFUN, and to clearly state that the other forms do not create implicit blocks.  This violates the goal of consistency between lexical and global definitions, and it seems to conflict with users' expectations.
+
+The second alternative was to eliminate the implicit block from DEFUN rather than adding such blocks to other forms.  There was some feeling that specifying the implicit block in DEFUN was a poor design decision in the first place, since it hides a reference to the name of a function within the code of the function itself.  If a user decides to rename some function, he must be careful to rename any return-from forms within the body of the function as well.
+
+However, eliminating the implicit block in DEFUN would be a significant incompatible change.  Some users find this implicit block to be a great convenience for popping out of convoluted code, and some existing code makes heavy use of this feature.  While such code could be repaired automatically by searching for situations in which the user returns from a function by name and by adding an appropriate explicit block to any function containing such a forms, it would still require more more work on existing user code than this proposal made above.
+
+There was considerable discussion in the cleanup committee about whether these implicit blocks would interfere with tail-recursion optimization, which we hope will become more common in future Common Lisp implementations.  The outcome of these discussions was general agreement that a compiler could easily eliminate the implicit block in any case where it is not actually used, and that the impact on tail-recursion optimization in compiled code is therefore minimal.
+        TITAN          TITAN           
+TIMESROMAN 
+           ‹       Í                                                        Ø             :              ü       "      b              Ž              `       "       Î       #      Í             E      Á zº*start*
+00246 00024 US 
+Date: Mon,  8 Jun 87 12:17:35 PDT
+From: Pavel.pa
+Subject: Re: Issue: FLET-IMPLICIT-BLOCK (Version 6)
+In-reply-to: <870605-215751-2896@Xerox>
+To: Masinter
+
+You missed an ``Flet'' at the very end of the test case paragraph.
+*start*
+00655 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:FAHLMAN@C.CS.CMU.EDU>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 07 JUN 87 17:56:22 PDT
+Received: from C.CS.CMU.EDU by SAIL.STANFORD.EDU with TCP; 7 Jun 87  17:55:38 PDT
+Received: ID <FAHLMAN@C.CS.CMU.EDU>; Sun 7 Jun 87 20:54:24-EDT
+Date: Sun, 7 Jun 87 20:54 EDT
+Message-ID: <FAHLMAN.12308719270.BABYL@C.CS.CMU.EDU>
+Sender: FAHLMAN@C.CS.CMU.EDU
+From: "Scott E. Fahlman" <Fahlman@C.CS.CMU.EDU>
+To: Masinter.pa
+Cc: cl-cleanup@SAIL.STANFORD.EDU
+Subject: Issue: FLET-IMPLICIT-BLOCK (Version 6)
+In-reply-to: Msg of 6 Jun 1987  00:57-EDT from Masinter.pa at Xerox.COM
+
+
+Looks good to me.
+
+-- Scott
+
+*start*
+05009 00024 USm
+Date: 11 Jun 87 13:37 PDT
+From: Masinter.pa
+Subject: Issue: FLET-IMPLICIT-BLOCK (Version 6)
+TO: X3J13@sail.stanford.edu
+reply-To: cl-cleanup@SAIL.STANFORD.EDU
+cc: Masinter
+
+
+Issue:        FLET-IMPLICIT-BLOCK
+Reference:    CLtL p. 113, 67
+Category:     OMISSION 
+Edit history: Version 2 by cleanup committee 15-Mar-87 15:13:33
+              Version 3 by Masinter (reformatting) 7-Apr-87 17:49:12 
+              Versions 4,5 by Fahlman 11-Apr-87
+              Version 6 by Masinter  5-Jun-87
+
+
+Problem Description:
+
+Do FLET, LABELS, DEFMACRO, MACROLET, DEFSETF, DEFINE-SETF-METHOD, and DEFTYPE have an implicit block around their bodies like the body of a DEFUN?  CLtL is silent on this point.  Many users and some implementors assume that such blocks should be established, since they view these forms as analogous with DEFUN.
+
+Test case:
+
+(defun test ()
+  (flet ((test (x) (if x (return-from test 4) 3)))
+	(list (test nil) (test t))))
+
+(test)
+
+will return (3 4) if FLET-IMPLICIT-BLOCK:YES is adopted, and would return 4 in an implementation that did not add an implicit block around FLET.
+
+Proposal: FLET-IMPLICIT-BLOCK:YES
+
+Each function created by FLET and LABELS and each macro created by DEFMACRO and MACROLET has an implicit block around the body.  The name of this block is that same as the (lexical) name of the function or macro.  Similarly, the body code in DEFSETF, DEFINE-SETF-METHOD, and DEFTYPE is surrounded by a block with the same name as the accessor or type.
+
+Current Practice:
+
+Current practice is mixed.  Several implementations do not add the implicit block, others do, some add some of these blocks and not others.
+
+Cost of adopting this change:
+
+Some implementations will have to be modified.  This should be a relatively easy modification.
+
+Cost of not adopting the change:
+
+If the issue is not clarified one way or another, continuing confusion will result in portability problems.  Clarifying the issue in any other way would also require modifications in some implementations.
+
+Cost of converting existing code:
+
+It is possible that some user code would break because it does a return from within a code body to an outer block that has the same as the newly-required block.  Such problems will be rare, and the code in question would not run on all current Common Lisp systems because of the diverse interpretations currently in effect.  It would be possible to detect all such instances automatically, though it seems unlikely that anyone will need to use this technique.
+
+Discussion:
+
+The goal is first to clean up an ambiguous situation and, second, to do this in a way that provides consistent behavior between local and global definitions.  The proposed change would allow a simple rule of thumb: any named entity that takes a code body establishes an implicit block with the obvious name.
+
+Two alternatives to the proposal were considered and rejected:
+
+The first would be to keep the implicit block in DEFUN, and to clearly state that the other forms do not create implicit blocks.  This violates the goal of consistency between lexical and global definitions, and it seems to conflict with users' expectations.
+
+The second alternative was to eliminate the implicit block from DEFUN rather than adding such blocks to other forms.  There was some feeling that specifying the implicit block in DEFUN was a poor design decision in the first place, since it hides a reference to the name of a function within the code of the function itself.  If a user decides to rename some function, he must be careful to rename any return-from forms within the body of the function as well.
+
+However, eliminating the implicit block in DEFUN would be a significant incompatible change.  Some users find this implicit block to be a great convenience for popping out of convoluted code, and some existing code makes heavy use of this feature.  While such code could be repaired automatically by searching for situations in which the user returns from a function by name and by adding an appropriate explicit block to any function containing such a forms, it would still require more more work on existing user code than this proposal made above.
+
+There was considerable discussion in the cleanup committee about whether these implicit blocks would interfere with tail-recursion optimization, which we hope will become more common in future Common Lisp implementations.  The outcome of these discussions was general agreement that a compiler could easily eliminate the implicit block in any case where it is not actually used, and that the impact on tail-recursion optimization in compiled code is therefore minimal.
+        TITAN          TITAN           
+TIMESROMAN 
+          
+TIMESROMAN 
+           \       "       /                                                 
+              Ø             :              ü       "      b              Ž              `       "       Î       #      Í             E       zº

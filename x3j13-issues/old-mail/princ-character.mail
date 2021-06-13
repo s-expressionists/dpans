@@ -1,0 +1,397 @@
+*start*
+03331 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 23 FEB 87 19:23:51 PST
+Received: from SCRC-STONY-BROOK.ARPA by SAIL.STANFORD.EDU with TCP; 23 Feb 87  19:22:13 PST
+Received: from RIO-DE-JANEIRO.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL Date: Mon, 23 Feb 87 22:20 EST
+From: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: PRINC-CHARACTER
+To: CL-Cleanup@SAIL.STANFORD.EDU
+cc: KMP@STONY-BROOK.SCRC.Symbolics.COM
+Message-ID: <870223222057.8.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+
+Proposal:     PRINC-CHARACTER
+References:   PRINC (p383)
+Category:     CHANGE/CLARIFICATION
+Edit History: Revision 1 by KMP 02/23/87
+Problem Description:
+
+  The manual is not adequately specific about the function of PRINC
+  when given a character as an argument. 
+
+  For example, does (PRINC #\Space) print ``Space'' or `` ''? 
+
+  The advice that "the general rule is that output from PRINC is
+  intended to look good to people" is the root of a lot of the problem.
+  The truth is that what looks good varies with context. viz,
+   * In (FORMAT T "Foo~ABar" #\Space),
+     seeing "Foo Bar" looks better than seeing "FooSpaceBar" (to me).
+   * In (FORMAT T "Type ~C to continue" #\Space),
+     seeing "Type Space to continue" looks better than "Type   to continue" (to me).
+
+Proposal 1 (PRINC-CHARACTER:WRITE-CHAR):
+
+  (PRINC char stream) should be defined to be equivalent to (WRITE-CHAR char stream).
+
+Proposal 2 (PRINC-CHARACTER:FORMAT-OP-COLON-C):
+
+  (PRINC char stream) should be defined to be equivalent to (FORMAT stream "~:C" char).
+
+Proposal 3 (PRINC-CHARACTER:FORMAT-OP-C):
+
+  (PRINC char stream) should be defined to be equivalent to (FORMAT stream "~C" char).
+  [Depending on the outcome of another ballot item, this might turn out to be redundant
+   with one of the other proposals.]
+
+Rationale:
+
+  The behavior of (PRINC char) should be well-defined. A hopefully well reasoned
+  but probably ultimately arbitrary decision is in order.
+
+Current Practice:
+
+  As nearly as I can tell from a quick glance at the sources, Symbolics
+  uses PRINC-CHARACTER:WRITE-CHAR. (Moon will undoubtedly correct me if 
+  I'm wrong.)
+
+  I'm sure I've seen other implementation(s) do differently, though offhand
+  I cannot remember which one(s). In any case, the wording in CLtL is
+  not clear enough to preclude such.
+
+Adoption Cost:
+
+  Those implementations which did not already implement the choice decided upon
+  would suffer an incompatible change.
+
+Benefits:
+
+  User code that uses PRINC (and presumably ~A) on characters would have
+  a chance of being portable.
+
+Conversion Cost:
+
+  It's easy to search for occurrences of PRINC and ~A in code, but it may
+  not always be apparent when the argument is a character. Automatic conversion
+  is unlikely to succeed.
+
+Aesthetics:
+
+  Making PRINC do something well-defined for as many primitive data types 
+  as possible will probably be perceived as a simplification.
+
+Discussion:
+
+  KMP thinks this is moderately important because it is embarrassing to have
+  common functions like this vary so widely in behavior between implementations.
+  He doesn't think it is critical because (if nothing else) it is only one of
+  many problems with the vague contract of PRINC.
+
+*start*
+01249 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:FAHLMAN@C.CS.CMU.EDU>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 23 FEB 87 19:40:16 PST
+Received: from C.CS.CMU.EDU by SAIL.STANFORD.EDU with TCP; 23 Feb 87  19:38:16 PST
+Received: ID <FAHLMAN@C.CS.CMU.EDU>; Mon 23 Feb 87 22:39:00-EST
+Date: Mon, 23 Feb 87 22:38 EST
+Message-ID: <FAHLMAN.12281486260.BABYL@C.CS.CMU.EDU>
+Sender: FAHLMAN@C.CS.CMU.EDU
+From: "Scott E. Fahlman" <Fahlman@C.CS.CMU.EDU>
+To: CL-Cleanup@SAIL.STANFORD.EDU
+Subject: PRINC-CHARACTER
+In-reply-to: Msg of 23 Feb 1987  22:20-EST from Kent M Pitman <KMP at STONY-BROOK.SCRC.Symbolics.COM>
+
+
+For what it may be worth, CMU Common Lisp (a.k.a. Spice Lisp) also uses
+PRINC-CHARACTER:WRITE-CHAR.  Presumably most of the implementations
+based on our code do this as well -- I don't think we've changed this
+recently.  We should check Lucid Lisp, but if they do it this way too,
+then we seem to have the preponderance of existing practice on one side
+of the issue.  Vaxlisp may be the odd one, but we're not running it here
+so I can't check.
+
+I don't care which way this one goes, but I agree that it should be
+nailed down.  Other things being equal, I'd say that we follow the
+majority of existing implementations.
+
+-- Scott
+
+*start*
+00750 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:gls@Think.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 24 FEB 87 07:46:12 PST
+Received: from THINK.COM by SAIL.STANFORD.EDU with TCP; 24 Feb 87  07:44:16 PST
+Received: from boethius by Think.COM via CHAOS; Tue, 24 Feb 87 10:43:37 EST
+Date: Tue, 24 Feb 87 10:45 EST
+From: Guy Steele <gls@Think.COM>
+Subject: PRINC-CHARACTER
+To: CL-Cleanup@sail.stanford.edu
+Cc: gls@Think.COM
+In-Reply-To: <870223222057.8.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+Message-Id: <870224104522.5.GLS@BOETHIUS.THINK.COM>
+
+I favor PRINC behaving as WRITE-CHAR on character objects.
+I believe that that is closest in spirit to the historical
+behavior of PRINC on such character-like objects as 'A
+and '| |.
+--Guy
+
+*start*
+00727 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 29 APR 87 17:46:55 PDT
+Received: from SCRC-STONY-BROOK.ARPA by SAIL.STANFORD.EDU with TCP; 29 Apr 87  17:44:35 PDT
+Received: from EUPHRATES.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 127770; Wed 29-Apr-87 20:26:29 EDT
+Date: Wed, 29 Apr 87 20:26 EDT
+From: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: PRINC-CHARACTER (Version 2)
+To: CL-Cleanup@SAIL.STANFORD.EDU
+In-Reply-To: <870429154611.2.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+Message-ID: <870429202621.9.MOON@EUPHRATES.SCRC.Symbolics.COM>
+
+I favor PRINC-CHARACTER:WRITE-CHAR.
+
+*start*
+00676 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:FAHLMAN@C.CS.CMU.EDU>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 02 MAY 87 13:42:35 PDT
+Received: from C.CS.CMU.EDU by SAIL.STANFORD.EDU with TCP; 2 May 87  13:30:08 PDT
+Received: ID <FAHLMAN@C.CS.CMU.EDU>; Sat 2 May 87 16:31:09-EDT
+Date: Sat, 2 May 87 16:31 EDT
+Message-ID: <FAHLMAN.12299234147.BABYL@C.CS.CMU.EDU>
+Sender: FAHLMAN@C.CS.CMU.EDU
+From: "Scott E. Fahlman" <Fahlman@C.CS.CMU.EDU>
+To: CL-Cleanup@SAIL.STANFORD.EDU
+Subject: PRINC-CHARACTER (Version 2)
+In-reply-to: Msg of 29 Apr 1987  15:46-EDT from Kent M Pitman <KMP at STONY-BROOK.SCRC.Symbolics.COM>
+
+
+I favor PRINC-CHARACTER:WRITE-CHAR.
+
+-- Scott
+
+*start*
+04006 00024 USf
+Date: 29 May 87 21:59 PDT
+From: Masinter.pa
+Subject: Issue: PRINC-CHARACTER (Version 2)
+To: Masinter.pa
+
+Status:       Ready for release? [Use ballot]
+
+Issue:        PRINC-CHARACTER
+References:   PRINC (p383)
+Category:     CHANGE/CLARIFICATION
+Edit History: 23-Feb-87, Version 1 by Pitman
+              29-Apr-87, Version 2 by Pitman (removed FORMAT-OP-C)
+
+Problem Description:
+
+  CLtL is not adequately specific about the function of PRINC
+  when given a character as an argument. 
+
+  For example, does (PRINC #\Space) print ``Space'' or `` ''? 
+
+  The advice that "the general rule is that output from PRINC is
+  intended to look good to people" is the root of a lot of the problem.
+  The truth is that what looks good varies with context. viz,
+
+   * For (FORMAT NIL "Foo~ABar" #\Space)
+     Pretty result: "Foo Bar"
+     Ugly result:   "FooSpaceBar"
+     In other words, " " looks better here.
+
+   * For (FORMAT T "Type ~C to continue" #\Space)
+     Pretty result: "Type Space to continue"
+     Ugly result:   "Type   to continue"
+     In other words, "Space" looks better here.
+
+Proposal (PRINC-CHARACTER:WRITE-CHAR):
+
+  (PRINC char stream) should be defined to be equivalent to
+  (WRITE-CHAR char stream).
+
+Rationale:
+
+  The behavior of (PRINC char) should be well-defined even if a
+  completely arbitrary decision had to be made.
+
+  In fact, though, we can get some advice by appealing to history.
+  The only data type which corresponds to characters in most old
+  lisps was symbols. For example, in Maclisp,
+    (PRINC char-symbol) == (TYO (GETCHARN char-symbol 1))
+
+  In Common Lisp, it would make sense in the absence of arguments
+  to the contrary to preserve an analagous relation, namely:
+    (PRINC char) == (WRITE-CHAR char)
+
+Current Practice:
+
+  Vaxlisp, Symbolics, Spice Lisp, and Lucid all print " " and not
+  "Space" for (PRINC #\Space).
+
+  Symbolics and Spice are known to use the WRITE-CHAR strategy.
+  Vaxlisp and Lucid might be using it, too, or they might be
+  using ~C in FORMAT; no one familiar with their internals has
+  commented.
+
+  In any case, some other implementations are believed to differ
+  (ie, to output "Space" when you PRINC a #\Space), but a specific
+  reference is not currently available. In any case, the wording
+  in CLtL is not clear enough to preclude such a differing
+  implementation from `legitimately' emerging.
+
+Adoption Cost:
+
+  Any implementations which did not already implement this proposal
+  decided upon would suffer an incompatible change.
+
+Benefits:
+
+  User code that uses PRINC (and presumably ~A) on characters would
+  have a chance of being portable.
+
+Conversion Cost:
+
+  It's easy to search for occurrences of PRINC and ~A in code, but
+  it may not always be apparent when the argument is a character.
+  Automatic conversion is unlikely to succeed.
+
+Aesthetics:
+
+  Making PRINC do something well-defined for as many primitive data
+  types as possible will probably be perceived as a simplification.
+
+Discussion:
+
+  KMP thinks this is moderately important because it is embarrassing
+  to have commonly used functions like this vary so widely in behavior
+  between implementations. He doesn't think it is critical because
+  (if nothing else) it is only one of many problems with the vague
+  contract of PRINC.
+
+  There was an alternate proposal PRINC-CHARACTER:FORMAT-OP-C which
+  suggested making PRINC work like ~C in FORMAT, but no one seemed
+  to think that was useful and the proposal was removed for Version 2
+  to keep from muddying what's likely to be a very straightforward 
+  vote in favor of PRINC-CHARACTER:WRITE-CHAR.
+
+   The cleanup committee supports this proposal.
+        TITAN          TITAN           
+TIMESROMAN 
+           i       .                                   
+                            c             ¡       '       Z                          ]              z       
+       i              ∂              ä             õ      ; z∫*start*
+04354 00024 USm
+Date: 11 Jun 87 15:35 PDT
+From: Masinter.pa
+Subject: Issue: PRINC-CHARACTER (Version 2)
+TO: X3J13@sail.stanford.edu
+cc: Masinter
+Reply-to: CL-cleanup@sail.stanford.edu
+Line-fold: NO
+
+
+Issue:        PRINC-CHARACTER
+References:   PRINC (p383)
+Category:     CHANGE/CLARIFICATION
+Edit History: 23-Feb-87, Version 1 by Pitman
+              29-Apr-87, Version 2 by Pitman (removed FORMAT-OP-C)
+
+Problem Description:
+
+ CLtL is not adequately specific about the function of PRINC
+ when given a character as an argument. 
+
+ For example, does (PRINC #\Space) print ``Space'' or `` ''? 
+
+ The advice that "the general rule is that output from PRINC is
+ intended to look good to people" is the root of a lot of the problem.
+ The truth is that what looks good varies with context. viz,
+
+ * For (FORMAT NIL "Foo~ABar" #\Space)
+   Pretty result: "Foo Bar"
+   Ugly result:   "FooSpaceBar"
+   In other words, " " looks better here.
+
+ * For (FORMAT T "Type ~C to continue" #\Space)
+   Pretty result: "Type Space to continue"
+   Ugly result:   "Type   to continue"
+   In other words, "Space" looks better here.
+
+Proposal (PRINC-CHARACTER:WRITE-CHAR):
+
+ (PRINC char stream) should be defined to be equivalent to
+ (WRITE-CHAR char stream).
+
+Rationale:
+
+ The behavior of (PRINC char) should be well-defined even if a
+ completely arbitrary decision had to be made.
+
+ In fact, though, we can get some advice by appealing to history.
+ The only data type which corresponds to characters in most old
+ lisps was symbols. For example, in Maclisp,
+   (PRINC char-symbol) == (TYO (GETCHARN char-symbol 1))
+
+ In Common Lisp, it would make sense in the absence of arguments
+ to the contrary to preserve an analagous relation, namely:
+   (PRINC char) == (WRITE-CHAR char)
+
+Current Practice:
+
+ Vaxlisp, Symbolics, Spice Lisp, and Lucid all print " " and not
+ "Space" for (PRINC #\Space).
+
+ Symbolics and Spice are known to use the WRITE-CHAR strategy.
+ Vaxlisp and Lucid might be using it, too, or they might be
+ using ~C in FORMAT; no one familiar with their internals has
+ commented.
+
+ In any case, some other implementations are believed to differ
+ (ie, to output "Space" when you PRINC a #\Space), but a specific
+ reference is not currently available. In any case, the wording
+ in CLtL is not clear enough to preclude such a differing
+ implementation from `legitimately' emerging.
+
+Adoption Cost:
+
+ Any implementations which did not already implement this proposal
+ decided upon would suffer an incompatible change.
+
+Benefits:
+
+ User code that uses PRINC (and presumably ~A) on characters would
+ have a chance of being portable.
+
+Conversion Cost:
+
+ It's easy to search for occurrences of PRINC and ~A in code, but
+ it may not always be apparent when the argument is a character.
+ Automatic conversion is unlikely to succeed.
+
+Aesthetics:
+
+ Making PRINC do something well-defined for as many primitive data
+ types as possible will probably be perceived as a simplification.
+
+Discussion:
+
+ The cleanup committee generally supports this proposal.
+
+ Pitman thinks this is moderately important because it is embarrassing
+ to have commonly used functions like this vary so widely in behavior
+ between implementations. He doesn't think it is critical because
+ (if nothing else) it is only one of many problems with the vague
+ contract of PRINC.
+
+ There was an alternate proposal PRINC-CHARACTER:FORMAT-OP-C which
+ suggested making PRINC work like ~C in FORMAT, but no one seemed
+ to think that was useful and the proposal was removed for Version 2
+ to keep from muddying what's likely to be a very straightforward 
+ vote in favor of PRINC-CHARACTER:WRITE-CHAR.
+
+     (LIST ((PAGE NIL (PAPERSIZE Letter FOLIOINFO (ARABIC "" "") STARTINGPAGE# 1) (0 0 612 792) ((TEXT NIL NIL (24 72 564 648) NIL))) (PAGE NIL (PAPERSIZE Letter FOLIOINFO (ARABIC "" "") STARTINGPAGE# NIL) (0 0 612 792) ((TEXT NIL NIL (24 72 564 648) NIL))) (PAGE NIL (PAPERSIZE Letter FOLIOINFO (ARABIC "" "") STARTINGPAGE# NIL) (0 0 612 792) ((TEXT NIL NIL (24 72 564 648) NIL)))))        TITAN          TITAN           
+TIMESROMAN 
+           π                            
+                            c             ´       '       X             ¸             R              x       
+       g              ≥              à             ù      ) z∫

@@ -1,0 +1,3182 @@
+*start*
+03448 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:KMP@YUKON.SCRC.Symbolics.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 27 FEB 87 15:58:38 PST
+Received: from SCRC-YUKON.ARPA by SAIL.STANFORD.EDU with TCP; 27 Feb 87  15:56:52 PST
+Received: from RIO-DE-JANEIRO.SCRC.Symbolics.COM by YUKON.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 171Date: Fri, 27 Feb 87 18:41 EST
+From: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: IF-BODY
+To: CL-Cleanup@SAIL.STANFORD.EDU
+cc: KMP@STONY-BROOK.SCRC.Symbolics.COM
+Message-ID: <870227184126.7.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+
+Issue:        IF-BODY
+References:   IF (p115)
+Category:     ENHANCEMENT
+Edit history: Revision 1 by KMP 02/27/87
+Problem Description:
+
+  IF only allows 2 or 3 arguments.
+
+  Because CLtL specifies that upward compatible extensions are permissible
+  when they don't interfere with the language semantics, many implementations
+  have provided an extended syntax for IF that looks like:
+	 (IF test then {else}*)
+
+  The problem is that systems providing this extension do not provide 
+  error checks that tell developers of code that will be ported when they're
+  likely to lose. 
+
+  As such, this is a source of frustration for users, only a small fraction of
+  which care about arguing about whether more than three arguments is aesthetic.
+  They just want their programs to port without hassle. CLtL has egged on the
+  problem by explicitly suggesting that such extensions were permissible.
+
+Proposal (IF-BODY:YES):
+
+  We should extend IF to accept a body of else forms (to be treated as an
+  implicit PROGN).
+
+Rationale:
+
+  Since we are unlikely to agree that more than 3 arguments must signal an
+  error in all implementations, we should agree on this solution which leaves
+  the question of aesthetics up to the individual programmer.
+
+Current Practice:
+
+  Some implementations already provide this feature. 
+  Many others could trivially add it.
+  A few may provide alternate keyword-driven extensions to IF that are 
+  incompatible with this extension. 
+
+Adoption Cost:
+
+  Presumably most implementations would require minor adjustments to the
+  interpreter, the compiler, and any code walking tools.
+
+Benefits:
+
+  This will greatly diminish a common source of aggravation in many customer
+  applications. 
+
+Conversion Cost:
+
+  Most user code which simply uses IF would not be affected adversely
+  except in implementations which provided keyword-driven extensions. 
+  In such implementations, it would probably be possible to provide 
+  tools to at least search for problemsome cases if not also to automatically
+  convert them.
+
+  Some user-defined code may be depending on understanding the syntax of
+  IF because it is defined to be a primitive special form. Such programs 
+  would be broken, though fixing them would not be complicated and the
+  fixes would generally be upward-compatible with the existing semantics.
+
+Aesthetics:
+
+  Some people like the IF body idea and find it more visually aesthetic
+  than the more-parenthesized (and incidentally also more-indented)
+  COND alternative.
+
+  Some people really dislike the idea of an IF body.
+
+  Except for those who write program-manipulating programs, though, no one
+  is being forced to change their personal programming style.
+
+Discussion:
+
+  KMP thinks this very middle of the road on the aesthetic issue and
+  thinks that this change would be valuable for purely pragmatic reasons.
+
+*start*
+01925 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 02 MAR 87 21:51:36 PST
+Received: from SCRC-STONY-BROOK.ARPA by SAIL.STANFORD.EDU with TCP; 2 Mar 87  21:49:18 PST
+Received: from EUPHRATES.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 82Date: Tue, 3 Mar 87 00:47 EST
+From: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: IF-BODY
+To: CL-Cleanup@SAIL.STANFORD.EDU
+In-Reply-To: <FAHLMAN.12282821608.BABYL@C.CS.CMU.EDU>
+Message-ID: <870303004754.4.MOON@EUPHRATES.SCRC.Symbolics.COM>
+
+    Date: Sun, 1 Mar 1987  00:54 EST
+    From: "Scott E. Fahlman" <Fahlman@C.CS.CMU.EDU>
+
+    Whatever we decide about the merits of this proposal itself, I want to
+    VEHEMENTLY OBJECT to the rationale put forward in this proposal.  I
+    think it is an extremely bad precedent to accept the argument that some
+    implementations have made a non-standard extension, their customers now
+    become upset when their code doesn't port to non-extended implementations,
+    Common Lisp has "egged them on" by allowing such extensions, and now we
+    have some sort of obligation (or at least a good reason) to accept the
+    extension into the official language unless it can be shown that this
+    would conflict with something else.
+
+    This same argument could be used to slip any number of unspeakable
+    horrors into the language....
+
+On the other hand, if a language standard doesn't evolve by observing
+how people use it and what extensions they support, and then selecting
+from that "gene pool" of extensions the ones that seem appropriate to
+enshrine in a standard, then how does it evolve?
+
+In other words, the mere fact that some people like this extension is
+not sufficient reason to put it into the language, but it is certainly
+sufficient reason to -discuss- putting it into the language.
+
+*start*
+01555 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:FAHLMAN@C.CS.CMU.EDU>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 03 MAR 87 08:15:55 PST
+Received: from C.CS.CMU.EDU by SAIL.STANFORD.EDU with TCP; 3 Mar 87  08:13:06 PST
+Received: ID <FAHLMAN@C.CS.CMU.EDU>; Tue 3 Mar 87 11:13:50-EST
+Date: Tue, 3 Mar 87 11:13 EST
+Message-ID: <FAHLMAN.12283458672.BABYL@C.CS.CMU.EDU>
+Sender: FAHLMAN@C.CS.CMU.EDU
+From: "Scott E. Fahlman" <Fahlman@C.CS.CMU.EDU>
+To: "David A. Moon" <Moon@SCRC-STONY-BROOK.ARPA>
+Cc: CL-Cleanup@SAIL.STANFORD.EDU
+Subject: IF-BODY
+In-reply-to: Msg of 3 Mar 1987  00:47-EST from David A. Moon <Moon at STONY-BROOK.SCRC.Symbolics.COM>
+
+
+    In other words, the mere fact that some people like this extension is
+    not sufficient reason to put it into the language, but it is certainly
+    sufficient reason to -discuss- putting it into the language.
+
+Agreed.  KMP's rationale seemed to go well beyond this position, implying
+(it seemed to me) that if a small group had become "hooked" on an
+extension, we should go not cause them any inconvenience by refusing to
+add a harmless, if controversial, feature.  Of course, that kind of
+reasoning could be manipulated by any small group in order to get their
+favorite crock into the language, as long as the change they wanted was
+additive.
+
+As I said before, I am only mildly opposed to this change on aesthetic
+grounds and would go along with any strong community preference, as long
+as we are not seen to be endorsing some position on additions like the
+one presented above.
+
+-- Scott
+
+*start*
+00894 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:gls@Think.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 03 MAR 87 10:08:50 PST
+Received: from THINK.COM by SAIL.STANFORD.EDU with TCP; 3 Mar 87  10:05:17 PST
+Received: from boethius by Think.COM via CHAOS; Tue, 3 Mar 87 13:04:35 EST
+Date: Tue, 3 Mar 87 13:06 EST
+From: Guy Steele <gls@Think.COM>
+Subject: IF-BODY
+To: CL-Cleanup@sail.stanford.edu
+In-Reply-To: <FAHLMAN.12282821608.BABYL@C.CS.CMU.EDU>
+Message-Id: <870303130635.9.GLS@BOETHIUS.THINK.COM>
+
+I agree with Scott's assessment of the IF-BODY proposal (though I think
+the proposal was worth making).  I would point out that one of the
+reasons for including IF in the language is to have a simple primitive
+that can easily be recognized, by people and by program-walkers alike,
+as being the simplest conditional and not having implicit PROGNs as do
+WHEN, UNLESS, and COND.
+
+*start*
+02685 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:FAHLMAN@C.CS.CMU.EDU>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 28 FEB 87 21:55:22 PST
+Received: from C.CS.CMU.EDU by SAIL.STANFORD.EDU with TCP; 28 Feb 87  21:53:31 PST
+Received: ID <FAHLMAN@C.CS.CMU.EDU>; Sun 1 Mar 87 00:54:18-EST
+Date: Sun, 1 Mar 87 00:54 EST
+Message-ID: <FAHLMAN.12282821608.BABYL@C.CS.CMU.EDU>
+Sender: FAHLMAN@C.CS.CMU.EDU
+From: "Scott E. Fahlman" <Fahlman@C.CS.CMU.EDU>
+To: CL-Cleanup@SAIL.STANFORD.EDU
+Subject: IF-BODY
+In-reply-to: Msg of 27 Feb 1987  18:41-EST from Kent M Pitman <KMP at STONY-BROOK.SCRC.Symbolics.COM>
+
+
+I oppose this proposal on aesthetic grounds, though I wouldn't fight too
+hard against it if a majority of X3J13 felt otherwise.  (I don't think
+they will, however; we discussed this extended syntax during the
+original language design and the extended form lost.  Of course, we have
+a different set of people involved now.)  To me, the THEN and ELSE
+clauses of an IF should be handled in a symmetrical manner, and I find
+the extended form to be visually confusing.  A PROGN wrapped around the
+else forms makes the grouping obvious.  (I might also observe that the
+insertion of this PROGN can be fully automated.)
+
+Whatever we decide about the merits of this proposal itself, I want to
+VEHEMENTLY OBJECT to the rationale put forward in this proposal.  I
+think it is an extremely bad precedent to accept the argument that some
+implementations have made a non-standard extension, their customers now
+become upset when their code doesn't port to non-extended implementations,
+Common Lisp has "egged them on" by allowing such extensions, and now we
+have some sort of obligation (or at least a good reason) to accept the
+extension into the official language unless it can be shown that this
+would conflict with something else.
+
+This same argument could be used to slip any number of unspeakable
+horrors into the language.  I'm sure that all of you can find some
+extension used by your competitors and their customers that you
+violently dislike.  We can't allow this to become a principle of
+language design.  Each such case must be decided based on the aesthetic
+judgement of the whole community (or their representatives), not by the
+enthusiasms of one or two implementors.
+
+We have said all along that non-standard extensions are OK, but that
+only code written according to the manual can be expected to be
+portable.  If customers are having trouble, the right way to accommodate
+them is to provide an optional compiler warning about non-standard
+features such as this, and perhaps in this case a tool that will
+automatically convert their code into legal Common Lisp.
+
+-- Scott
+
+*start*
+02234 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 03 MAR 87 12:11:25 PST
+Received: from SCRC-STONY-BROOK.ARPA by SAIL.STANFORD.EDU with TCP; 3 Mar 87  12:09:08 PST
+Received: from RIO-DE-JANEIRO.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL Date: Tue, 3 Mar 87 14:46 EST
+From: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: IF-BODY
+To: gls@Think.COM
+cc: KMP@STONY-BROOK.SCRC.Symbolics.COM, CL-Cleanup@SAIL.STANFORD.EDU
+In-Reply-To: <870303130635.9.GLS@BOETHIUS.THINK.COM>
+Message-ID: <870303144644.2.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+
+While I would certainly agree that your opinions should be included in
+a ballot item, I think it's important that this committee not make a
+policy of keeping any serious proposal from a full vote. While none of
+us on this committee is likely to accuse another of trying to use
+underhanded tactics to keep a topic from reaching the agenda, proposals
+that were received from the outside should not be subject to veto within
+this committee. Our charter should be only to frame the question clearly 
+and provide any appropriate advice that we can. Ultimately, to insure
+the X3J13 fairness doctrine, I think we must allow for a full review.
+
+Having said this, I think that if outsiders should be entitled to not
+have serious proposals stifled in this committee, then it's only reasonable
+that insiders should enjoy the same courtesy. As such, why don't you 
+or Scott work out an alternate voting position and rationale and add it
+into my original proposal. My feeling is that you should be allowed to
+say whatever you like about the issue, but should not modify my proposal
+or rationale. The introduction of alternatives should be primarily 
+additive in nature -- analagous to a debate.
+
+I think this is a good example of exactly the process we should
+be trying to encourage. I think a pocket veto is outside of our authority
+because it does no afford due process. If the group voted to allow such
+a veto power, it would be ok, but I would not encourage them to do so
+and I doubt that they would.
+
+Also, a pocket veto does not afford a proper historical record.
+
+*start*
+01493 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:FAHLMAN@C.CS.CMU.EDU>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 03 MAR 87 12:30:03 PST
+Received: from C.CS.CMU.EDU by SAIL.STANFORD.EDU with TCP; 3 Mar 87  12:28:01 PST
+Received: ID <FAHLMAN@C.CS.CMU.EDU>; Tue 3 Mar 87 15:28:47-EST
+Date: Tue, 3 Mar 87 15:28 EST
+Message-ID: <FAHLMAN.12283505086.BABYL@C.CS.CMU.EDU>
+Sender: FAHLMAN@C.CS.CMU.EDU
+From: "Scott E. Fahlman" <Fahlman@C.CS.CMU.EDU>
+To: Kent M Pitman <KMP@SCRC-STONY-BROOK.ARPA>
+Cc: CL-Cleanup@SAIL.STANFORD.EDU
+Subject: IF-BODY
+In-reply-to: Msg of 3 Mar 1987  14:46-EST from Kent M Pitman <KMP at STONY-BROOK.SCRC.Symbolics.COM>
+
+
+I don't think any of us intended to interfere with your right to
+bring this issue before X3J13 if you want to.  I don't like this
+proposal, but I will defend to the death (well...until it hurts, anyway)
+your right to present the proposal.  I do think it is perfectly
+within our charter to try to debug proposals and rationales, as well as
+to propose alternatives.  If the person making the proposal insists upon
+going forward with the original formulation, fine; the issue should go
+to X3J13 along with the arguments we have gathered pro and con.
+
+For people's convenience, I'd like to see us produce two packages of
+proposals: proposals upon which we have reached a consensus and which
+the cleanup committee as a whole endorses, and proposals favored by
+certain individuals, about which there is some significant disagreement.
+
+-- Scott
+
+*start*
+04932 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:FAHLMAN@C.CS.CMU.EDU>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 03 MAR 87 21:19:54 PST
+Received: from C.CS.CMU.EDU by SAIL.STANFORD.EDU with TCP; 3 Mar 87  21:18:11 PST
+Received: ID <FAHLMAN@C.CS.CMU.EDU>; Wed 4 Mar 87 00:18:56-EST
+Date: Wed, 4 Mar 87 00:18 EST
+Message-ID: <FAHLMAN.12283601602.BABYL@C.CS.CMU.EDU>
+Sender: FAHLMAN@C.CS.CMU.EDU
+From: "Scott E. Fahlman" <Fahlman@C.CS.CMU.EDU>
+To: cl-cleanup@SAIL.STANFORD.EDU
+Subject: IF-BODY:NO
+
+
+Issue:        IF-BODY
+References:   IF (p115)
+Category:     ENHANCEMENT
+Edit history: Response by SEF 3/3/87
+              to Revision 1 by KMP 02/27/87
+Problem Description:
+
+  From KMP's IF-BODY:YES proposal:
+
+  IF only allows 2 or 3 arguments.
+
+  Because CLtL specifies that upward compatible extensions are permissible
+  when they don't interfere with the language semantics, many implementations
+  have provided an extended syntax for IF that looks like:
+	 (IF test then {else}*)
+
+  The problem is that systems providing this extension do not provide 
+  error checks that tell developers of code that will be ported when they're
+  likely to lose. 
+
+  As such, this is a source of frustration for users, only a small fraction of
+  which care about arguing about whether more than three arguments is aesthetic.
+  They just want their programs to port without hassle. CLtL has egged on the
+  problem by explicitly suggesting that such extensions were permissible.
+
+Proposal (IF-BODY:NO):
+
+  Leave IF as it is currently specified in CLtL.
+
+Rationale:
+
+  The proposed change would destroy the symmetry of the THEN and ELSE
+  clauses in an IF expression, and would lead to a format that in the 
+  opinion of many is visually confusing.  IF is supposed to be the
+  simplest conditional form, from which all the others are built.
+
+Current Practice:
+
+  Some implementations already provide extended-format IF as a
+  non-standard extension.  They could continue to do so.
+
+Adoption Cost:
+
+  Zero if we don't change IF; a small effort for implementors if we do
+  make the change.
+
+Benefits:
+
+  Zero if we don't change IF.  In my view, the benefits of adopting the
+  change are slightly negative; KMP and others feel it is slightly positive.
+
+Conversion Cost:
+
+  Zero if we don't change IF.  Since the proposed extension is an
+  upward-compatible extension most user code would not have to be
+  altered if the change is adopted, except in implementations extend IF
+  in some different way, incompatible with this one.
+
+  Since IF is defined as a special form, code walkers and other
+  code-understanding tools would have to be altered to accommodate the
+  extended format.
+
+  If we don't change, users who wish to eliminate extended-form IF's
+  from their code can do this easily by adding an explicit PROGN around
+  the ELSE forms.  This can be done automatically by any code-walker.
+
+Aesthetics:
+
+  There is disagreement on the aesthetics of the proposed change.  KMP
+  argues that nobody is forced to write code using the extension.
+  However, my principal objection to this change is that it makes code
+  harder for humans to read, and if the change is adopted we will all be
+  required to read a lot of code that uses the extended-form IF.
+
+Discussion:
+
+I am only mildly opposed to this change on aesthetic grounds.  I would
+yield on this if a clear majority of Common Lisp users felt that the
+change was beneficial.  However, I don't think that such a majority
+exists, and I adhere to the view that purely aesthetic changes should
+only be made if there is a very clear consensus that the improvement is
+worth the cost.  In this case we can't even agree that the change would
+be an improvement.
+
+I would like to go on record as objecting in principle to KMP's other
+argument for this change: that some manufacturers have provided the
+extension, that their users are subject to some inconveninece when
+moving to standard Common Lisp systems, and that we should alter Common
+Lisp in a way that is controversial just to accommodate these users.  I
+feel that this argment, if accepted, would set a terrible precedent: any
+small faction that wants to force some upward-compatible change into the
+language would just have to implement the change as an extension and
+then claim inconvenience to their users if it is not adopted as part of
+the standard.  
+
+If an extension becomes genuinely popular, we should
+consider adopting it; I am only objecting to the idea that we have some
+obligation to adopt marginal extensions rather than inconvenience the
+people who are using them.
+
+Incompatible extensions should be clearly documented as such, and users
+should stick to the base language in code that is meant to be portable.
+A manufacturer can aid these users by providing an optional compiler
+mode that warns about the use of non-portable extensions and/or by
+providing automatic tools for turning extended code into standard code.
+
+*start*
+01132 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:gls@Think.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 04 MAR 87 14:31:35 PST
+Received: from THINK.COM by SAIL.STANFORD.EDU with TCP; 4 Mar 87  06:53:55 PST
+Received: from boethius by Think.COM via CHAOS; Wed, 4 Mar 87 09:52:41 EST
+Date: Wed, 4 Mar 87 09:54 EST
+From: Guy Steele <gls@Think.COM>
+Subject: IF-BODY
+To: KMP@stony-brook.scrc.symbolics.com
+Cc: CL-Cleanup@sail.stanford.edu, gls@think.com
+In-Reply-To: <870303144644.2.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+Message-Id: <870304095439.1.GLS@BOETHIUS.THINK.COM>
+
+I certainly did not mean to imply that this proposal, or any proposal,
+should be killed in committee, or that any part of the proposal should
+be deleted.  However, I think that Scott's remarks concerning the nature
+of the rationale are well taken, and should also be included as
+commentary on the proposal.  Individuals preparing proposals may choose
+to take his arguments into account when determining what else to propose
+and what justifications to give.  You have framed a question clearly; he
+has provided advice that I consider appropriate.
+
+*start*
+01118 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 03 MAR 87 12:52:28 PST
+Received: from SCRC-STONY-BROOK.ARPA by SAIL.STANFORD.EDU with TCP; 3 Mar 87  12:50:02 PST
+Received: from RIO-DE-JANEIRO.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL Date: Tue, 3 Mar 87 15:47 EST
+From: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: (treatment of) IF-BODY
+To: Fahlman@C.CS.CMU.EDU
+cc: KMP@STONY-BROOK.SCRC.Symbolics.COM, CL-Cleanup@SAIL.STANFORD.EDU
+In-Reply-To: <FAHLMAN.12283505086.BABYL@C.CS.CMU.EDU>
+Message-ID: <870303154743.5.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+
+Separating controversial from uncontroversial ones sounds fine.
+
+I think it's worth a disclaimer on the uncontroversial ones that says that
+just because we support them doesn't mean people shouldn't read them before
+voting. Then no one can accuse us of trying to sneak anything by.
+
+The ball is in your court, then, for creating an alternate proposal to sit
+with this in the packet of muddy issues to get full review.
+
+*start*
+01001 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:FAHLMAN@C.CS.CMU.EDU>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 03 MAR 87 18:45:18 PST
+Received: from C.CS.CMU.EDU by SAIL.STANFORD.EDU with TCP; 3 Mar 87  18:43:17 PST
+Received: ID <FAHLMAN@C.CS.CMU.EDU>; Tue 3 Mar 87 21:43:59-EST
+Date: Tue, 3 Mar 87 21:43 EST
+Message-ID: <FAHLMAN.12283573387.BABYL@C.CS.CMU.EDU>
+Sender: FAHLMAN@C.CS.CMU.EDU
+From: "Scott E. Fahlman" <Fahlman@C.CS.CMU.EDU>
+To: Kent M Pitman <KMP@SCRC-STONY-BROOK.ARPA>
+Cc: CL-Cleanup@SAIL.STANFORD.EDU
+Subject: (treatment of) IF-BODY
+In-reply-to: Msg of 3 Mar 1987  15:47-EST from Kent M Pitman <KMP at STONY-BROOK.SCRC.Symbolics.COM>
+
+
+OK, I take it that we have not persuaded you to alter either your
+proposal or the rationale you present for it.  In that case, I'll write
+up an opposing view.
+
+I'm not sure if an aternate proposal is the right mechanism here, since
+the aternative is not to do anythign about this, but I'll put it into
+that form for now.
+
+-- Scott
+
+*start*
+04980 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:Masinter.pa@Xerox.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 17 APR 87 16:36:11 PDT
+Received: from XEROX.COM by SAIL.STANFORD.EDU with TCP; 17 Apr 87  16:32:52 PDT
+Received: from Cabernet.ms by ArpaGateway.ms ; 17 APR 87 16:33:53 PDT
+Date: 17 Apr 87 16:38 PDT
+From: Masinter.pa
+Subject: Issue IF-BODY (Version 3)
+To: cl-cleanup@sail.stanford.edu
+Message-ID: <870417-163353-2990@Xerox>
+
+Status: I (Masinter) tried to merge and summarize the arguments for and
+against this proposal. However, I have made enough edits that I no
+longer have a lot of confidence that it reflects the "will of the
+committee".  If you would like to create the next draft, please let me
+know.
+
+
+Issue:        IF-BODY
+References:   IF (p115)
+Category:     ENHANCEMENT
+Edit history: Revision 1 by KMP 02/27/87
+		Version 2 (IF-BODY:NO) by SEF 3/3/87
+		Revision 2 by Masinter 17-Apr-87
+
+Problem Description:
+
+IF only allows 2 or 3 arguments. This is restrictive, and not compatible
+with current practice in some implementations. 
+
+Test Case:
+ 
+ (IF T NIL NIL NIL NIL NIL NIL T). 
+
+Currently, this is an error.  In some implementations this returns T.
+
+Proposal (IF-BODY:YES):
+
+Extend IF to accept a body of else forms (to be treated as an implicit
+PROGN), with syntax (IF test then {else}*).
+
+Rationale:
+
+This is an extension which exists in many implementations.
+
+Current Practice:
+
+Some implementations already provide this feature.  Others do not, and
+signal an error. A few may provide alternate keyword-driven extensions
+to IF that are incompatible with this extension.   
+   
+Adoption Cost:
+
+Presumably most implementations would require minor adjustments to the
+interpreter, the compiler, and any code walking tools. The estimated
+cost is low. Implementations which provided an alternate keyword-driven
+extension would have more serious difficulties.
+
+Benefits:
+
+This will diminish one common source of aggravation in applications that
+took advantage of the extension provided by some implementations, as
+they would not have to remove this implementation dependency.
+
+Cost of not adopting this change:
+
+Users with code which had multiple else expressions would have to find
+them and convert them to (if test then (PROGN else)) or an equivalent
+construct, or else construct a new compatibility package which shadowed
+IF. (Implementations which currently provide an extension could continue
+to do so, although programs that used it would not be valid Common
+Lisp.)
+
+Conversion Cost:
+
+Most code which simply uses IF would not be affected adversely except in
+implementations which provided keyword-driven extensions.
+
+Some user-defined code might depend on understanding the syntax of IF
+because it is defined to be a primitive special form. Such programs
+would require modification, although those modifications are likely to
+be simple. 
+
+Aesthetics:
+
+Some people like the IF body idea and find it more visually aesthetic
+than the more-parenthesized (and incidentally also more-indented) COND
+alternative.
+
+Some people really dislike the idea of an IF body: it would destroy the
+symmetry of the THEN and ELSE clauses in an IF expression, and would
+lead to a visually confusing format. 
+
+This proposal leaves that choice to the individual programmer.
+
+Discussion:
+
+Much of the discussion around this proposal centered on the form of the
+arguments rather than on the proposal itself. The issue of whether the
+fact that some implementations had chosen to extend IF should influence
+the future of Common Lisp was debated. 
+
+
+Pitman: "this is a source of frustration for users, only a small
+fraction of
+  which care about arguing about whether more than three arguments is
+aesthetic.
+  They just want their programs to port without hassle. CLtL has egged
+on the
+  problem by explicitly suggesting that such extensions were
+permissible."
+
+Fahlman: "Whatever we decide about the merits of this proposal itself, I
+want to
+    VEHEMENTLY OBJECT to the rationale put forward in this proposal....
+it
+    is an extremely bad precedent . . .
+
+    This same argument could be used to slip any number of unspeakable
+    horrors into the language...."
+
+Moon: "the mere fact that some people like this extension is not
+sufficient reason to put it into the language, but it is certainly
+sufficient reason to -discuss- putting it into the language." 
+
+Steele: " I agree with Scott's assessment of the IF-BODY proposal
+(though I think
+the proposal was worth making). I would point out that one of the
+reasons for including IF in the language is to have a simple primitive
+that can easily be recognized, by people and by program-walkers alike,
+as being the simplest conditional and not having implicit PROGNs as do
+WHEN, UNLESS, and COND."
+
+Summary: Most of the cleanup committee are mildly opposed to adopting
+this proposal. We agree that we should consider, but not be held hostage
+to, extensions made by some implementations and demanded by their users.
+
+
+*start*
+09894 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 19 APR 87 20:30:28 PDT
+Received: from SCRC-STONY-BROOK.ARPA by SAIL.STANFORD.EDU with TCP; 19 Apr 87  20:27:48 PDT
+Received: from RIO-DE-JANEIRO.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 119725; Sun 19-Apr-87 23:27:59 EDT
+Date: Sun, 19 Apr 87 23:27 EDT
+From: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: Issue IF-BODY (Version 4)
+To: Masinter.PA
+cc: KMP@STONY-BROOK.SCRC.Symbolics.COM, CL-Cleanup@SAIL.STANFORD.EDU
+References: <870417-163353-2990@Xerox>
+Message-ID: <870419232729.4.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+
+Notes on this draft:
+
+ I expanded a few of the sections where I thought important information
+ was missing.
+
+ I changed the Test Case to one which would show up a case that
+ the old test case hadn't -- some implementations quietly ignore
+ the additional forms.
+
+ I removed the Summary, which I thought sounded downright paranoid.
+ The whole point of committees and voting is to ensure due process.
+ It goes without saying that we're not held hostage by much of 
+ anything. Words like "hostage" suggest an undue air of tension.
+
+ I added another clump of discussion by me in the Discussion.
+
+==============================================================================
+Issue:        IF-BODY
+References:   IF (p115)
+Category:     ENHANCEMENT
+Edit history: 27-Feb-87, Version 1 by Pitman   
+	       3-Mar-87, Version 2 by Fahlman  (added IF-BODY:NO)
+	      17-Apr-87, Version 3 by Masinter (misc editing)
+	      19-Apr-87, Version 4 by Pitman   (misc editing)
+Status:       Not for release
+
+Problem Description:
+
+  CLtL defines the meaning of an IF expression only in the case of
+  2 or 3 arguments. Some implementations extend the meaning to allow
+  more arguments, but this extension tends to thwart code portability
+  because of widespread use of IF.
+
+Test Case:
+ 
+  (IF NIL 'THEN 'ELSE 'MORE)
+
+  According to CLtL, this is an error.
+  In some implementations, this returns ELSE.
+  In some implementations, this returns MORE.
+  In some implementations, this signals an error at syntax analysis time.
+
+Proposal (IF-BODY:YES):
+
+  Extend IF to accept a body of else forms (to be treated as an implicit
+  PROGN), with syntax (IF test then {else}*).
+
+Rationale:
+
+  Some implementations provide this extension while others do not.
+  Dependence of user code on this feature commonly goes undetected
+  until the code is ported to a system which does not have the feature,
+  which is often inconveniently late in the development cycle.
+
+  In principle, it is possible to develop and test code thoroughly
+  in one (extended) dialect, compile it in another dialect without 
+  obtaining any compiler warnings, and then to run it in the second
+  dialect and find that it does not behave as the original programmer
+  intended. This phenomenon is counter to the portability goals of
+  Common Lisp.
+
+Current Practice:
+
+  Some implementations already provide this feature.
+
+  A few implementations provide alternate keyword-driven extensions
+  that are incompatible with this extension.
+   
+  Some implementations signal an error if other than two or three
+  arguments are passed.
+
+  Some implementations quietly ignore additional arguments to IF, making
+  it hard to detect errors in code that was developed on systems with
+  the extended syntax.
+
+Adoption Cost:
+
+  Presumably most implementations would require minor adjustments
+  to the interpreter, the compiler, and any code walking tools.
+  The estimated cost is low.
+
+  Implementations which provided an alternate keyword-driven
+  extension could have more serious difficulties. In some cases,
+  however, heuristic solutions which select a semantics based on
+  the presence or absence of keywords may be of use.
+
+Benefits:
+
+  This will diminish one common source of aggravation in applications
+  that took advantage of the extension provided by some implementations,
+  as they would not have to remove this implementation dependency.
+
+Cost of not adopting this change:
+
+  Unless someone proposes an ammendment to CLtL which requires that
+  LISP:IF not be extended to allow additional arguments, users will
+  continue to develop code in some implementations where these features
+  are available, and then upon porting their code may notice that their
+  code either does not compile (generates syntax errors) or does not
+  compile correctly (the additional forms are quietly ignored and the
+  code generated is not what the writer intended).
+
+  If this proposal is not adopted, Common Lisp users doing ports from
+  certain dialects to certain other dialects will repeatedly risk lost
+  time and effort in debugging problems which could be defined away
+  by this proposal.
+
+  Users with code which had multiple else expressions should find them
+  and convert them to (COND (test then) (T {else}*)), but in practice
+  they may be very hard to find until the time the port is done, which
+  is usually inconveniently late in the development cycle for this kind
+  of bug to be detected.
+
+Conversion Cost:
+
+  Uses of the IF special form in portable user-defined code would
+  not be affected since the extension is ``upward compatible.''
+
+  Some portable user-defined code (such as macros or code-walking
+  utilities) might depend on understanding the syntax of IF because
+  it is defined to be a primitive special form. Such programs would
+  require modification, although those modifications are likely to
+  be simple.
+
+  Uses of the IF special form in dialects which allow keyword-driven
+  extensions (or other incompatible extensions) to IF would be 
+  affected syntactically. Non-portable program-understanding tools
+  for those dialects (including the interpreter and compiler) would
+  be impacted as well.
+
+Aesthetics:
+
+  Some people like the IF body idea and find it more visually
+  aesthetic than the more-parenthesized (and incidentally also 
+  more-indented) COND alternative.
+
+  Some people really dislike the idea of an IF body because they
+  feel it would destroy the symmetry of the THEN and ELSE clauses
+  in an IF expression, and would lead to a visually confusing format.
+
+  The IF-BODY:YES proposal does not preclude a self-imposed 
+  programming style which uses no more than 3 arguments. In that
+  sense, it leaves the style issue up to the individual programmer.
+
+Discussion:
+
+  A big chunk of the discussion around this proposal centered on 
+  the form of the arguments rather than on the proposal itself.
+  The issue of whether the fact that some implementations had
+  chosen to extend IF should influence the future of Common Lisp
+  was debated. 
+
+ Pitman:
+  This is a source of frustration for users, only a few of whom
+  care about arguing about whether more than three arguments is
+  aesthetic. They just want their programs to port without hassle.
+  CLtL has egged on the problem by explicitly suggesting that
+  such extensions were permissible.
+
+ Fahlman:
+  Whatever we decide about the merits of this proposal itself,
+  I want to VEHEMENTLY OBJECT to the rationale put forward in
+  [the first draft of] this proposal ... it is an extremely bad
+  precedent ... This same argument could be used to slip any
+  number of unspeakable horrors into the language....
+
+ Moon:
+  The mere fact that some people like this extension is not
+  sufficient reason to put it into the language, but it is
+  certainly sufficient reason to -discuss- putting it into the
+  language.
+
+ Steele:
+  I agree with Scott's assessment of the IF-BODY proposal (though
+  I think the proposal was worth making). I would point out that
+  one of the reasons for including IF in the language is to have
+  a simple primitive that can easily be recognized, by people and
+  by program-walkers alike, as being the simplest conditional and
+  not having implicit PROGNs as do WHEN, UNLESS, and COND.
+
+ Pitman:
+  Experience has shown that implementations are going to disagree
+  in a way that thwarts portability until we do something about it.
+
+  Both the extended dialect and the non-extended dialect are
+  within their rights. No individual dialect is at fault when
+  programs do not port correctly due to this problem; rather,
+  we are at fault for having provided a specification which
+  promotes this sort of problem.
+
+  To me, the question is not "Should we do something?" but rather
+  "What should we do?". I see only two choices: We can -require-
+  implementations to signal an error if there is ever more than
+  3 arguments to an IF or we can extend the language to make the
+  case of more than 3 arguments be well-defined in some interesting
+  way.
+
+  If we voted to disallow extensions to IF altogether, I'd want to
+  be able to justify that to our installed customer base. I can
+  imagine myself telling people they couldn't use the extended
+  case any more because it was cluttering the otherwise simple 
+  syntax of Common Lisp -- I'd get laughed out of the room. All
+  someone would have to do to break down my argument would be to
+  compare the impact of this syntax extension to those already 
+  present in LAMBDA or DEFUN. In truth, program understanding 
+  programs have considerably more formidable problems than worrying
+  about whether IF has symmetric arguments, so I just don't buy
+  this counter-argument that some have presented.
+
+  Users don't care that IF and COND were introduced at differing
+  syntactic layers. They just care that the total space of 
+  constructs available is adequately expressive, easy to modify,
+  etc. For those who are content to simply not use these 
+  extensions, those needs are trivially easy to satisfy. For 
+  those who -do- use those extensions, I'd like to have more 
+  than a gold star to offer them in exchange for the expressive
+  power I'd be removing by making the if-body case illegal.
+
+*start*
+05207 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:FAHLMAN@C.CS.CMU.EDU>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 20 APR 87 07:00:10 PDT
+Received: from C.CS.CMU.EDU by SAIL.STANFORD.EDU with TCP; 20 Apr 87  06:58:12 PDT
+Received: ID <FAHLMAN@C.CS.CMU.EDU>; Mon 20 Apr 87 09:54:07-EDT
+Date: Mon, 20 Apr 87 09:54 EDT
+Message-ID: <FAHLMAN.12296016150.BABYL@C.CS.CMU.EDU>
+Sender: FAHLMAN@C.CS.CMU.EDU
+From: "Scott E. Fahlman" <Fahlman@C.CS.CMU.EDU>
+To: Kent M Pitman <KMP@SCRC-STONY-BROOK.ARPA>
+Cc: CL-Cleanup@SAIL.STANFORD.EDU
+Subject: Issue IF-BODY (Version 4)
+In-reply-to: Msg of 19 Apr 1987  23:27-EDT from Kent M Pitman <KMP at STONY-BROOK.SCRC.Symbolics.COM>
+
+
+There are many ways in which we could present controversial issues like
+this.  The idea of having two separate proposals, one in favor of the
+change and one against, is obviously insane.  It is also unreasonable to
+allow the last person to touch the propsal to write an essay favoring
+one point of view, while everyone else's arguments get boiled down to a
+few selected phrases and some ellipsis dots.  Any reasonably fair way of
+presenting this stuff is all right with me.  Maybe the best approach is
+to let KMP write up the proposal, state his case at length in a
+"Discussion: Pro" section, and let the loyal opposition have more or
+less equal space in a "Discussion: Con" section.
+
+The only quibble I have with the pre-discussion part of KMP's
+presentation is that he presents (COND (test then) (T {else}*)) as the
+obvious translation, and then picks on this in the aesthetics section.
+If we're going to argue aesthetics, I prefer the following translation:
+(if test
+    (progn {then-clauses}*)
+    (progn {else-clauses}*))
+
+Here is what I would propose for the Discussion:Con section.  Others in
+sympathy with this view are invited to contribute to this section:
+---------------------------------------------------------------------------
+
+On purely aesthetic grounds, I am opposed to this proposal because it
+makes code harder to scan quickly (and since we all have to read Common
+Lisp code written by others, this is not a situation where each user can
+make his own choice).  The three elements of the current IF expression
+are easy to spot, and there is a symmetry between the THEN and the ELSE
+clause; in the extended form, all the clauses tend to run together
+visually into a large, amorphous body, and it is hard to locate the THEN
+clause in the middle of all the others.  If a programmer wants either
+the THEN or the ELSE clause to be a PROGN, he should use an explicit
+PROGN.  The result is indeed "more parenthesized and indented"; this is
+a virtue.
+
+On aesthetic matters such as this, reasonable people may differ.  If a
+majority in the Common Lisp community favor the extended form of IF,
+their taste should prevail, but this has not been the majority view when
+this issue has come up in the past.
+
+The remaining argument is that this extension should be added because
+some dialects already support it, some users do not realize that this
+usage is not legal Common Lisp, and that these users are inconvenienced
+when they discover, "late in the development cycle", that their code
+does not run on other machines.  I believe that it would set a very bad
+precedent to give this argument any weight whatsoever.  To do so would
+be to give each implementor a tool that could be used to force any
+compatible extension, no matter how ill-advised, into the language
+standard: simply add the extension to your own dialect, refuse to
+provide any warnings to your users that they are using a non-standard
+feature, and then petition the standards committee (on the users'
+behalf) to add the extension to Common Lisp so that these poor users
+won't be inconvenienced.
+
+The original charter of Common Lisp made it clear that implementations
+could add non-standard extensions, but that users who want their code to
+be portable should use the standard language only.  The proper way to
+protect users from portability problems is for each implementation to
+provide a compilation mode (or code-walking tool or whatever) that warns
+about the use of non-portable extensions.  It has been suggested that
+such a mode should be required, but Moon has argued (correctly, in my
+view) that this is an environment issue not appropriate for
+standardization.  So each implementation that chooses to extend the
+language in some way must take responsibility for protecting its users
+from the consequences; if it neglects to do so, its users should
+complain to the implementors, not to the Common Lisp standards
+committee.
+
+So, to the two choices that KMP presents (forbid any extension to IF or
+adopt this proposal), I would add a third choice: encourage (but do not
+require) that extended implementions issue a warning when non-portable
+constructs are used, and encourage users to make life hot for any vendor
+who refuses to do this.
+
+I would point out that in this case a code-walker or compiler can easily
+detect the use of extended-IF, and that it would be trivial to provide a
+tool that puts an explicit PROGN around the ELSE clauses.  It doesn't
+matter whether this happens "late in the development cycle" since it is
+a trivial modification.
+
+*start*
+01393 00024 USa
+Return-Path: <@SAIL.STANFORD.EDU:Pavel.pa@Xerox.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 20 APR 87 11:28:29 PDT
+Received: from XEROX.COM by SAIL.STANFORD.EDU with TCP; 20 Apr 87  11:26:16 PDT
+Received: from Cabernet.ms by ArpaGateway.ms ; 20 APR 87 11:27:18 PDT
+Date: 20 Apr 87 11:27 PDT
+From: Pavel.pa
+Subject: Re: Issue IF-BODY (Version 4)
+In-reply-to: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>'s
+ message of Sun, 19 Apr 87 23:27 EDT
+To: CL-Cleanup@SAIL.STANFORD.EDU
+Message-ID: <870420-112718-1241@Xerox>
+
+I oppose this proposal on two grounds:
+
+1) I like very much the extremely simple syntax/semantics of the current
+IF construct.  Making the syntax assymetric is very ugly and, it seems
+to me, likely to encourage programmers to negate otherwise reasonable
+conditions in order to make the else clause be the one they need more
+than one statement for.  I agree with Scott here; the extra indenting is
+a virtue, not a vice.
+
+2) When users lose time due to being confused about which features are
+non-standard, it is not proper to complain to the standards committee.
+Rather, they should complain to the implementors who did not provide
+them with an easy way to be warned about non-portable constructs.
+Obviously, not all such extensions can be easily flagged by the
+compiler, but it's trivial to notice and warn about uses of IF-BODY.
+
+	Pavel
+
+*start*
+01276 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:Masinter.pa@Xerox.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 20 APR 87 14:01:02 PDT
+Received: from XEROX.COM by SAIL.STANFORD.EDU with TCP; 20 Apr 87  13:58:03 PDT
+Received: from Cabernet.ms by ArpaGateway.ms ; 20 APR 87 13:50:22 PDT
+Date: 20 Apr 87 12:07 PDT
+From: Masinter.pa
+Subject: Re: Issue IF-BODY (Version 4)
+To: CL-Cleanup@SAIL.STANFORD.EDU
+Message-ID: <870420-135022-1113@Xerox>
+
+I think we have discussed the pros and cons of this issue sufficiently,
+to the point that it is counter-productive to repeat any of the
+arguments.  We have also agreed that, even though a majority of the
+committee does not like this proposal, we want to release it.  All we
+need now is a version of the write-up which we can all agree to
+distribute.
+
+I support Scott's proposal for doing so, viz: "let KMP write up the
+proposal, state his case at length in a `Discussion: Pro' section, and
+let the loyal opposition have more or less equal space in a `Discussion:
+Con' section."
+
+Does anyone disagree?  I think it would be best if Kent and Scott can
+get a copy together privately and then mail it out as Version 5, so that
+we can get this one off the table and proceed with some of the other
+issues. 
+
+Thanks
+
+Larry
+
+
+
+
+*start*
+01181 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:FAHLMAN@C.CS.CMU.EDU>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 21 APR 87 12:17:20 PDT
+Received: from C.CS.CMU.EDU by SAIL.STANFORD.EDU with TCP; 21 Apr 87  12:14:54 PDT
+Received: ID <FAHLMAN@C.CS.CMU.EDU>; Tue 21 Apr 87 15:15:51-EDT
+Date: Tue, 21 Apr 87 15:15 EDT
+Message-ID: <FAHLMAN.12296336858.BABYL@C.CS.CMU.EDU>
+Sender: FAHLMAN@C.CS.CMU.EDU
+From: "Scott E. Fahlman" <Fahlman@C.CS.CMU.EDU>
+To: Kent M Pitman <KMP@SCRC-STONY-BROOK.ARPA>
+Cc: CL-Cleanup@SAIL.STANFORD.EDU
+Subject: IF-BODY
+In-reply-to: Msg of 20 Apr 1987  19:08-EDT from Kent M Pitman <KMP at STONY-BROOK.SCRC.Symbolics.COM>
+
+
+I'm leaving town for a week, starting in about 20 minutes.  In my view a
+balanced presentation would consist of your version of the proposal, and
+for discussion the long statement you included in the last version, plus
+the rebuttal I sent out a day or two ago.  If you're willing to leave it
+at that, fine; else we'll have to iterate until someone gives up and
+lets the other guy have the last word.  rather than stall the process,
+I'm happy to let someone else from the CON camp do the iterating in my
+absence.
+
+-- Scott
+
+*start*
+01806 00024 USa
+Return-Path: <@SAIL.STANFORD.EDU:KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 21 APR 87 09:23:58 PDT
+Received: from SCRC-STONY-BROOK.ARPA by SAIL.STANFORD.EDU with TCP; 21 Apr 87  09:20:53 PDT
+Received: from RIO-DE-JANEIRO.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 120149; Mon 20-Apr-87 19:08:48 EDT
+Date: Mon, 20 Apr 87 19:08 EDT
+From: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: IF-BODY
+To: Fahlman@C.CS.CMU.EDU
+cc: CL-Cleanup@SAIL.STANFORD.EDU
+In-Reply-To: <FAHLMAN.12296016150.BABYL@C.CS.CMU.EDU>
+Message-ID: <870420190818.0.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+
+Funny you objected to my changing the (IF test then (PROGN {else}*))
+to (COND (test then) (T {else}*)). I did that to help your case. I
+consider the former to be so ugly that I never use it in any code, while
+I don't find COND to be so ugly that I wouldn't sometimes use it. I
+was honestly trying to keep things as balanced as possible. I guess
+the situation is just very complicated and requires both rewrites to
+be illustrated...
+
+By the way, I was surprised that the copy I was working with (done by
+Masinter) had left out Fahlman's IF-BODY:NO suggestion, but I assumed
+that I had just mis-remembered what we discussed at the in-person
+meeting and that we'd decided for some reason not to make ballot items
+for proposals that amount to the status quo...
+
+I'm happy to work with you on a revised proposal that feels balanced
+as suggested in today's mail from Masinter. Why don't you send me 
+something privately which you think feels more balanced -- ie, factor
+back in the earlier arguments in a way you feel comfortable with and
+we'll go from there, reporting back to the committee when we're in 
+agreement.
+-kmp
+
+*start*
+00980 00024 US 
+Return-Path: <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Received: from STONY-BROOK.SCRC.Symbolics.COM ([192.10.41.144]) by Xerox.COM ; 23 APR 87 14:56:24 PDT
+Received: from RIO-DE-JANEIRO.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 123311; Thu 23-Apr-87 17:48:07 EDT
+Date: Thu, 23 Apr 87 17:47 EDT
+From: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: Re: IF-BODY
+To: Masinter.pa
+cc: KMP@STONY-BROOK.SCRC.Symbolics.COM
+In-Reply-To: <870423-140948-1093@Xerox>
+Message-ID: <870423174756.4.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+
+    Date: 23 Apr 87 14:10 PDT
+    From: Masinter.pa@Xerox.COM
+
+    Kent: in my summarization, I tried to keep the arguments brief. Can you
+    come up with a version of the proposal that you think will make Scott
+    happy too?
+
+    If so, we can ship it. I think we've spent too much time on this one and
+    I'd like to get it out of the way.
+
+I will try to come up with something.
+
+*start*
+01544 00024 US 
+Return-Path: <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Received: from STONY-BROOK.SCRC.Symbolics.COM (SCRC-STONY-BROOK.ARPA) by Xerox.COM ; 29 APR 87 09:55:32 PDT
+Received: from RIO-DE-JANEIRO.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 127191; Wed 29-Apr-87 12:54:45 EDT
+Date: Wed, 29 Apr 87 12:54 EDT
+From: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: IF-BODY
+To: Masinter.PA
+cc: KMP@STONY-BROOK.SCRC.Symbolics.COM, Fahlman@C.CS.CMU.EDU, GLS@Think.COM
+References: <870423174756.4.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+Message-ID: <870429125439.6.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+
+    Date: Thu, 23 Apr 87 17:47 EDT
+    From: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+
+	Date: 23 Apr 87 14:10 PDT
+	From: Masinter.pa@Xerox.COM
+
+	Kent: in my summarization, I tried to keep the arguments brief. Can you
+	come up with a version of the proposal that you think will make Scott
+	happy too?
+
+	If so, we can ship it. I think we've spent too much time on this one and
+	I'd like to get it out of the way.
+
+    I will try to come up with something.
+
+By the way, I have a new revision of this proposal which I'm trying to
+get either GLS or Scott to say is unbiased. I had some people in my group
+here look at it and they said they thought the treatment was pretty fair.
+When one of GLS or Scott lets me know if they think it is, I'll see about
+sending it out to the others. Of course, if they have problems with it,
+it'll go through more iterations before you see it.
+
+*start*
+11172 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 29 APR 87 13:58:44 PDT
+Received: from SCRC-STONY-BROOK.ARPA by SAIL.STANFORD.EDU with TCP; 29 Apr 87  13:37:18 PDT
+Received: from RIO-DE-JANEIRO.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 127499; Wed 29-Apr-87 16:37:14 EDT
+Date: Wed, 29 Apr 87 16:37 EDT
+From: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: IF-BODY (Version 5)
+To: CL-Cleanup@SAIL.STANFORD.EDU
+cc: KMP@STONY-BROOK.SCRC.Symbolics.COM
+References: <870427182129.0.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>,
+Message-ID: <870429163704.7.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+
+I hope this draft manages to merge the IF-BODY:NO stuff in
+a relatively fair way. -kmp
+
+ ``... looks reasonably balanced to me, and represents my
+   own opinions adequately.  I see no objection to releasing
+   it to the world at large ...''
+
+	-- Guy L. Steele, Jr.
+	   author of ``Common Lisp: The Language''
+
+==============================================================================
+Issue:        IF-BODY
+References:   IF (p115)
+Category:     ENHANCEMENT
+Edit history: 27-Feb-87, Version 1 by Pitman   (IF-BODY:YES)
+	       3-Mar-87, Version 2 by Fahlman  (added IF-BODY:NO)
+	      17-Apr-87, Version 3 by Masinter (merged v1 and v2)
+	      19-Apr-87, Version 4 by Pitman   (misc editing to v3)
+	      27-Apr-87, Version 5 by Pitman   (reworked for balance)
+Status:       Not for release
+
+Problem Description:
+
+  CLtL defines the meaning of an IF expression only in the case of two or
+  three arguments. Some implementations extend the meaning to allow more
+  arguments.
+
+  Typically, using the extended IF syntax will not generate a warning in
+  environments which support it. Code developed where these features are
+  available is not typically discovered to be in error until a port to
+  some other implementation is attempted. At that point, which is 
+  typically inconveniently late in the development cycle, the developer
+  may notice that code either does not compile (generates syntax errors)
+  or does not compile correctly (the additional forms are quietly ignored
+  and the code generated is not what the writer intended).
+
+  The problem is rightly due to the user, but users typically expect that
+  they should be warned about such problems. Unfortunately, however, both
+  the Lisp which allows the extended syntax and that which fails to signal
+  an error about the invalid syntax are within their rights as currently
+  stated.
+
+  This phenomenon is a barrier to Common Lisp's portability goals.
+
+Test Case:
+ 
+  (IF NIL 'THEN 'ELSE 'MORE)
+
+  According to CLtL, this is an error.
+  In some implementations, this returns ELSE.
+  In some implementations, this returns MORE.
+  In some implementations, this signals an error at syntax analysis time.
+
+Notes about Voting:
+
+  Select one of IF-BODY:ILLEGAL, IF-BODY:LEGAL, or IF-BODY:UNCHANGED.
+
+Proposal (IF-BODY:ILLEGAL):
+
+  Restrict IF, making it expressly illegal to supply more than three
+  argument forms. Require that implementations signal an error at
+  syntax analysis time.
+
+  Rationale:
+
+    As long as some implementations provide this extension while
+    others do not, the portability goals of Common Lisp will suffer.
+    It is not adequate to encourage implementors to warn about 
+    non-standard uses since the only implementations which will
+    implement the extension are ones who think it is a good idea to
+    use the feature, and people are not inclined to warn about things
+    they think are a good idea to use.
+
+    Although some implementations offer extended definitions and
+    this would be an incompatible change, the cost of that change
+    would be offset by the improvement in code portability.
+
+  Adoption Cost:
+
+    The direct act of making this restriction is trivial, but there
+    are nth order effects which may be non-trivial...
+
+    In Symbolics implementations the SCL package contains Symbolics'
+    extensions to LISP. Currently, for any symbol LISP:xxx, the
+    expression (EQ 'LISP:xxx 'SCL:xxx) => T. This change would force
+    as a second order effect a decision about whether to make
+    (EQ 'LISP:IF 'SCL:IF) => NIL or to rewrite all code (user and 
+    system) using the extended IF.
+
+    Since there are currently no cases where LISP symbols are not
+    shared by SCL, a decision to break the sharing would force us
+    to do a complicated re-evaluate our position on the nature of
+    compatibility between Common Lisp and the extensions we provide.
+
+    The cost of this option is therefore potentially large.
+
+  Conversion Cost:
+
+    Uses of IF in correct Common Lisp code are technically unaffected
+    by this change, although it should be clear from the discussion
+    of Adoption Cost that viewing things this way may be just a word
+    game. In practice, there might be non-trivial effects on 
+    code that is not technically `Common Lisp' but which is thought to
+    be `Common Lisp compatible.' The importance of this must be weighed
+    in context, but should not be discounted altogether.
+
+  Benefits:
+
+    Code portability between certain dialects would be improved.
+
+  Aesthetics:
+
+    The (IF test then else) syntax is neatly symmetric and this
+    symmetry should be preserved.
+
+    Some people find the asymmetry of the (IF test then {else}*)
+    syntax to be visually confusing.
+
+    IF is supposed to be the simplest conditional form, from which
+    all the others are built.
+
+Proposal (IF-BODY:LEGAL):
+
+  Extend IF, making it expressly legal to supply an implicit-PROGN of
+  `else' forms using the syntax (IF test then {else}*).
+
+  Rationale:
+
+    As long as some implementations provide this extension while
+    others do not, the portability goals of Common Lisp will suffer.
+    It is not adequate to encourage implementors to warn about 
+    non-standard uses since the only implementations which will
+    implement the extension are ones who think it is a good idea to
+    use the feature, and people are not inclined to warn about things
+    they think are a good idea to use.
+
+    Although some implementations offer extended definitions and
+    this would be an incompatible change, the cost of that change
+    would be offset by the improvement in code portability.
+
+  Adoption Cost:
+
+    In most implementations, making this syntax legal is a matter of
+    a fairly localized change to a finite number of utilities which
+    reason about programs (compiler, interpreter, code walkers). No
+    changes to code which does not reason about programs would be 
+    necessary.
+
+    In some implementations which have incompatible extension 
+    strategies, such as keyword-driven facilities, the cost is higher
+    because this is an incompatible change. The cost of adoption in
+    such cases is hard to estimate; implementors who feel they have
+    severe concerns about this should raise those concerns and we'll
+    modify this proposal to reflect them.
+
+  Benefits:
+
+    Code portability between certain dialects would be improved.
+
+  Aesthetics:
+
+    The resolution of this controversial programming style issue
+    is left to the user rather than being forced by the language
+    designer. Those who prefer the symmetry of the (IF test then else)
+    syntax are free to use it exclusively without infringing on the
+    desires of others to use the extended syntax.
+
+    Some people find the alternatives to (IF test then {else}*) to
+    be too visually cumbersome.
+
+    Although IF was supposed to be a simple conditional form, usage
+    patterns suggest that this is not uppermost in many users' minds.
+    Experience in user communities where extended IF is available 
+    show that few users object to its presence; most are happy for
+    the syntactic flexibility it provides.
+
+Proposal (IF-BODY:UNCHANGED):
+
+  Leave IF as currently specified in CLtL.
+
+  Implicit in this proposal is that it would be valid for any
+  implementation to extend IF as long as such an extension was done
+  in a way that was `upward compatible' with Common Lisp.
+
+  Rationale:
+
+    The other two proposals are inadequately motivated.
+
+    Since some implementations already support extensions, it would
+    be disruptive to those implementations to require that the
+    extensions be removed. Not altering the current definition is
+    maximally conservative with regard to existing code.
+
+  Adoption Cost:
+
+    Making this syntax legal is trivial since everyone is
+    presumably already compatible with the existing standard.
+
+    Implicit in the acceptance of this proposal, however is the
+    incremental cost of late debugging of programs which are in error
+    but for which no diagnostic has been generated because we have 
+    not required such a diagnostic.
+
+  Benefits:
+
+    The current state of the world would be unaffected.
+
+  Aesthetics:
+
+    The (IF test then else) syntax is neatly symmetric and this
+    symmetry should be preserved.
+
+    Some people find the asymmetry of the (IF test then {else}*)
+    syntax to be visually confusing.
+
+    IF is supposed to be the simplest conditional form, from which
+    all the others are built.
+
+Current Practice:
+
+  Some implementations already provide this feature.
+
+  A few implementations provide alternate keyword-driven extensions
+  that are incompatible with the IF-BODY:LEGAL extension.
+   
+  Some implementations signal an error if other than two or three
+  arguments are passed.
+
+  Some implementations quietly ignore additional arguments to IF (making
+  it hard to detect errors in code that was developed on systems with
+  the extended syntax).
+
+Discussion:
+
+  MACSYMA ran into this problem.
+
+  KMP supports IF-BODY:LEGAL.
+  Steele and Fahlman support IF-BODY:UNCHANGED.
+  Moon has no strong opinion.
+
+  Fahlman expressed strong concern about the potential precedent which 
+  could be set by using compatibility concerns as a lever to introduce
+  all kinds of unwanted idiosyncratic extensions present in only one
+  implementation and no other.
+
+  Moon suggested that the mere fact that some people like an extension
+  is not sufficient reason to put it into the language, but is
+  sufficient reason to -discuss- putting it into the language.
+
+  Steele notes that one of the reasons for including IF in the language
+  is to have a simple primitive that can easily be recognized, by people
+  and by program-walkers alike, as being the simplest conditional and
+  not having implicit PROGNs as do WHEN, UNLESS, and COND.
+
+  KMP thinks the language is already so cluttered that worrying about
+  such a tiny change to IF is unwarranted. He thinks that if the only
+  concern was primitive simplicity, we should just redefine the layer
+  at which simplicity is achieved by letting LISP:IF be a macro that
+  expands into PRIMITIVE:IF which has simpler semantics but which no
+  one has to be stuck programming with (if they don't want to). You
+  could argue that users should make their own JDOE:IF macro that has
+  this extension, but since this is likely to be a common extension, it's
+  our place to consider it for adoption as part of the standard.
+
+*start*
+01048 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:Masinter.pa@Xerox.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 30 APR 87 15:05:27 PDT
+Received: from XEROX.COM by SAIL.STANFORD.EDU with TCP; 30 Apr 87  15:01:48 PDT
+Received: from Cabernet.ms by ArpaGateway.ms ; 30 APR 87 15:00:55 PDT
+Date: 30 Apr 87 14:53 PDT
+From: Masinter.pa
+Subject: Re: IF-BODY (Version 5)
+In-reply-to: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>'s
+ message of Wed, 29 Apr 87 16:37 EDT
+To: KMP@STONY-BROOK.SCRC.Symbolics.COM
+cc: cl-cleanup@sail.stanford.edu
+Message-ID: <870430-150055-4353@Xerox>
+
+In the interest of getting this out of our hair, I think we could
+release it as is. As a point for future proposals, I would like to
+discourage "status quo" alternatives in enhancement proposals, since
+every proposal has an implicit "status quo" alternative, and some of the
+arguments are redundant.  I had expected you would just elaborate in the
+Discussions section, but ... whatever ...
+
+Sometimes this process seems so mind-numbingly bureaucratic...
+
+*start*
+04473 00024 USa
+Return-Path: <@SAIL.STANFORD.EDU:FAHLMAN@C.CS.CMU.EDU>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 02 MAY 87 11:45:28 PDT
+Received: from C.CS.CMU.EDU by SAIL.STANFORD.EDU with TCP; 2 May 87  11:42:54 PDT
+Received: ID <FAHLMAN@C.CS.CMU.EDU>; Sat 2 May 87 14:43:57-EDT
+Date: Sat, 2 May 87 14:43 EDT
+Message-ID: <FAHLMAN.12299214648.BABYL@C.CS.CMU.EDU>
+Sender: FAHLMAN@C.CS.CMU.EDU
+From: "Scott E. Fahlman" <Fahlman@C.CS.CMU.EDU>
+To: cl-cleanup@SAIL.STANFORD.EDU
+Subject: IF-BODY (Version 5)
+In-reply-to: Msg of 27 Apr 1987  18:21-EDT from Kent M Pitman <KMP at STONY-BROOK.SCRC.Symbolics.COM>
+
+
+I hate to keep beating on this, but we're working on developing internal
+procedures for handling controversial cases, and it probably is worth
+trying to debug these procedures on a stupid case like this before
+something really hard comes along.  I think we've got the wrong model
+here for dealing with controversial things.  It is unreasonable to ask
+one person to produce a balanced presentation that fairly summarizes all
+points of view, including views that he disagrees with.
+
+KMP's latest version of the IF-BODY proposal is a case in point.  It
+represents a good-faith attempt on his part to present a balanced
+discussion of the issues, but the result is nevertheless unbalanced in
+subtle ways toward his point of view.  I'm not trying to dump on KMP
+here -- if I had written the summary, I'm sure it would be even more
+biased the other way.
+
+KMP states at the outset that some implementations, if allowed to, will
+implement this extension, and that these extended implementations will
+"typically" not generate a warning.  Later he argues that encouraging
+(but not requiring) a warning is inadequate, because an implementation
+that adds this feature must think it is a good idea, and you don't warn
+about good ideas.  This ignores the possibility of a "warn me about any
+non-portable code" compilation mode, which is the right solution
+(assuming this IF-BODY problem is troublesome enough that it is worth
+fixing at all).  If an implementor doesn't choose to support such a
+mode, fine; that's between him and his customers.  But don't ask the
+rest of us to mess up the language in order to make that
+implementation's users more comfortable -- if the vendor doesn't want to
+employ the obvious simple technique for solving this problem, then it
+presumably isn't worth solving.  I've stated this view N times before
+and this "somebody prepare a summary" process keeps eviscerating the
+argument.  Again, it is the process that is at fault, not the people
+doing the summarizing.
+
+It seems to me that the process should go something like this: Person X
+proposes a compatible extension.  If, after some discussion, consensus
+is reached on some (possibly amended) version of the extension, we put
+that version forward as a proposal, with some sort of joint rationale in
+the discussion section.  If the committee doesn't like the proposal and
+can talk the proposer into dropping it, fine, we drop it.  If there is
+no consensus in favor of the change, but the proposer wants to present
+the matter to the full X3J13, then he should prepare the most persuasive
+argument he can muster -- none of this "balance" stuff.  Then, in the
+discussion section, the opposition gets to have its say.  The point is
+that each side of the case must be argued by someone who believes in it.
+Just like the lawyers.  I suppose that in some cases, there might be
+more than one dissenting opinion: various people might dislike a
+proposal for different reasons.
+
+There remains the question of who gets the last word.  We could iterate
+until quiescence or exhaustion is reached, flip a coin, or establish
+some arbitrary guideline.  I guess I'd say that the proposer gets his
+say, then the negative voices, and finally the proposer gets a short
+rebuttal (confining himself to answering what the opposition said,
+rather than introducing new arguments).  The result is concatenated, not
+summarized, for presentation to the outside world.
+
+The above assumes that the question is whether or not we should adopt
+some change.  In a situation where there are N positive proposals to
+choose from, all with their advocates, then a FOO:A, FOO:B, FOO:C
+approach is appropriate.  The arguments in favor of each position should
+be presented by the advocates of that position, if any exist.  In the
+case of a yes/no question, it is silly to have separate FOO:YES and
+FOO:NO proposals.
+
+-- Scott
+
+*start*
+01573 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:FAHLMAN@C.CS.CMU.EDU>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 03 JUN 87 22:02:25 PDT
+Received: from C.CS.CMU.EDU by SAIL.STANFORD.EDU with TCP; 3 Jun 87  22:01:18 PDT
+Received: ID <FAHLMAN@C.CS.CMU.EDU>; Thu 4 Jun 87 01:00:44-EDT
+Date: Thu, 4 Jun 87 01:00 EDT
+Message-ID: <FAHLMAN.12307715536.BABYL@C.CS.CMU.EDU>
+Sender: FAHLMAN@C.CS.CMU.EDU
+From: "Scott E. Fahlman" <Fahlman@C.CS.CMU.EDU>
+To: cl-cleanup@SAIL.STANFORD.EDU
+Subject: IF-BODY
+
+
+I'm willing to go along with releasing KMP's latest revision of IF-BODY,
+even though it doesn't properly argue the case that manufacturers should
+provide reasonable portability tools before using non-portability as an
+argument for changing the language.
+
+I am confident that this proposal will be defeated and then we'll be
+done with it.  If I am wrong, I can probably live with that.  (Of
+course, any CMU programmers caught using extended-IF would get a "mild"
+electric shock to remind them that legal Common Lisp is not necessarily
+acceptable Common Lisp.)
+
+What is important to me is not that we hold up this particular issue,
+but that in the future we adopt an adversarial system for putting
+together proposals on which we cannot reach a consensus.  Nobody should
+be put in the position of having to summarize a position he doesn't
+agree with; it's a very difficult, thankless task for the summarizer,
+and the opposition is likely to feel screwed anyway.  Each side should
+get some space in which to argue its case, and nobody should edit the
+result.
+
+-- Scott
+
+*start*
+01169 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:Masinter.pa@Xerox.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 11 JUN 87 16:25:17 PDT
+Received: from XEROX.COM by SAIL.STANFORD.EDU with TCP; 11 Jun 87  16:22:41 PDT
+Received: from Cabernet.ms by ArpaGateway.ms ; 11 JUN 87 14:44:56 PDT
+Date: 11 Jun 87 14:43 PDT
+From: Masinter.pa
+Subject: Re: IF-BODY (Version 5)
+In-reply-to: "Scott E. Fahlman" <Fahlman@C.CS.CMU.EDU>'s message of Sat,
+ 2 May 87 14:43 EDT
+To: cl-cleanup@SAIL.STANFORD.EDU
+Message-ID: <870611-144456-1759@Xerox>
+
+I am having difficulty releasing IF-BODY, because of its length and
+form. I think it is an embarassment and will cause an uproar if
+presented in its present form.
+
+I wouldn't mind a proposal that contained all of the words and
+discussions of this one, but in the discussion section. I think most of
+the other issues can be summarized succinctly and fairly.
+
+While I hate to do this (and possibly it is a mistake) I am going to
+attempt to do the surgery to put Version 5 in a releasable form
+(although we are all sick of it). You'll probably hate me for it, but
+I'd rather not foist it in its current form on the community.
+
+
+*start*
+08391 00024 US 
+Return-Path: <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Received: from STONY-BROOK.SCRC.Symbolics.COM (SCRC-STONY-BROOK.ARPA) by Xerox.COM ; 14 JUN 87 12:42:16 PDT
+Received: from RIO-DE-JANEIRO.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 172442; Sun 14-Jun-87 15:42:01 EDT
+Date: Sun, 14 Jun 87 15:41 EDT
+From: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: IF-BODY (Version 6)
+To: Masinter.PA
+cc: KMP@STONY-BROOK.SCRC.Symbolics.COM
+Message-ID: <870614154146.5.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+
+Here's a shot at a cut-down version of IF-BODY. I simply removed the
+alternate two proposals and left my proposal intact, except that I
+merged the aesthetic points from the other two proposals into the
+discussion of aesthetics. I also fooled around somewhat with the
+discussion.
+
+Although much of the text is the same, it's probably worth reading from
+top to bottom anyway just to see how it feels as you go.
+
+If you have any suggestions about how to further fix it up before
+circulating it to the rest of CL-Cleanup, please feel free to pass them
+along.
+ -kmp
+
+-----
+Issue:        IF-BODY
+References:   IF (p115)
+Category:     ENHANCEMENT
+Edit history: 27-Feb-87, Version 1 by Pitman   (IF-BODY:YES)
+	       3-Mar-87, Version 2 by Fahlman  (added IF-BODY:NO)
+	      17-Apr-87, Version 3 by Masinter (merged v1 and v2)
+	      19-Apr-87, Version 4 by Pitman   (misc editing to v3)
+	      27-Apr-87, Version 5 by Pitman   (reworked for balance)
+	      13-Jun-87, Version 6 by Pitman   (reworked for brevity)
+Status:       Not for release
+
+Problem Description:
+
+  CLtL defines the meaning of an IF expression only in the case of two or
+  three arguments. Some implementations extend the meaning to allow more
+  arguments.
+
+  Typically, using the extended IF syntax will not generate a warning in
+  environments which support it. Code developed where these features are
+  available is not typically discovered to be in error until a port to
+  some other implementation is attempted. At that point, which is 
+  typically inconveniently late in the development cycle, the developer
+  may notice that code either does not compile (generates syntax errors)
+  or does not compile correctly (the additional forms are quietly ignored
+  and the code generated is not what the writer intended).
+
+  The problem is rightly due to the user, but users typically expect that
+  they should be warned about such problems. Unfortunately, however, both
+  the Lisp which allows the extended syntax and that which fails to signal
+  an error about the invalid syntax are within their rights as currently
+  stated.
+
+  This phenomenon is a barrier to Common Lisp's portability goals.
+
+Test Case:
+ 
+  (IF NIL 'THEN 'ELSE 'MORE)
+
+  According to CLtL, this is an error.
+  In some implementations, this returns ELSE.
+  In some implementations, this returns MORE.
+  In some implementations, this signals an error at syntax analysis time.
+
+Proposal (IF-BODY:LEGAL):
+
+  Extend IF, making it expressly legal to supply an implicit-PROGN of
+  `else' forms using the syntax (IF test then {else}*).
+
+Rationale:
+
+  As long as some implementations provide this extension while
+  others do not, the portability goals of Common Lisp will suffer.
+  It is not adequate to encourage implementors to warn about 
+  non-standard uses since the only implementations which will
+  implement the extension are ones who think it is a good idea to
+  use the feature, and people are not inclined to warn about things
+  they think are a good idea to use.
+
+  Although some implementations offer extended definitions and
+  this would be an incompatible change, the cost of that change
+  would be offset by the improvement in code portability.
+
+Adoption Cost:
+
+  In most implementations, making this syntax legal is a matter of
+  a fairly localized change to a finite number of utilities which
+  reason about programs (compiler, interpreter, code walkers). No
+  changes to code which does not reason about programs would be 
+  necessary.
+
+  In some implementations which have incompatible extension 
+  strategies, such as keyword-driven facilities, the cost is higher
+  because this is an incompatible change. The cost of adoption in
+  such cases is hard to estimate; implementors who feel they have
+  severe concerns about this should raise those concerns and we'll
+  modify this proposal to reflect them.
+
+Benefits:
+
+  Code portability between certain dialects would be improved.
+
+Aesthetics:
+
+  - Some people find the (IF test then else) syntax to be neatly
+    symmetric and feel that any change would be disruptive to their
+    sense of balance.
+  + For a variety of reasons, some other people don't really care
+    whether IF is symmetric or not; they just find the `else body'
+    feature too handy to do without.
+
+  - Some people find the asymmetry of the (IF test then {else}*)
+    syntax to be visually confusing.
+  + Some people find the alternatives to (IF test then {else}*),
+    such as (IF test then (PROGN {else}*)) or
+    (COND (test then) (T {else}*)) to be too visually cumbersome.
+
+  - Some people argue that IF should be the simplest conditional
+    form, from which all the others are built.
+  + Other people feel that allowing IF to take a body does not 
+    make it significantly less simple.
+
+  Experience in user communities where extended IF is available show
+  that few users object to its presence; most are happy about the
+  syntactic flexibility it provides.
+
+  By allowing the extended IF, the resolution of this controversial
+  programming style issue is left to the user rather than being forced
+  by the language designers. Those who prefer the symmetry of the 
+  (IF test then else) syntax are free to use it as needed or even
+  exclusively without infringing on the desires of others who may
+  wish to use the extended syntax.
+
+Current Practice:
+
+  Some implementations already provide the proposed feature.
+
+  A few implementations provide alternate keyword-driven extensions
+  that are incompatible with the proposed extension.
+
+  Some implementations signal an error if other than two or three
+  arguments are passed.
+
+  Some implementations quietly ignore additional arguments to IF (making
+  it hard to detect errors in code that was developed on systems with
+  the extended syntax).
+
+Discussion:
+
+  MACSYMA ran into this problem.
+
+  Many on the Cleanup committee oppose this change for one reason or
+  another. For example, Steele and Fahlman support the status quo.
+
+  Moon has no strong opinion.
+
+  KMP believes strongly that the allowed variance of IF is a barrier to
+  portability, and wants to see it fixed. He has proposed and supports
+  IF-BODY:LEGAL because he believes that it is the minimally disruptive
+  way to fix the problem. If this change were not accepted, he would
+  favor requiring that IF take exactly 2 or 3 arguments (i.e., saying
+  that it must signal an error if there were more than 3 arguments)
+  rather than the status quo.
+
+  Fahlman expressed strong concern about the potential precedent which 
+  could be set by using compatibility concerns as a lever to introduce
+  all kinds of unwanted idiosyncratic extensions present in only one
+  implementation and no other.
+
+  Moon suggested that the mere fact that some people like an extension
+  is not sufficient reason to put it into the language, but is
+  sufficient reason to -discuss- putting it into the language.
+
+  Steele notes that one of the reasons for including IF in the language
+  is to have a simple primitive that can easily be recognized, by people
+  and by program-walkers alike, as being the simplest conditional and
+  not having implicit PROGNs as do WHEN, UNLESS, and COND.
+
+  KMP thinks the language is already so cluttered that worrying about
+  such a tiny change to IF is unwarranted (e.g., consider the complexity
+  of LAMBDA). He thinks that if the only concern was primitive simplicity,
+  we should just redefine the layer at which simplicity is achieved by
+  letting LISP:IF be a macro that expands into PRIMITIVE:IF which has
+  simpler semantics but which no one has to be stuck programming with
+  (if they don't want to). You could argue that users should make their
+  own JDOE:IF macro that has this extension, but since this is likely to
+  be a common extension, it's our place to consider it for adoption as
+  part of the standard.
+
+*start*
+08464 00024 US 
+Return-Path: <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Received: from STONY-BROOK.SCRC.Symbolics.COM (SCRC-STONY-BROOK.ARPA) by Xerox.COM ; 14 JUN 87 12:42:44 PDT
+Received: from RIO-DE-JANEIRO.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 172443; Sun 14-Jun-87 15:42:38 EDT
+Date: Sun, 14 Jun 87 15:42 EDT
+From: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: IF-BODY (Version 6)
+To: Masinter.PA
+cc: KMP@STONY-BROOK.SCRC.Symbolics.COM
+Supersedes: <870614154146.5.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+Message-ID: <870614154230.6.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+
+Here's a shot at a cut-down version of IF-BODY. I simply removed the
+alternate two proposals and left my proposal intact, except that I
+merged the aesthetic points from the other two proposals into the
+discussion of aesthetics. I also fooled around somewhat with the
+discussion.
+
+Although much of the text is the same, it's probably worth reading from
+top to bottom anyway just to see how it feels as you go.
+
+If you have any suggestions about how to further fix it up before
+circulating it to the rest of CL-Cleanup, please feel free to pass them
+along.
+ -kmp
+
+-----
+Issue:        IF-BODY
+References:   IF (p115)
+Category:     ENHANCEMENT
+Edit history: 27-Feb-87, Version 1 by Pitman   (IF-BODY:YES)
+	       3-Mar-87, Version 2 by Fahlman  (added IF-BODY:NO)
+	      17-Apr-87, Version 3 by Masinter (merged v1 and v2)
+	      19-Apr-87, Version 4 by Pitman   (misc editing to v3)
+	      27-Apr-87, Version 5 by Pitman   (reworked for balance)
+	      13-Jun-87, Version 6 by Pitman   (reworked for brevity)
+Status:       Not for release
+
+Problem Description:
+
+  CLtL defines the meaning of an IF expression only in the case of two or
+  three arguments. Some implementations extend the meaning to allow more
+  arguments.
+
+  Typically, using the extended IF syntax will not generate a warning in
+  environments which support it. Code developed where these features are
+  available is not typically discovered to be in error until a port to
+  some other implementation is attempted. At that point, which is 
+  typically inconveniently late in the development cycle, the developer
+  may notice that code either does not compile (generates syntax errors)
+  or does not compile correctly (the additional forms are quietly ignored
+  and the code generated is not what the writer intended).
+
+  The problem is rightly due to the user, but users typically expect that
+  they should be warned about such problems. Unfortunately, however, both
+  the Lisp which allows the extended syntax and that which fails to signal
+  an error about the invalid syntax are within their rights as currently
+  stated.
+
+  This phenomenon is a barrier to Common Lisp's portability goals.
+
+Test Case:
+ 
+  (IF NIL 'THEN 'ELSE 'MORE)
+
+  According to CLtL, this is an error.
+  In some implementations, this returns ELSE.
+  In some implementations, this returns MORE.
+  In some implementations, this signals an error at syntax analysis time.
+
+Proposal (IF-BODY:LEGAL):
+
+  Extend IF, making it expressly legal to supply an implicit-PROGN of
+  `else' forms using the syntax (IF test then {else}*).
+
+Rationale:
+
+  As long as some implementations provide this extension while
+  others do not, the portability goals of Common Lisp will suffer.
+  It is not adequate to encourage implementors to warn about 
+  non-standard uses since the only implementations which will
+  implement the extension are ones who think it is a good idea to
+  use the feature, and people are not inclined to warn about things
+  they think are a good idea to use.
+
+  Although some implementations offer extended definitions and
+  this would be an incompatible change, the cost of that change
+  would be offset by the improvement in code portability.
+
+Adoption Cost:
+
+  In most implementations, making this syntax legal is a matter of
+  a fairly localized change to a finite number of utilities which
+  reason about programs (compiler, interpreter, code walkers). No
+  changes to code which does not reason about programs would be 
+  necessary.
+
+  In some implementations which have incompatible extension 
+  strategies, such as keyword-driven facilities, the cost is higher
+  because this is an incompatible change. The cost of adoption in
+  such cases is hard to estimate; implementors who feel they have
+  severe concerns about this should raise those concerns and we'll
+  modify this proposal to reflect them.
+
+Benefits:
+
+  Code portability between certain dialects would be improved.
+
+Aesthetics:
+
+  - Some people find the (IF test then else) syntax to be neatly
+    symmetric and feel that any change would be disruptive to their
+    sense of balance.
+  + For a variety of reasons, some other people don't really care
+    whether IF is symmetric or not; they just find the `else body'
+    feature too handy to do without.
+
+  - Some people find the asymmetry of the (IF test then {else}*)
+    syntax to be visually confusing.
+  + Some people find the alternatives to (IF test then {else}*),
+    such as (IF test then (PROGN {else}*)) or
+    (COND (test then) (T {else}*)) to be too visually cumbersome.
+
+  - Some people argue that IF should be the simplest conditional
+    form, from which all the others are built.
+  + Other people feel that allowing IF to take a body does not 
+    make it significantly less simple.
+
+  Experience in user communities where extended IF is available show
+  that few users object to its presence; most are happy about the
+  syntactic flexibility it provides.
+
+  By allowing the extended IF, the resolution of this controversial
+  programming style issue is left to the user rather than being forced
+  by the language designers. Those who prefer the symmetry of the 
+  (IF test then else) syntax are free to use it as needed or even
+  exclusively without infringing on the desires of others who may
+  wish to use the extended syntax.
+
+Current Practice:
+
+  Some implementations already provide the proposed feature.
+
+  A few implementations provide alternate keyword-driven extensions
+  that are incompatible with the proposed extension.
+
+  Some implementations signal an error if other than two or three
+  arguments are passed.
+
+  Some implementations quietly ignore additional arguments to IF (making
+  it hard to detect errors in code that was developed on systems with
+  the extended syntax).
+
+Discussion:
+
+  MACSYMA ran into this problem.
+
+  Many on the Cleanup committee oppose this change for one reason or
+  another. For example, Steele and Fahlman support the status quo.
+
+  Moon has no strong opinion.
+
+  Pitman believes strongly that the allowed variance of IF is a barrier to
+  portability, and wants to see it fixed. He has proposed and supports
+  IF-BODY:LEGAL because he believes that it is the minimally disruptive
+  way to fix the problem. If this change were not accepted, he would
+  favor requiring that IF take exactly 2 or 3 arguments (i.e., saying
+  that it must signal an error if there were more than 3 arguments)
+  rather than the status quo.
+
+  Fahlman expressed strong concern about the potential precedent which 
+  could be set by using compatibility concerns as a lever to introduce
+  all kinds of unwanted idiosyncratic extensions present in only one
+  implementation and no other.
+
+  Moon suggested that the mere fact that some people like an extension
+  is not sufficient reason to put it into the language, but is
+  sufficient reason to -discuss- putting it into the language.
+
+  Steele notes that one of the reasons for including IF in the language
+  is to have a simple primitive that can easily be recognized, by people
+  and by program-walkers alike, as being the simplest conditional and
+  not having implicit PROGNs as do WHEN, UNLESS, and COND.
+
+  Pitman thinks the language is already so cluttered that worrying about
+  such a tiny change to IF is unwarranted (e.g., consider the complexity
+  of LAMBDA). He thinks that if the only concern was primitive simplicity,
+  we should just redefine the layer at which simplicity is achieved by
+  letting LISP:IF be a macro that expands into PRIMITIVE:IF which has
+  simpler semantics but which no one has to be stuck programming with
+  (if they don't want to). You could argue that users should make their
+  own JDOE:IF macro that has this extension, but since this is likely to
+  be a common extension, it's our place to consider it for adoption as
+  part of the standard.
+
+*start*
+05937 00024 US 
+From: masinter.PA
+Date: 14-Jun-87 15:26:10 PDT
+Subject: Re: IF-BODY (Version 6)
+In-reply-to: Your message of Sun, 14 Jun 87 15:42 EDT, <870614154230.6.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+To: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+cc: Masinter
+
+I read it top to bottom. I have a lot of comments, and a rewrite. My goal is to remove some of the emotional overtones to the discussion section, and lay out the issue clearly. I think the critical point of the objections is both aesthetic, and also, the manner in which the proposal arose. How seriously should X3J13 consider compatibility with "unauthorized" extensions??? etc. Anyway, here are my line-by-line comments, which will be followed by a proposed revision:
+
+""CLtL defines the meaning of an IF expression only in the case of two or three arguments."
+
+This is an odd way of stating it. CLtL defines IF as taking either two or three arguments. It is as much "an error" in CLtL to call IF with more than three arguments as it is to call + on two arrays. Some implementations may have extended either one to be valid, but your phrasing implies, inaccurately, that this was one of the areas where there was explicit provision made for extension in CLtL.
+
+Try:
+
+"CLtL defines the special form IF as taking either two or three arguments. Some implementations extended IF to allow more arguments."
+
+It would be appropriate in the Problem Description to say what that extension is.
+
+Although this is debatable, I believe much of paragraphs 2-4 of your problem statement seem to belong in the Rationale section, as they are directly an explication of the Cost of non-adoption. 
+
+All together, I would have 
+
+"Problem Description
+
+CLtL defines the special form IF as taking either two or three arguments. Some implementations extended IF to allow more arguments.  In those implementations, using the extended IF syntax will not generate a warning. Code using the extended IF is not portable."
+
+
+(Your wording will appear later)
+
+Test case is fine.
+
+Rationale:
+
+I'd move some of the stuff that was in your Problem Description down here, and move the whole thing into Benefits. It seems to fit in. For example
+
+"As long as some implementations provide this extension while others do not, the portability goals of Common Lisp will suffer. Code developed where these features are available is not typically discovered to be in error until a port to some other implementation is attempted. At that point, which is  typically inconveniently late in the development cycle, the developer may notice that code either does not compile (generates syntax errors) or does not compile correctly (the additional forms are quietly ignored and the code generated is not what the writer intended).
+
+ The problem is rightly due to the user, but users typically expect that they should be warned about such problems. Unfortunately, however, both the Lisp which allows the extended syntax and that which fails to signal an error about the invalid syntax are within their rights as currently stated.
+
+It is not adequate to encourage implementors to warn about  non-standard uses since the only implementations which will implement the extension are ones who think it is a good idea to use the feature, and people are not inclined to warn about things
+they think are a good idea to use."
+
+I think its probably better to put Current Practice at the beginning of the Rationale section rather than in the middle. It is the one least subject to opinion.
+ It also sets the stage for talking about them later on.
+
+Under adoption cost, the stuff about "implementors who feel they have ..." it shows that you used the first person here (plural) as the cleanup committee talking to the rest of the group. But the proposals need to stand alone, we can't cut deals in the middle of them. The second paragraph needs to face the issue that some implementations will have a higher cost. On reflection, the cost is not to implementors per se but to users, (even if those users are also implementors). That is, the cost is one of Cost of adoption. Wherever it goes, it should read something like "The implementations with incompatible extensions will suffer an incompatible change."
+
+You missed the "cost of non-adoption" section. (And maybe another? I don't have the format at home.)
+
+Under Aesthetics, it would be best if the + and - sections could be segregated. At least your first and third + sections seem merely to be statements "well, some people don't care about that" responses to the corresponding "-" sections. Saying that it is "disruptive to their sense of balance" is sarcastic. I don't think anyone has argued that. 
+
+"Aesthetics:
+
+This issue has both pro and con sides:
+
+Pro:
+
+When there are multiple else clauses, the alternatives (IF test then (PROGN else1 else2)) or (COND (test then) (T else1 else2 else3)) are cumbersome. A natural extension of IF provides economy of expression in some circumstances.
+
+Con:
+
+The (IF test then else) syntax is symmetric. Some people find the asymmetry of (IF test then {else}*) syntax to be visually confusing. Some argue that IF should be the simplest conditional form, from which all the others are built.
+
+
+
+Under Discussion, I feel it is very important to add a paragraph at the very beginning about the difficulty of the process.
+
+"The cleanup committee had a great deal of difficulty with this issue, primarily because of the many conflicting priorities it seems to represent. Some members feel very strongly that this proposal should be adopted, while others object violently,  not only to the proposal but to the manner in which it arose."
+
+I actually prefer to keep names out of the Discussion section where possible, if only to discourage voting by personality rather than by the merits of the issue. (`well, I like Moon and don't like Fahlman, so I'll go along with him'). 
+
+
+See the revision for a new discussion write-up.
+
+*start*
+02360 00024 US 
+Return-Path: <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Received: from STONY-BROOK.SCRC.Symbolics.COM (SCRC-STONY-BROOK.ARPA) by Xerox.COM ; 14 JUN 87 17:36:30 PDT
+Received: from RIO-DE-JANEIRO.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 172565; Sun 14-Jun-87 20:36:06 EDT
+Date: Sun, 14 Jun 87 20:35 EDT
+From: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: Re: IF-BODY (Version 6)
+To: masinter.PA
+cc: KMP@STONY-BROOK.SCRC.Symbolics.COM
+In-Reply-To: <870614-152655-1008@Xerox>
+Message-ID: <870614203556.0.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+
+    Date: 14 Jun 87 15:26:10 PDT
+    From: masinter.PA@Xerox.COM
+
+    ... How seriously should X3J13 consider compatibility with
+    "unauthorized" extensions??? etc. ...
+
+This is the crux of the matter.
+
+My feeling is that this is an "authorized" extension. It is simply
+not a "defined" extension. It is "authorized" on bottom of p5 where
+it says:
+
+ "... This is not to say that some particular implementation
+  might not define the effects and results for such a situation ..."
+
+This section goes on to disclaim responsibility for the problems
+resulting from this allowance, but I don't think it can just write
+off its responsibility so easily. It has gone to a lot of trouble
+(that other languages have not) of allowing incompatible extensions
+to arise and I don't think it can just ignore the ramifications
+of such allowance.
+
+When I was in ROTC, my mother had to sign a form when we went out to
+qualify with an M-16 saying she wouldn't sue if I was killed or injured.
+But I'm pretty sure that regardless of what she'd signed, if I'd 
+actually been killed or injured, she'd still have had grounds for suit
+because it was unreasonable for the army to have tried to claim that
+her having signed this form meant thaty had no responsibility for my
+welfare.
+
+I consider this situation with extensions to be of similar kind. We
+can say we're not responsible for the effects of extensions, but since
+we've explicitly authorized extensions when we could just as well not
+have, we are at fault.
+
+I plan to submit a document explaining my concern about this issue
+under separate cover to X3J13, so don't worry that I'm saying we 
+should say all this in the IF-BODY proposal. I guess I'm just practicing 
+what I'm going to say in this other document...
+
+*start*
+01432 00024 US 
+From: masinter.pa
+Date: 14-Jun-87 22:09:40 PDT
+Subject: Re: IF-BODY (Version 6)
+In-reply-to: Your message of Sun, 14 Jun 87 20:35 EDT, <870614203556.0.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+To: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+cc: masinter
+
+In some parts of CLtL, there are explicit references to things that some implementations might do as extentions, e.g., add extra keywords or the like. (I don't have CLtL at home and so can't cite any.) I think those are "authorized" extensions, and we still have to somehow deal with them.
+
+In other situations, there are things that are very explicitly marked as "is an error", and while extensions are free to define something meaningful for "is an error" situations, at least it is something that the book in some sense disallowed.
+
+I'm fuzzy now as to which if-body fits in. If you cite p 5, I'd guess you were citing the general "is an error" language, rather than some specific exemption for IF.
+
+In any case, what I meant by "authorized" (which doesn't appear in Version 6.5) is an explicit mention in CLtL that some implementations might extend...
+
+
+Version 6.5 needs some work & proofreading -- I was trying to watch the kinds and edit it at the same time, and it suffered.
+
+I'm going to spend the morning getting some of the other stuff out of the way, so if you want to work on it some more, or revert to yours or whatever, let me know.
+
+*start*
+07029 00024 USf
+From: masinter.PA
+Date: 14-Jun-87 15:46:59 PDT
+Subject: Issue:  IF-BODY (Version 6.5)
+To:  Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+cc: Masinter
+
+Status: Not for release
+
+Issue:        IF-BODY
+References:   IF (p115)
+Category:     ENHANCEMENT
+Edit history: 27-Feb-87, Version 1 by Pitman   (IF-BODY:YES)
+               3-Mar-87, Version 2 by Fahlman  (added IF-BODY:NO)
+              17-Apr-87, Version 3 by Masinter (merged v1 and v2)
+              19-Apr-87, Version 4 by Pitman   (misc editing to v3)
+              27-Apr-87, Version 5 by Pitman   (reworked for balance)
+              13-Jun-87, Version 6 by Pitman   (reworked for brevity)
+              Version 6.5 by Masinter
+
+Problem Description
+
+CLtL defines the special form IF as taking either two or three arguments. Some implementations extended IF to allow more arguments.  In those implementations, using the extended IF syntax will not generate a warning. Code using the extended IF is not portable.
+
+Proposal (IF-BODY:LEGAL):
+
+Extend IF, making it expressly legal to supply an implicit-PROGN of `else' forms using the syntax (IF test then {else}*).
+
+Test Case:
+ 
+  (IF NIL 'THEN 'ELSE 'MORE)
+
+should return MORE.
+
+Rationale:
+
+This extension is convenient to use and is compatible with many current implementations.
+
+
+Current Practice:
+
+CLtL implies that the test case "is an error".
+
+Some implementations already provide the proposed extension. 
+
+A few implementations provide alternate keyword-driven extensions that are incompatible with the proposed extension.
+
+Some implementations signal an error if other than two or three arguments are passed.
+
+Some implementations quietly ignore additional arguments to IF, returning ELSE.
+
+Benefits:
+
+As long as some implementations provide this extension while others do not, the portability goals of Common Lisp will suffer. Code developed where these features are available is not typically discovered to be in error until a port to some other implementation is attempted. At that point, which is  typically inconveniently late in the development cycle, the developer may notice that code either does not compile (generates syntax errors) or does not compile correctly (the additional forms are quietly ignored and the code generated is not what the writer intended).
+
+The problem is rightly due to the user, but users typically expect that they should be warned about such problems. Unfortunately, however, both the Lisp which allows the extended syntax and that which fails to signal an error about the invalid syntax are within their rights as currently stated.
+
+It is not adequate to encourage implementors to warn about  non-standard uses since the only implementations which will implement the extension are ones who think it is a good idea to use the feature, and people are not inclined to warn about things they think are a good idea to use.
+
+Adoption Cost:
+
+In most implementations which don't already have this extension, making this syntax legal is a matter of a fairly localized change to a finite number of utilities which reason about programs (compiler, interpreter, code walkers).
+
+In some implementations which have incompatible extension strategies, such as keyword-driven facilities, the cost may be slightly higher because this is an incompatible change.
+
+Aesthetics:
+
+This issue has both pro and con sides:
+
+Pro:  When there are multiple else clauses, the alternatives (IF test then (PROGN else1 else2)) or (COND (test then) (T else1 else2 else3)) are cumbersome. A natural extension of IF provides economy of expression in some circumstances. Experience in user communities where extended IF is available show that few users object to its presence; most are happy about the syntactic flexibility it provides.  By allowing the extended IF, the resolution of this controversial programming style issue is left to the user rather than being forced by the language designers. Those who prefer the symmetry of the (IF test then else) syntax are free to use it as needed or even  exclusively without infringing on the desires of others who may wish to use the extended syntax.
+
+Con: The (IF test then else) syntax is symmetric. The asymmetry of (IF test then {else}*) syntax can be visually confusing. IF should be the simplest conditional form, from which all the others are built. This proposal makes it more complex.
+
+Discussion:
+
+The cleanup committee had a great deal of difficulty with this issue, primarily because of the many conflicting priorities it seems to represent. It prompted a great deal of debate.
+
+The committee found it nearly impossible even to arrive at a version of the problem statement and proposal which could be endorsed as a fair representation of the issue. In particular, this version has not been endorsed or agreed upon by all members the committee.
+
+Some members feel very strongly that this proposal should be adopted, while others object violently, not only to the proposal but to the manner in which it arose. How can we balance flexibility against simplicity in the language syntax? How seriously should we consider compatibility with current extensions to Common Lisp?
+
+The problem with IF-BODY arose as a serious compatibility issue in porting a major Common Lisp application (MACSYMA). 
+
+There was strong sentiment that the allowed variance of IF is a serious barrier to portability, and wants to see it fixed. Those who support this proposal believe it is the minimally disruptive way to fix the problem. If this proposal is not accepted, it should be mandated that extensions to IF are explicitly disallowed.  The status quo, where there is a tacit acceptance of extensions which are not portable and difficult to detect, is unacceptable.
+
+There was concern about the potential precedent which  could be set by using compatibility concerns as a lever to introduce all kinds of unwanted idiosyncratic extensions present in a few implementations.
+
+It was suggested that the mere fact that some people like an extensionis not sufficient reason to put it into the language, but is sufficient reason to -discuss- putting it into the language.
+
+It was noted that one of the original reasons for including IF in the language was to have a simple primitive that can easily be recognized, by people and by program-walkers alike, as being the simplest conditional and not having implicit PROGNs as do WHEN, UNLESS, and COND.
+
+The supporters argue that the language is already so cluttered that worrying about such a tiny change to IF is unwarranted (e.g., consider the complexity of LAMBDA). If the only concern was primitive simplicity, we should just redefine the layer at which simplicity is achieved by letting LISP:IF be a macro that expands into PRIMITIVE:IF which has simpler semantics but which no one has to be stuck programming with (if they don't want to). While users could make their own JDOE:IF macro that has this extension, this is likely to be a such a common extension, it should be adopted as part of the standard.
+*start*
+08269 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:Masinter.pa@Xerox.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 16 JUN 87 23:59:37 PDT
+Received: from XEROX.COM by SAIL.STANFORD.EDU with TCP; 16 Jun 87  23:36:37 PDT
+Received: from Cabernet.ms by ArpaGateway.ms ; 16 JUN 87 17:07:38 PDT
+Date: 16 Jun 87 17:07 PDT
+From: Masinter.pa
+Subject: Issue: IF-BODY (Version 7)
+to: X3J13@Sail.stanford.edu
+cc: Masinter.pa
+Reply-to: CL-CLEANUP@Sail.stanford.edu
+Message-ID: <870616-170738-108@Xerox>
+
+The cleanup committee had a great deal of difficulty attempting to
+arrive at a version of this proposal which fairly outlined the issues.
+I don't think we succeeded. While the issue itself is straightforward,
+the way in which it came about, our procedures for handling
+controversial cases, the manner in which summaries of opinions get
+generated, etc. have been problematic. Hidden within this simple issue
+are some more complex ones, with tradeoffs between compatibility and
+extensions, simplicity and ease of use.  As it stands, while we have
+discussed reviewed numerous versions of this proposal, this version has
+not been approved or endorsed by the cleanup committee as a whole.
+
+
+Larry Masinter
+
+!
+Issue:        IF-BODY
+References:   IF (p115)
+Category:     ENHANCEMENT
+Edit history:27-Feb-87, Version 1 by Pitman  (IF-BODY:YES)
+              3-Mar-87, Version 2 by Fahlman (add IF-BODY:NO)
+             17-Apr-87, Version 3 by Masinter(merge 1&2)
+             19-Apr-87, Version 4 by Pitman  (misc editing)
+             27-Apr-87, Version 5 by Pitman  (for balance)
+             13-Jun-87, Version 6 by Pitman  (for brevity)
+             16-Jun-87, Version 7 by Masinter(for brevity) 
+
+Problem Description
+
+CLtL defines the special form IF as taking either two or three
+arguments. Some implementations extended IF to allow more arguments.  In
+those implementations, using the extended IF syntax will not generate a
+warning. Code using the extended IF is not portable.
+
+Proposal (IF-BODY:LEGAL):
+
+Extend IF, making it expressly legal to supply an implicit-PROGN of
+`else' forms using the syntax (IF test then {else}*).
+
+Test Case:
+ 
+  (IF NIL 'THEN 'ELSE 'MORE)
+
+according to CLtL is an error. Under IF-BODY:LEGAL, this would return
+MORE.
+
+Rationale:
+
+This extension is convenient to use and is compatible with many current
+implementations.
+
+Current Practice:
+
+According to CLtL, the test case, (IF NIL 'THEN 'ELSE 'MORE) "is an
+error".
+
+Some implementations already provide the proposed extension. 
+
+A few implementations provide alternate keyword-driven extensions that
+are incompatible with the proposed extension.
+
+Some implementations signal an error if other than two or three
+arguments are passed.
+
+Some implementations quietly ignore additional arguments to IF,
+returning only the value of the third argument when the first argument
+is false. 
+
+Benefits:
+
+As long as some implementations provide this extension while others do
+not, the portability goals of Common Lisp will suffer. Code developed
+where these features are available is not typically discovered to be in
+error until a port to some other implementation is attempted. At that
+point, which is  typically inconveniently late in the development cycle,
+the developer may notice that code either does not compile (generates
+syntax errors) or does not compile correctly (the additional forms are
+quietly ignored and the code generated is not what the writer intended).
+
+The problem is rightly due to the user, but users typically expect that
+they should be warned about such problems. Unfortunately, however, both
+the Lisp which allows the extended syntax and that which fails to signal
+an error about the invalid syntax are within their rights as currently
+stated.
+
+It is not adequate to encourage implementors to warn about  non-standard
+uses since the only implementations which will implement the extension
+are ones who think it is a good idea to use the feature, and people are
+not inclined to warn about things they think are a good idea to use.
+
+Adoption Cost:
+
+In most implementations which don't already have this extension, making
+this syntax legal is a matter of a fairly localized change to a finite
+number of utilities which reason about programs (compiler, interpreter,
+code walkers).
+
+In some implementations which have incompatible extension strategies,
+such as keyword-driven facilities, the cost may be slightly higher
+because this is an incompatible change.
+
+Aesthetics:
+
+This issue has both pro and con sides. Opinions differ on how important
+each of these arguments are. The following arguments have been made:
+
+Pro:  When there are multiple else clauses, the alternatives (IF test
+then (PROGN else1 else2)) or (COND (test then) (T else1 else2 else3))
+are cumbersome. A natural extension of IF provides economy of expression
+in some circumstances. Experience in user communities where extended IF
+is available show that few users object to its presence; most are happy
+about the syntactic flexibility it provides.  By allowing the extended
+IF, the resolution of this controversial programming style issue is left
+to the user rather than being forced by the language designers. Those
+who prefer the symmetry of the (IF test then else) syntax are free to
+use it as needed or even exclusively without infringing on the desires
+of others who may wish to use the extended syntax.
+
+Con: The (IF test then else) syntax is symmetric. The asymmetry of (IF
+test then {else}*) syntax can be visually confusing. IF was intended to
+be the simplest conditional form, from which all the others are built.
+This proposal makes it more complex.
+
+Discussion:
+
+The cleanup committee had a great deal of difficulty with this issue,
+primarily because of the many conflicting priorities it seems to
+represent. It prompted a great deal of debate.
+
+The committee found it nearly impossible even to arrive at a version of
+the problem statement and proposal which could be endorsed as a fair
+representation of the issue. In particular, this version has not been
+endorsed or agreed upon by all members the committee.
+
+Some members feel very strongly that this proposal should be adopted,
+while others object violently, not only to the proposal but to the
+manner in which it arose. How can we balance flexibility against
+simplicity in the language syntax? How seriously should we consider
+compatibility with current extensions to Common Lisp?
+
+The problem with IF-BODY arose as a serious compatibility issue in
+porting a major Common Lisp application (MACSYMA). 
+
+There was strong sentiment that the allowed variance of IF is a serious
+barrier to portability, and wants to see it fixed. Those who support
+this proposal believe it is the minimally disruptive way to fix the
+problem. If this proposal is not accepted, it should be mandated that
+extensions to IF are explicitly disallowed.  The status quo, where there
+is a tacit acceptance of extensions which are not portable and difficult
+to detect, is unacceptable.
+
+There was concern about the potential precedent which  could be set by
+using compatibility concerns as a lever to introduce all kinds of
+unwanted idiosyncratic extensions present in a few implementations.
+
+It was suggested that the mere fact that some people like an extensionis
+not sufficient reason to put it into the language, but is sufficient
+reason to -discuss- putting it into the language.
+
+It was noted that one of the original reasons for including IF in the
+language was to have a simple primitive that can easily be recognized,
+by people and by program-walkers alike, as being the simplest
+conditional and not having implicit PROGNs as do WHEN, UNLESS, and COND.
+
+The supporters argue that the language is already so cluttered that
+worrying about such a tiny change to IF is unwarranted (e.g., consider
+the complexity of LAMBDA). If the only concern was primitive simplicity,
+we should just redefine the layer at which simplicity is achieved by
+letting LISP:IF be a macro that expands into PRIMITIVE:IF which has
+simpler semantics but which no one has to be stuck programming with (if
+they don't want to). While users could make their own JDOE:IF macro that
+has this extension, this is likely to be a such a common extension, it
+should be adopted as part of the standard.
+
+*start*
+08360 00024 US 
+Date: 16 Jun 87 17:07 PDT
+From: Masinter.pa
+Subject: Issue: IF-BODY (Version 7)
+to: X3J13@Sail.stanford.edu
+cc: Masinter
+Reply-to: CL-CLEANUP@Sail.stanford.edu
+
+The cleanup committee had a great deal of difficulty attempting to arrive at a version of this proposal which fairly outlined the issues.  I don't think we succeeded. While the issue itself is straightforward, the way in which it came about, our procedures for handling controversial cases, the manner in which summaries of opinions get generated, etc. have been problematic. Hidden within this simple issue are some more complex ones, with tradeoffs between compatibility and extensions, simplicity and ease of use.  As it stands, while we have discussed reviewed numerous versions of this proposal, this version has not been approved or endorsed by the cleanup committee as a whole.
+
+
+Larry Masinter
+
+
+Issue:        IF-BODY
+References:   IF (p115)
+Category:     ENHANCEMENT
+Edit history:27-Feb-87, Version 1 by Pitman  (IF-BODY:YES)
+              3-Mar-87, Version 2 by Fahlman (add IF-BODY:NO)
+             17-Apr-87, Version 3 by Masinter(merge 1&2)
+             19-Apr-87, Version 4 by Pitman  (misc editing)
+             27-Apr-87, Version 5 by Pitman  (for balance)
+             13-Jun-87, Version 6 by Pitman  (for brevity)
+             16-Jun-87, Version 7 by Masinter(for brevity) 
+
+Problem Description
+
+CLtL defines the special form IF as taking either two or three arguments. Some implementations extended IF to allow more arguments.  In those implementations, using the extended IF syntax will not generate a warning. Code using the extended IF is not portable.
+
+Proposal (IF-BODY:LEGAL):
+
+Extend IF, making it expressly legal to supply an implicit-PROGN of `else' forms using the syntax (IF test then {else}*).
+
+Test Case:
+ 
+  (IF NIL 'THEN 'ELSE 'MORE)
+
+according to CLtL is an error. Under IF-BODY:LEGAL, this would return MORE.
+
+Rationale:
+
+This extension is convenient to use and is compatible with many current implementations.
+
+Current Practice:
+
+According to CLtL, the test case, (IF NIL 'THEN 'ELSE 'MORE) "is an error".
+
+Some implementations already provide the proposed extension. 
+
+A few implementations provide alternate keyword-driven extensions that are incompatible with the proposed extension.
+
+Some implementations signal an error if other than two or three arguments are passed.
+
+Some implementations quietly ignore additional arguments to IF, returning only the value of the third argument when the first argument is false. 
+
+Benefits:
+
+As long as some implementations provide this extension while others do not, the portability goals of Common Lisp will suffer. Code developed where these features are available is not typically discovered to be in error until a port to some other implementation is attempted. At that point, which is  typically inconveniently late in the development cycle, the developer may notice that code either does not compile (generates syntax errors) or does not compile correctly (the additional forms are quietly ignored and the code generated is not what the writer intended).
+
+The problem is rightly due to the user, but users typically expect that they should be warned about such problems. Unfortunately, however, both the Lisp which allows the extended syntax and that which fails to signal an error about the invalid syntax are within their rights as currently stated.
+
+It is not adequate to encourage implementors to warn about  non-standard uses since the only implementations which will implement the extension are ones who think it is a good idea to use the feature, and people are not inclined to warn about things they think are a good idea to use.
+
+Adoption Cost:
+
+In most implementations which don't already have this extension, making this syntax legal is a matter of a fairly localized change to a finite number of utilities which reason about programs (compiler, interpreter, code walkers).
+
+In some implementations which have incompatible extension strategies, such as keyword-driven facilities, the cost may be slightly higher because this is an incompatible change.
+
+Aesthetics:
+
+This issue has both pro and con sides. Opinions differ on how important each of these arguments are. The following arguments have been made:
+
+Pro:  When there are multiple else clauses, the alternatives (IF test then (PROGN else1 else2)) or (COND (test then) (T else1 else2 else3)) are cumbersome. A natural extension of IF provides economy of expression in some circumstances. Experience in user communities where extended IF is available show that few users object to its presence; most are happy about the syntactic flexibility it provides.  By allowing the extended IF, the resolution of this controversial programming style issue is left to the user rather than being forced by the language designers. Those who prefer the symmetry of the (IF test then else) syntax are free to use it as needed or even exclusively without infringing on the desires of others who may wish to use the extended syntax.
+
+Con: The (IF test then else) syntax is symmetric. The asymmetry of (IF test then {else}*) syntax can be visually confusing. IF was intended to be the simplest conditional form, from which all the others are built. This proposal makes it more complex.
+
+Discussion:
+
+The cleanup committee had a great deal of difficulty with this issue, primarily because of the many conflicting priorities it seems to represent. It prompted a great deal of debate.
+
+The committee found it nearly impossible even to arrive at a version of the problem statement and proposal which could be endorsed as a fair representation of the issue. In particular, this version has not been endorsed or agreed upon by all members the committee.
+
+Some members feel very strongly that this proposal should be adopted, while others object violently, not only to the proposal but to the manner in which it arose. How can we balance flexibility against simplicity in the language syntax? How seriously should we consider compatibility with current extensions to Common Lisp?
+
+The problem with IF-BODY arose as a serious compatibility issue in porting a major Common Lisp application (MACSYMA). 
+
+There was strong sentiment that the allowed variance of IF is a serious barrier to portability, and wants to see it fixed. Those who support this proposal believe it is the minimally disruptive way to fix the problem. If this proposal is not accepted, it should be mandated that extensions to IF are explicitly disallowed.  The status quo, where there is a tacit acceptance of extensions which are not portable and difficult to detect, is unacceptable.
+
+There was concern about the potential precedent which  could be set by using compatibility concerns as a lever to introduce all kinds of unwanted idiosyncratic extensions present in a few implementations.
+
+It was suggested that the mere fact that some people like an extensionis not sufficient reason to put it into the language, but is sufficient reason to -discuss- putting it into the language.
+
+It was noted that one of the original reasons for including IF in the language was to have a simple primitive that can easily be recognized, by people and by program-walkers alike, as being the simplest conditional and not having implicit PROGNs as do WHEN, UNLESS, and COND.
+
+The supporters argue that the language is already so cluttered that worrying about such a tiny change to IF is unwarranted (e.g., consider the complexity of LAMBDA). If the only concern was primitive simplicity, we should just redefine the layer at which simplicity is achieved by letting LISP:IF be a macro that expands into PRIMITIVE:IF which has simpler semantics but which no one has to be stuck programming with (if they don't want to). While users could make their own JDOE:IF macro that has this extension, this is likely to be a such a common extension, it should be adopted as part of the standard.
+
+        
+TIMESROMAN           TITAN          TITAN           
+TIMESROMAN 
+           †             æ                                   
+                     
+      î                           |              m              [             Ì       
+      É             ö              è             ˆ              ˜             
+J      ¯ "z∫*start*
+02071 00024 USh
+Return-Path: <@SAIL.STANFORD.EDU:barmar@Think.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 22 JUN 87 12:33:28 PDT
+Received: from THINK.COM by SAIL.STANFORD.EDU with TCP; 22 Jun 87  12:07:29 PDT
+Received: from occam by Think.COM via CHAOS; Mon, 22 Jun 87 15:07:19 EDT
+Date: Mon, 22 Jun 87 15:04 EDT
+From: Barry Margolin <barmar@Think.COM>
+Subject: Re: IF with multiple ELSE
+To: Cris Perdue <cperdue@sun.com>
+Cc: DLW@alderaan.scrc.symbolics.com, x3j13@sail.stanford.edu
+In-Reply-To: <8706221712.AA05089@clam.sun.com>
+Message-Id: <870622150454.2.BARMAR@OCCAM.THINK.COM>
+
+    Date: Mon, 22 Jun 87 10:12:52 PDT
+    From: cperdue@sun.com (Cris Perdue)
+
+      It seems clear that this is one of those "matter of taste" issues,
+      depending a lot on personal preference and what you're accustomed to.
+      My experience has been that electronic mail discussions are not very
+      useful for such issues.  Perhaps normal X3J13 channels would be more
+      effective.
+
+    This is more than a "matter of taste" issue.  It is also a readability,
+    clarity, and error-proneness issue.  My thanks are to JonL for bringing
+    this up.  My personal vote has been for if with "then" and "else"
+    keywords and multiple "else" clauses ever since I first began to
+    use Interlisp-10 several years ago.
+
+    If-then-else-etc. in fact is a well-established part of my personal Lisp
+    programming practice.  Let's pursue this issue further.
+
+Unless someone plans on doing some human factors experiments, we will
+not be able to make any objective decision about the "readability,
+clarity, and error-proneness issue".  The matter of taste that Dan
+referred to was the fact that different people find the different forms
+more readable, clear, or error-prone.  Without concrete data, taste is
+all we can go by.  What we've seen so far is lots of people saying,
+"well, I've been using FOO-LISP's WHIZ-BANG-IF feature for years, and
+it's really great."  Lots of people swore by Interlisp's DWIM feature,
+but it wasn't put into CL either.
+
+						barmar
+
+*start*
+01454 00024 USh
+Return-Path: <@SAIL.STANFORD.EDU:cperdue@Sun.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 22 JUN 87 12:42:35 PDT
+Received: from SUN.COM by SAIL.STANFORD.EDU with TCP; 22 Jun 87  10:13:04 PDT
+Received: from snail.sun.com by Sun.COM (4.0/SMI-3.2)
+	id AA02476; Mon, 22 Jun 87 10:09:34 PDT
+Received: from clam.sun.com by snail.sun.com (4.0/SMI-3.2)
+	id AA07547; Mon, 22 Jun 87 10:08:51 PDT
+Received: by clam.sun.com (3.2/SMI-3.2)
+	id AA05089; Mon, 22 Jun 87 10:12:52 PDT
+Date: Mon, 22 Jun 87 10:12:52 PDT
+From: cperdue@Sun.COM (Cris Perdue)
+Message-Id: <8706221712.AA05089@clam.sun.com>
+To: DLW@ALDERAAN.SCRC.Symbolics.COM
+Subject: Re: IF with multiple ELSE
+Cc: x3j13@sail.stanford.edu
+
+  It seems clear that this is one of those "matter of taste" issues,
+  depending a lot on personal preference and what you're accustomed to.
+  My experience has been that electronic mail discussions are not very
+  useful for such issues.  Perhaps normal X3J13 channels would be more
+  effective.
+
+This is more than a "matter of taste" issue.  It is also a readability,
+clarity, and error-proneness issue.  My thanks are to JonL for bringing
+this up.  My personal vote has been for if with "then" and "else"
+keywords and multiple "else" clauses ever since I first began to
+use Interlisp-10 several years ago.
+
+If-then-else-etc. in fact is a well-established part of my personal Lisp
+programming practice.  Let's pursue this issue further.
+
+*start*
+00923 00024 USh
+Return-Path: <@SAIL.STANFORD.EDU:DLW@ALDERAAN.SCRC.Symbolics.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 22 JUN 87 12:43:53 PDT
+Received: from [192.10.41.109] by SAIL.STANFORD.EDU with TCP; 22 Jun 87  11:12:22 PDT
+Received: from CHICOPEE.SCRC.Symbolics.COM by ALDERAAN.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 94440; Mon 22-Jun-87 14:12:04 EDT
+Date: Mon, 22 Jun 87 14:11 EDT
+From: Daniel L. Weinreb <DLW@ALDERAAN.SCRC.Symbolics.COM>
+Subject: Re: IF with multiple ELSE
+To: cperdue@Sun.COM
+cc: x3j13@sail.stanford.edu
+In-Reply-To: <8706221712.AA05089@clam.sun.com>
+Message-ID: <870622141115.8.DLW@CHICOPEE.SCRC.Symbolics.COM>
+
+    Date: Mon, 22 Jun 87 10:12:52 PDT
+    From: cperdue@Sun.COM (Cris Perdue)
+
+    Let's pursue this issue further.
+
+The only point I was trying to make is that I don't think that it will
+be valuable to continue to discuss this over the X3J13 mailing list.
+
+*start*
+01886 00024 USh
+Return-Path: <@SAIL.STANFORD.EDU:FAHLMAN@C.CS.CMU.EDU>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 22 JUN 87 12:44:05 PDT
+Received: from C.CS.CMU.EDU by SAIL.STANFORD.EDU with TCP; 22 Jun 87  11:23:41 PDT
+Received: ID <FAHLMAN@C.CS.CMU.EDU>; Mon 22 Jun 87 14:12:18-EDT
+Date: Mon, 22 Jun 87 14:12 EDT
+Message-ID: <FAHLMAN.12312578230.BABYL@C.CS.CMU.EDU>
+Sender: FAHLMAN@C.CS.CMU.EDU
+From: "Scott E. Fahlman" <Fahlman@C.CS.CMU.EDU>
+To: x3j13@SAIL.STANFORD.EDU
+Subject: IF with multiple ELSE
+In-reply-to: Msg of 22 Jun 1987  13:12-EDT from cperdue at Sun.COM (Cris Perdue)
+
+
+Regarding the (if ... then ... else ...) proposal:
+
+This is the same rock on which every attempt to come up with a LOOP-like
+construct has run aground: some people like the Interlisp/MIT-Loop-macro
+style in which you have lengthy flat lists punctuated with reserved
+symbols that play a syntactic role; others hate this and prefer a
+"Lispy" syntax in which nested list structure is used to organize the
+clauses and parts of a clause.  I suppose that if we decide to swallow
+the "psuedo-English" syntax for LOOP, then (if ... then ... else
+...)  is a natural thing to add as well.  I suppose that one of these
+days we will have to come to grips with this whole bag of worms again --
+isn't there a committee working on this?
+
+The current form of IF looks just fine to me, but that is probably a
+matter of having seen so many of them.  I once saw some code by Joe
+Ginder (don't know if the idea was original with him or not) that simply
+defined THEN and ELSE as macros that expand into PROGN of the same body.
+Once can then write
+
+(if <predicate>
+    (then clause
+          clause ...)
+    (else clause
+          clause ...))
+
+A perverse programmer could really confuse things by switching the THEN
+and ELSE symbols, but perverse programmers can write obscure code in any
+event.
+
+-- Scott
+
+*start*
+02070 00024 USh
+Return-Path: <DLW@ALDERAAN.SCRC.Symbolics.COM>
+Received: from ALDERAAN.SCRC.Symbolics.COM ([192.10.41.109]) by Xerox.COM ; 17 JUN 87 15:25:32 PDT
+Received: from CHICOPEE.SCRC.Symbolics.COM by ALDERAAN.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 93095; Wed 17-Jun-87 18:15:56 EDT
+Date: Wed, 17 Jun 87 18:15 EDT
+From: Daniel L. Weinreb <DLW@ALDERAAN.SCRC.Symbolics.COM>
+Subject: Issue: IF-BODY (Version 7)
+To: CL-CLEANUP@Sail.stanford.edu, X3J13@Sail.stanford.edu
+cc: Masinter.pa
+In-Reply-To: <870616-170738-108@Xerox>
+Message-ID: <870617181519.0.DLW@CHICOPEE.SCRC.Symbolics.COM>
+Line-fold: No
+
+    Date: 16 Jun 87 17:07 PDT
+    From: Masinter.pa@Xerox.COM
+
+	     If this proposal is not accepted, it should be mandated that
+    extensions to IF are explicitly disallowed.  The status quo, where there
+    is a tacit acceptance of extensions which are not portable and difficult
+    to detect, is unacceptable.
+
+I'd like to state emphatically that I do not agree with this point of
+view about extensions.  The original point of Common Lisp was to be a
+large common subset, designed to allow portable programs without
+stifling extensions and experimentation, and without creating massive
+compatibility problems.  (I say "massive" because that's what would
+happen if a policy of such explicit disallowal were applied across the
+board.)  If this attitude had prevailed at the beginning, there would
+have been no Common Lisp.
+
+I take the position that there ought to be tools that specifically help
+you make sure that your program can be expected to run portably in other
+CL implementations.  The extended IF is not particularly "difficult to
+detect" for such a tool; in fact, it's very easy.  Meanwhile, the
+extended implementation need not print out any warnings.
+
+Such a portability tool is needed for other reasons: even if a
+particular CL implementation doesn't have any "extensions", nevertheless
+it necessarily makes choices about things that the CL manual leave up to
+the implementation, and a program could be depending on those choices.
+
+*start*
+04786 00024 USh
+Return-Path: <@SAIL.STANFORD.EDU:FAHLMAN@C.CS.CMU.EDU>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 17 JUN 87 20:42:55 PDT
+Received: from C.CS.CMU.EDU by SAIL.STANFORD.EDU with TCP; 17 Jun 87  20:11:13 PDT
+Received: ID <FAHLMAN@C.CS.CMU.EDU>; Wed 17 Jun 87 23:10:30-EDT
+Date: Wed, 17 Jun 87 23:10 EDT
+Message-ID: <FAHLMAN.12311365480.BABYL@C.CS.CMU.EDU>
+Sender: FAHLMAN@C.CS.CMU.EDU
+From: "Scott E. Fahlman" <Fahlman@C.CS.CMU.EDU>
+To: X3J13@SAIL.STANFORD.EDU
+Subject: Issue: IF-BODY (Version 7)
+In-reply-to: Msg of 16 Jun 1987  20:07-EDT from Masinter.pa at Xerox.COM <CL-CLEANUP at Sail.stanford.edu>
+
+
+Since I will not be able to atend the X3J13 in Boston, I would like to
+state my views on this proposal via mail.  This message may also help to
+explain what the "disagreements within the cleanup committee" were all
+about.
+
+If we look at this proposed extension purely as a matter of language
+design, I am opposed to it, but not violently so.  I think that it is
+confusing to see something like
+
+(IF pred-clause
+    clause-1
+    clause-2
+    clause-3
+    and-so-on)
+
+in a program.  The then-clause gets lost in all the clutter, and it is
+harder to understand the program in a quick scan.  If there
+must be multiple else-clauses, I prefer to see something like
+
+(IF pred-clause
+    (PROGN then-clause-1
+           then-clause-2)
+    (PROGN else-clause-1
+	   else-clause-2
+	   and-so-on))
+
+The two distinct conditional branches jump out at you in this case.
+
+Since this extension would affect my ability to READ Common Lisp code,
+it is little consolation that I don't have to use the new construct
+myself.
+
+Another problem with the proposed extension: If one is allowed only one
+"then" clause but multiple "else" clauses, some users will be tempted to
+negate the test in order to get the more complex result into the "else"
+position.  Again, this makes code harder to read and understand.  It is
+no big thing, but neither is an occasional PROGN.
+
+Well, so much for my own sense of aesthetics.  If the members of X3J13
+disagree -- if they really feel that the proposed extension improves
+Common Lisp -- then so be it.
+
+The real disagreement concerned the other argument in the proposal.  It
+goes roughly like this: Some manufacturers have unilaterally adopted
+this extension.  Their users get screwed when they move their code into
+Common Lisp systems without this extension.  The extension is compatible
+and relatively innocuous.  Therefore, we should force every Common Lisp
+to adopt this extension so that these poor users won't have to suffer.
+Or, if we are unwilling to do that, we must explicitly outlaw this
+extension.  (Clever straw-man, that.)
+
+I think that it would be a very dangerous precedent if we were to give
+this argument any weight whatsoever.  This same line of argument could
+be used to smuggle all sorts of idiotic extensions into the language.
+
+It has always been an important principle of Common Lisp that
+implementation-specific extensions are allowed; we would never have
+reached agreement if this were not the case.  So it would be wrong to
+outlaw the extended form of IF.  But code that makes use of non-portable
+extensions is not portable, and its users should not expect it to be.
+
+Vendors of extended Common Lisp systems should make life easy for the
+developers of portable code by providing a compiler mode that warns
+about non-standard usage.  In the case of extended IF, this would be
+very easy, and the fix is equally easy: just add a PROGN.  So if users
+really are experiencing the portability problems described in this
+proposal, they should ask the manufacturer of the system they are using
+to provide such a tool.  That is the right way to handle portability
+problems caused by non-standard extensions.  If the manufacturer doesn't
+think the portability problem is serious enough to fix, why should we
+change the language to make this system's users more comfortable?
+
+    It is not adequate to encourage implementors to warn about  non-standard
+    uses since the only implementations which will implement the extension
+    are ones who think it is a good idea to use the feature, and people are
+    not inclined to warn about things they think are a good idea to use.
+
+That's an amazingly arrogant position.  It is quite possible to think
+that a non-portable feature is wonderful and still provide your
+customers with a "warn about non-portable usage" mode that will save
+them from hassles if they ever need to move their code to some less
+enlightened system that merely implements the Common Lisp standard.
+
+Anyway, that's what the disagreement was about, along with much
+procedural discussion about how much of this debate should appear in the
+proposal and about whether the proposal should go out at all.
+
+-- Scott
+
+*start*
+02839 00024 USh
+Return-Path: <@SAIL.STANFORD.EDU:barmar@AQUINAS.THINK.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 18 JUN 87 10:47:45 PDT
+Received: from [192.5.104.1] by SAIL.STANFORD.EDU with TCP; 18 Jun 87  09:13:25 PDT
+Received: from OCCAM.THINK.COM by AQUINAS.THINK.COM via CHAOS with CHAOS-MAIL id 33136; Thu 18-Jun-87 12:16:18 EDT
+Date: Thu, 18 Jun 87 11:27 EDT
+From: Barry Margolin <barmar@AQUINAS.THINK.COM>
+Subject: Issue: IF-BODY (Version 7)
+To: Scott E. Fahlman <Fahlman@c.cs.cmu.edu>
+cc: X3J13@sail.stanford.edu
+In-Reply-To: <FAHLMAN.12311365480.BABYL@C.CS.CMU.EDU>
+Message-ID: <870618112702.1.BARMAR@OCCAM.THINK.COM>
+
+    Date: Wed, 17 Jun 1987  23:10 EDT
+    From: "Scott E. Fahlman" <Fahlman@c.cs.cmu.edu>
+
+    If we look at this proposed extension purely as a matter of language
+    design, I am opposed to it, but not violently so.
+
+I'm not going to discuss the esthetics of the change, but I agree with
+Scott that we shouldn't change IF (even though I occasionally use
+multiple else-clauses in my own programs, but most of them make
+extensive use of Symbolics OS features already, so they are not
+portable).
+
+	It is not adequate to encourage implementors to warn about  non-standard
+	uses since the only implementations which will implement the extension
+	are ones who think it is a good idea to use the feature, and people are
+	not inclined to warn about things they think are a good idea to use.
+
+    That's an amazingly arrogant position.  It is quite possible to think
+    that a non-portable feature is wonderful and still provide your
+    customers with a "warn about non-portable usage" mode that will save
+    them from hassles if they ever need to move their code to some less
+    enlightened system that merely implements the Common Lisp standard.
+
+There's been quite a bit of discussion about how to deal with extensions
+before, and I'm going to restate my opinion.
+
+It seems to me that it should not be that difficult to provide such a
+facility, simply by using the package system.  The Common Lisp
+implementation I'm most familiar with is Symbolics, and they provide
+their own package, SYMBOLICS-COMMON-LISP, which imports everything in
+LISP and exports them plus all the Symbolics extensions.  What they
+could do is shadow in SCL any functions/special forms that are extended,
+i.e.
+	(SI:DEFINE-SPECIAL-FORM LISP:IF
+				IF-EXPANDER (PRED THEN ELSE)
+	  ...)
+	(SI:DEFINE-SPECIAL-FORM SCL:IF
+				IF-EXPANDER (PRED THEN &REST ELSES) 
+	  ...)
+
+Portable applications would normally be written in packages that :USE
+LISP, while non-portable applications could :USE SCL.
+
+I realize that the package scheme doesn't solve all problems with
+extensions, but it can go a long way.  It could be used to solve this
+problem, as well as LOOP (unless and until the fancy LOOP macro is
+adopted).
+
+						barmar
+
+*start*
+02405 00024 USh
+Return-Path: <@SAIL.STANFORD.EDU:RWK@YUKON.SCRC.Symbolics.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 18 JUN 87 17:54:11 PDT
+Received: from SCRC-YUKON.ARPA by SAIL.STANFORD.EDU with TCP; 18 Jun 87  17:40:51 PDT
+Received: from WHITE-BIRD.SCRC.Symbolics.COM by YUKON.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 226953; Thu 18-Jun-87 20:24:59 EDT
+Date: Thu, 18 Jun 87 20:24 EDT
+From: Robert W. Kerns <RWK@YUKON.SCRC.Symbolics.COM>
+Subject: Issue: IF-BODY (Version 7)
+To: Barry Margolin <barmar@AQUINAS.THINK.COM>
+cc: Scott E. Fahlman <Fahlman@c.cs.cmu.edu>, X3J13@sail.stanford.edu
+In-Reply-To: <870618112702.1.BARMAR@OCCAM.THINK.COM>
+Message-ID: <870618202441.7.RWK@WHITE-BIRD.SCRC.Symbolics.COM>
+
+    Date: Thu, 18 Jun 87 11:27 EDT
+    From: Barry Margolin <barmar@AQUINAS.THINK.COM>
+    It seems to me that it should not be that difficult to provide such a
+    facility, simply by using the package system.  The Common Lisp
+    implementation I'm most familiar with is Symbolics, and they provide
+    their own package, SYMBOLICS-COMMON-LISP, which imports everything in
+    LISP and exports them plus all the Symbolics extensions.  What they
+    could do is shadow in SCL any functions/special forms that are extended,
+    i.e.
+
+This doesn't work so well if there are any applications or any part of
+CL that uses that symbol for EQness.  For example, if I ran an application
+that used 'IF as part of the protocol for interfacing to it, and it was
+written in strict CL (and was therefor loaded into our LISP: package)
+and I wanted to use it from SCL, things would start getting very confusing.
+
+If you're just dealing with a single application, however, this works so
+long as the symbol isn't one of the few symbols that CL uses the EQness
+of (such as DOCUMENTATION, VARIABLE, EVAL, COMPILE, LOAD, EQ, EQL, EQUAL,
+&ALLOW-OTHER-KEYS, &AUX, &BODY, &ENVIRONMENT, &KEY, &OPTIONAL, &REST, or
+&WHOLE.
+
+You also screw up importing any "portable" program-understanding code
+that knows anything about that symbol.  (Program-understanding code
+is not necessarily some big thing that knows the whole language; SETF
+is a much smaller example).
+
+In general, shadowing has a lot to disrecommend it as a strategy for
+extending Common Lisp.
+
+These comments don't apply, however, to sub-environments intended
+directly for developing and testing code intended to be strictly
+portable.
+
+*start*
+02030 00024 USh
+Return-Path: <@SAIL.STANFORD.EDU:edsel!bhopal!jonl@navajo.stanford.edu>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 19 JUN 87 21:13:26 PDT
+Received: from NAVAJO.STANFORD.EDU by SAIL.STANFORD.EDU with TCP; 19 Jun 87  21:00:21 PDT
+Received: by navajo.stanford.edu; Fri, 19 Jun 87 20:57:39 PDT
+Received: from bhopal.edsel.uucp by edsel.uucp (3.2/SMI-2.0)
+	id AA05237; Fri, 19 Jun 87 20:35:00 PDT
+Received: by bhopal.edsel.uucp (3.2/SMI-3.2)
+	id AA05585; Fri, 19 Jun 87 20:37:23 PDT
+Date: Fri, 19 Jun 87 20:37:23 PDT
+From: edsel!bhopal!jonl@navajo.stanford.edu (Jon L White)
+Message-Id: <8706200337.AA05585@bhopal.edsel.uucp>
+To: navajo!RWK%YUKON.SCRC.Symbolics.COM@navajo.stanford.edu
+Cc: navajo!shebs%orion%cs.utah.edu@navajo.stanford.edu, navajo!x3j13%sail.stanford.edu@navajo.stanford.edu
+In-Reply-To: Robert W. Kerns's message of Fri, 19 Jun 87 02:49 EDT <870619024952.2.RWK@WHITE-BIRD.SCRC.Symbolics.COM>
+Subject: IF with multiple ELSE
+
+This may be a hopeless quest but . . . 
+
+Why is there so little interest in having a conditional form for CL that
+more closely approximates the standard computer-science language conditionals
+(for "standard .. languages", read "Algol-like").
+
+Interlisp has a format that many use and love:
+    (if <condition1>
+        then  <clause11> <clause12> ... <clause1n1>
+      elseif <condition2>
+        then  <clause21> <clause22> ... <clause2n2>
+      . . . 
+       else <clausem1> <clausem2> ... <clausemnm>
+    )
+and I think Franz Lisp added this format in an essentially upward-compatible
+way.   The only flaw with such an extension is that the word THEN can't be 
+used as an ordinary then clause by itself [but then again, how many times 
+does "then" or "else" appear as local variables, in programs like 
+	(if <mumble> then 5)
+where the ambiguity is apparent].
+
+Isn't Common Lisp really much less than "modern" by providing only the
+crude form    (if <form1>
+                  <form2>
+                  <form3>)
+as the primary conditional paradigm?
+
+-- JonL --
+
+
+*start*
+01294 00024 USh
+Return-Path: <@SAIL.STANFORD.EDU:edsel!bhopal!jonl@navajo.stanford.edu>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 20 JUN 87 04:45:40 PDT
+Received: from NAVAJO.STANFORD.EDU by SAIL.STANFORD.EDU with TCP; 20 Jun 87  04:37:26 PDT
+Received: by navajo.stanford.edu; Sat, 20 Jun 87 04:34:48 PDT
+Received: from bhopal.edsel.uucp by edsel.uucp (3.2/SMI-2.0)
+	id AA05823; Sat, 20 Jun 87 03:24:42 PDT
+Received: by bhopal.edsel.uucp (3.2/SMI-3.2)
+	id AA05994; Sat, 20 Jun 87 03:27:06 PDT
+Date: Sat, 20 Jun 87 03:27:06 PDT
+From: edsel!bhopal!jonl@navajo.stanford.edu (Jon L White)
+Message-Id: <8706201027.AA05994@bhopal.edsel.uucp>
+To: navajo!Moon%STONY-BROOK.SCRC.Symbolics.COM@navajo.stanford.edu
+Cc: navajo!x3j13%sail@navajo.stanford.edu
+In-Reply-To: David A. Moon's message of Sat, 20 Jun 87 01:02 EDT <870620010248.3.MOON@EUPHRATES.SCRC.Symbolics.COM>
+Subject: IF with multiple ELSE
+
+
+Re: Use COND.
+    If you don't like the parentheses, use M-expressions.
+
+Is this a reply to the query "Why is Common Lisp aping ALGOL, but
+winding up blatantly idiosyncratic, and for no useful reason"?  If
+so, then it it may well be interpreted as
+
+   Use FORTRAN (has 1950's level syntax, just like COND)
+   If you don't like the 80-column lines, use PascaModulADAlgolC
+
+
+
+-- JonL --
+
+*start*
+01297 00024 USh
+Return-Path: <@SAIL.STANFORD.EDU:franz!frisky!jkf@ucbarpa.Berkeley.EDU>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 21 JUN 87 17:00:47 PDT
+Received: from UCBARPA.Berkeley.EDU by SAIL.STANFORD.EDU with TCP; 21 Jun 87  16:51:00 PDT
+Received: by ucbarpa.Berkeley.EDU (5.57/1.25)
+	id AA07095; Fri, 19 Jun 87 23:30:13 PDT
+Received: from frisky by franz (5.5/3.14)
+	id AA29568; Fri, 19 Jun 87 23:20:19 PDT
+Received: by frisky (3.2/3.14)
+	id AA13854; Fri, 19 Jun 87 23:15:50 PDT
+From: franz!frisky!jkf@ucbarpa.Berkeley.EDU (John Foderaro)
+Return-Path: <frisky!jkf>
+Message-Id: <8706200615.AA13854@frisky>
+To: David A. Moon <Moon@stony-brook.scrc.symbolics.com>
+Cc: Jon L White <edsel!bhopal!jonl@navajo.stanford.edu>, x3j13@sail.stanford.edu
+Subject: Re: IF with multiple ELSE 
+In-Reply-To: Your message of Sat, 20 Jun 87 01:02:00 EDT.
+             <870620010248.3.MOON@EUPHRATES.SCRC.Symbolics.COM> 
+Date: Fri, 19 Jun 87 23:15:49 PDT
+
+
+>> Use COND.
+
+Did you forget the little smiley face?
+
+I've got a lot of experience using a if form with 'then', 'elseif' and
+'else' clauses and I'd rate it about an order of magnitude more
+readable than cond.  I'd also rate 'cond' about a half order of
+magnitude more readable than the common lisp 'if' (which is downright
+unreadable).
+
+
+
+*start*
+01045 00024 USh
+Return-Path: <@SAIL.STANFORD.EDU:DLW@ALDERAAN.SCRC.Symbolics.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 22 JUN 87 09:48:13 PDT
+Received: from [192.10.41.109] by SAIL.STANFORD.EDU with TCP; 22 Jun 87  09:35:52 PDT
+Received: from CHICOPEE.SCRC.Symbolics.COM by ALDERAAN.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 94385; Mon 22-Jun-87 12:03:15 EDT
+Date: Mon, 22 Jun 87 12:02 EDT
+From: Daniel L. Weinreb <DLW@ALDERAAN.SCRC.Symbolics.COM>
+Subject: Re: IF with multiple ELSE 
+To: franz!frisky!jkf@ucbarpa.Berkeley.EDU, Moon@STONY-BROOK.SCRC.Symbolics.COM
+cc: edsel!bhopal!jonl@navajo.stanford.edu, x3j13@sail.stanford.edu
+In-Reply-To: <8706200615.AA13854@frisky>
+Message-ID: <870622120219.6.DLW@CHICOPEE.SCRC.Symbolics.COM>
+
+It seems clear that this is one of those "matter of taste" issues,
+depending a lot on personal preference and what you're accustomed to.
+My experience has been that electronic mail discussions are not very
+useful for such issues.  Perhaps normal X3J13 channels would be more
+effective.
+
+*start*
+00963 00024 USh
+Return-Path: <@MCC.COM,@HAL.CAD.MCC.COM:Loeffler@MCC.COM>
+Received: from MCC.COM by Xerox.COM ; 26 JUN 87 11:04:25 PDT
+Received: from HAL.CAD.MCC.COM by MCC.COM with TCP; Fri 26 Jun 87 13:02:58-CDT
+Date: Fri, 26 Jun 87 13:02 CDT
+From: David D. Loeffler <Loeffler@MCC.COM>
+Subject: Issue: IF-BODY (Version 7)
+To: CL-CLEANUP%Sail.stanford.edu@MCC.COM
+cc: Masinter.pa%Xerox.COM@MCC.COM
+In-Reply-To: <870616-170738-108@Xerox>
+Message-ID: <870626130230.6.LOEFFLER@HAL.CAD.MCC.COM>
+Reply-To: Loeffler@MCC.COM
+Postal-address: MCC, 3500 West Balcones Center Dr., Austin, TX 78759
+Business-phone: (512) 338-3666
+
+If I were to change IF to allow multiple else causes I would like to
+change IF to be like Bernie Greenberg's IF in his Multics Emacs
+implementation, namely:
+
+(IF test then-clauses :ELSE else-clauses)
+
+
+This certainly would be incompatible with existing code but would allow
+both multiple THEN and ELSE clauses.
+
+  -- David D. Loeffler
+*start*
+01082 00024 USh
+Return-Path: <@SAIL.STANFORD.EDU:shebs%orion@cs.utah.edu>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 18 JUN 87 10:47:33 PDT
+Received: from CS.UTAH.EDU by SAIL.STANFORD.EDU with TCP; 18 Jun 87  08:21:26 PDT
+Received: by cs.utah.edu (5.54/utah-1.0)
+	id AA00828; Thu, 18 Jun 87 09:23:09 MDT
+Received: by orion.utah.edu (5.54/utah-1.0-slave)
+	id AA12575; Thu, 18 Jun 87 09:23:06 MDT
+Date: Thu, 18 Jun 87 09:23:06 MDT
+From: shebs%orion@cs.utah.edu (Stanley T. Shebs)
+Message-Id: <8706181523.AA12575@orion.utah.edu>
+To: x3j13@sail.stanford.edu
+Subject: IF with multiple ELSE
+
+Count this as an absentee ballot against multiple ELSEs in IF.  This
+"feature" is in PSL, and it has been troublesome for maintainers on
+several occasions.  There doesn't seem to be any significant reasons
+besides compatibility. In general, Common Lisp has been contorted by
+the desire to retain compatibility - now that CL has proven successful
+and the older dialects have faded somewhat, compatibility should take
+a back seat to making the language more reasonable.
+
+								stan
+
+*start*
+02416 00024 USh
+Return-Path: <@SAIL.STANFORD.EDU:RWK@YUKON.SCRC.Symbolics.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 19 JUN 87 00:03:48 PDT
+Received: from SCRC-YUKON.ARPA by SAIL.STANFORD.EDU with TCP; 18 Jun 87  23:50:14 PDT
+Received: from WHITE-BIRD.SCRC.Symbolics.COM by YUKON.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 227051; Fri 19-Jun-87 02:49:51 EDT
+Date: Fri, 19 Jun 87 02:49 EDT
+From: Robert W. Kerns <RWK@YUKON.SCRC.Symbolics.COM>
+Subject: IF with multiple ELSE
+To: Stanley T. Shebs <shebs%orion@cs.utah.edu>
+cc: x3j13@sail.stanford.edu
+In-Reply-To: <8706181523.AA12575@orion.utah.edu>
+Message-ID: <870619024952.2.RWK@WHITE-BIRD.SCRC.Symbolics.COM>
+
+    Date: Thu, 18 Jun 87 09:23:06 MDT
+    From: shebs%orion@cs.utah.edu (Stanley T. Shebs)
+
+    Count this as an absentee ballot against multiple ELSEs in IF.  This
+    "feature" is in PSL, and it has been troublesome for maintainers on
+    several occasions.  There doesn't seem to be any significant reasons
+    besides compatibility.  In general, Common Lisp has been contorted by
+    the desire to retain compatibility - now that CL has proven successful
+    and the older dialects have faded somewhat, compatibility should take
+    a back seat to making the language more reasonable.
+
+								    stan
+On the contrary!  This is not an issue of compatibility with
+older dialects.  There are two reasons:
+
+1)  Convenience.  Several modern dialects have it because we find it
+very convenient to use.
+
+  1a)  Inconvenience of the alternative.  PROGN hastens your indentation's
+  march to the right edge of your screen.
+
+2)  Compatibility with those *modern* dialects which choose to extend
+IF in this way.
+
+The issue isn't compatibility with older dialects; I agree that can take
+a back seat.
+
+While I'm at it, I may as well point out that many of us who use the
+extended IF indent it in a way that the THEN and ELSE clauses are
+readily distinguished.  I find
+
+(IF (CONDITION-FORM)
+    (THEN-FORM)
+    (ELSE-FORM))
+
+confusing, even without additional ELSE forms, especially if the
+condition form is longer than one line.  I prefer
+
+(IF (CONDITION-FORM)
+    (THEN-FORM)
+  (ELSE-FORM))
+
+I think this would render the "readability" argument irrelevant,
+except there are those who dislike this for reasons I've never
+fathomed.  (But let's not debate what the best indentation is
+here, please!  I'm just pointing out the alternative).
+

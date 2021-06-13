@@ -1,0 +1,243 @@
+*start*
+03119 00024 US 
+Return-Path: <kempf%hplabsz@hplabs.HP.COM>
+Received: from hplabs.HP.COM ([15.255.16.7]) by Xerox.COM ; 21 OCT 87 11:08:24 PDT
+Received: from hplms2 by hplabs.HP.COM with SMTP ; Wed, 21 Oct 87 11:07:57 PDT
+Received: from hplabsz.hpl.hp.com by hplms2; Wed, 21 Oct 87 11:07:33 pdt
+Return-Path: <kempf@hplabsz>
+Received: from hplabsz by hplabsz; Wed, 21 Oct 87 12:07:07 pdt
+To: Masinter.pa
+Subject: EXACT-CLASS Proposal
+X-Mailer: mh6.5
+Date: Wed, 21 Oct 87 11:07:03 PDT
+Message-Id: <25674.561838023@hplabsz>
+From: kempf%hplabsz@hplabs.HP.COM
+
+
+Larry:
+
+	Here is the proposal for a new declaration specification which
+will allow users to specify that a particular variable may only be
+bound to an object of a particular user defined class. We discussed this at the
+September meeting and Patrick and I continued the discussion via. e-mail,
+and I believe we've reached a concensus. This proposal reflects my
+understanding of the agreement.
+
+		jak
+
+--------------------------------------------------------------------------------
+
+Issue:		EXACT-CLASS
+
+References: type, ftype declaration specifier, pp. 158-159
+	    THE special form pp. 161-162
+
+Category:	ADDITION
+
+Edit history: Version 1, 21-Oct-87 Kempf
+
+Problem description:
+
+Currently, it is not possible to declare that a particular variable be
+bound to a particular type and no subtype.
+Without the Common Lisp Object System, the lack of such a declaration
+is not particularly a problem; however, with CLOS, compiler writers
+may not be able to optimize out method lookup at compile time, if the class
+of a CLOS object or a DEFSTRUCT (called "user defined classes" for
+purposes of this proposal) cannot be exactly determined at compile time.
+
+
+Proposal: (EXACT-CLASS::EXACT-CLASS-DECLARATION)
+
+(Font Note: UPPERCASE indicates bold, _this_ indicates italic)
+
+EXACT-CLASS
+
+EXACT-CLASS _class-specifier_ _var1_ _var2_ ... ) affects only variable
+bindings and specifies that the variables mentioned will take on values
+only of the specified user defined class, and no other. In particular, 
+_vari_ is of exact class _class-specifier_ if, letting _subclass-specifier(j)_
+be a subclass of _class_specifier_, then, for all _j_, 
+(SUBTYPEP _vari_ _subclass-specifier(j)_) is false. It is an error 
+if _class-specifier_ specifies an instance of STANDARD-TYPE-CLASS.
+
+Rationale:
+
+Compiler writers may want a way of optimizing out method lookup at
+compile time for the Common Lisp Object System. 
+
+Current Practice:
+
+There is currently no way to specify that subtyping of variables is not
+allowed.
+
+Adoption Cost:
+
+Difficult to judge. Will depend on the particular implementation, and
+should be part of implementing CLOS. Should not impact currently 
+existing code, because built-in Common Lisp types are specifically excluded.
+
+Cost of non-adoption:
+
+Determination of whether in-line insertion of method functions at compile time
+is permissible will require considerably more effort.
+
+Benefits:
+
+Common Lisp Object System code can be optimized better.
+
+Conversion Cost:
+
+Probably low, since it could be phased in as part of the Common Lisp Object
+System.
+
+
+
+*start*
+01950 00024 US 
+Return-Path: <kempf%hplabsz@hplabs.HP.COM>
+Received: from hplabs.HP.COM (hplabs.hpl.hp.com) by Xerox.COM ; 23 OCT 87 08:05:20 PDT
+Received: from hplms2 by hplabs.HP.COM with SMTP ; Fri, 23 Oct 87 08:04:55 PDT
+Received: from hplabsz.hpl.hp.com by hplms2; Fri, 23 Oct 87 08:04:29 pdt
+Return-Path: <kempf@hplabsz>
+Received: from hplabsz by hplabsz; Fri, 23 Oct 87 09:04:01 pdt
+To: Masinter.pa
+Cc: kempf%hplabsz@hplabs.hp.com
+Subject: Re: EXACT-CLASS Proposal 
+X-Mailer: mh6.5
+In-Reply-To: Your message of 22 Oct 87 14:57:00 -0700.
+             <871022-150050-5508@Xerox> 
+Date: Fri, 23 Oct 87 08:03:58 PDT
+Message-Id: <20953.561999838@hplabsz>
+From: kempf%hplabsz@hplabs.HP.COM
+
+> I'm reluctant to deal with EXACT-CLASS in CL-CLEANUP since it makes no
+> sense outside of CLOS. (This wasn't true of TRACE-FUNCTION-ONLY where
+> there were other kinds of things to trace and CLOS just was a good
+> motivation.)
+
+The original idea was to include built-in types as well, but there
+was some resistence to this, based on the fact that some implementations
+may subtype automatically, and the subtype may not be structurally
+equivalent. An example is using cdr-coding for a list. While I believe
+that operator equivalence is the more appropriate criterion, and hence
+such automatic subtyping should not be a problem, the concensus seemed
+to be to restrict EXACT-CLASS to user defined types, including DEFSTRUCTs.
+At the September meeting, we considered if there were any built-in types
+for which declaring something EXACT-CLASS could make a difference,
+and the conclusion was no, I believe. With CLOS, of course, it would
+allow insertion of a method whose discriminators were built-in, but
+without CLOS, it would not make a difference, except for DEFSTRUCTs.
+
+In addition, the objects committee also seemed to believe this was a
+clean-up issue. I fear it may get lost between the two, however, I'll
+bring it up again in November.
+
+		jak
+
+*start*
+03731 00024 US 
+Date:  4 Feb 88 17:45 PST
+From: Masinter.pa
+to: Masinter
+Subject: Mail later
+
+Subject: Issue: DECLARE-TYPE-EXACT (Version 1)
+To: cl-cleanup@Sail.stanford.edu
+
+This issue is for discussion in our subcommittee meeting in March. I don't expect it to be ready for discussion at X3J13 until the following meeting.
+
+     ----- Begin Forwarded Messages -----
+
+
+Issue:		DECLARE-TYPE-EXACT
+
+References: type, ftype declaration specifier, pp. 158-159
+	    THE special form pp. 161-162
+
+Category:	ADDITION
+
+Edit history: Version 1, 21-Oct-87 Kempf
+
+Problem description:
+
+Currently, it is not possible to declare that a particular variable be
+bound to a particular type and no subtype.
+Without the Common Lisp Object System, the lack of such a declaration
+is not particularly a problem; however, with CLOS, compiler writers
+may not be able to optimize out method lookup at compile time, if the class
+of a CLOS object or a DEFSTRUCT (called "user defined classes" for
+purposes of this proposal) cannot be exactly determined at compile time.
+
+
+Proposal: (DECLARE-TYPE-EXACT:EXACT-CLASS-DECLARATION)
+
+(Font Note: UPPERCASE indicates bold, _this_ indicates italic)
+
+
+EXACT-CLASS _class-specifier_ _var1_ _var2_ ... ) affects only variable
+bindings and specifies that the variables mentioned will take on values
+only of the specified user defined class, and no other. In particular, 
+_vari_ is of exact class _class-specifier_ if, letting _subclass-specifier(j)_
+be a subclass of _class_specifier_, then, for all _j_, 
+(SUBTYPEP _vari_ _subclass-specifier(j)_) is false. It is an error 
+if _class-specifier_ specifies an instance of STANDARD-TYPE-CLASS.
+
+Rationale:
+
+Compiler writers may want a way of optimizing out method lookup at
+compile time for the Common Lisp Object System. 
+
+Current Practice:
+
+There is currently no way to specify that subtyping of variables is not
+allowed.
+
+Adoption Cost:
+
+Difficult to judge. Will depend on the particular implementation, and
+should be part of implementing CLOS. Should not impact currently 
+existing code, because built-in Common Lisp types are specifically excluded.
+
+Cost of non-adoption:
+
+Determination of whether in-line insertion of method functions at compile time
+is permissible will require considerably more effort.
+
+Benefits:
+
+Common Lisp Object System code can be optimized better.
+
+Conversion Cost:
+
+Probably low, since it could be phased in as part of the Common Lisp Object
+System.
+Discussion:
+
+Masinter: 
+
+> I'm reluctant to deal with EXACT-CLASS in CL-CLEANUP since it makes no
+> sense outside of CLOS. (This wasn't true of TRACE-FUNCTION-ONLY where
+> there were other kinds of things to trace and CLOS just was a good
+> motivation.)
+
+
+Kempf:
+The original idea was to include built-in types as well, but there
+was some resistence to this, based on the fact that some implementations
+may subtype automatically, and the subtype may not be structurally
+equivalent. An example is using cdr-coding for a list. While I believe
+that operator equivalence is the more appropriate criterion, and hence
+such automatic subtyping should not be a problem, the concensus seemed
+to be to restrict EXACT-CLASS to user defined types, including DEFSTRUCTs.
+At the September meeting, we considered if there were any built-in types
+for which declaring something EXACT-CLASS could make a difference,
+and the conclusion was no, I believe. With CLOS, of course, it would
+allow insertion of a method whose discriminators were built-in, but
+without CLOS, it would not make a difference, except for DEFSTRUCTs.
+
+In addition, the objects committee also seemed to believe this was a
+clean-up issue. I fear it may get lost between the two, however, I'll
+bring it up again in November.
+
+		jak

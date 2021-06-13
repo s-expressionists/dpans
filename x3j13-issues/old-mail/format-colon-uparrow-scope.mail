@@ -1,0 +1,1250 @@
+*start*
+01402 00024 US 
+Originator: Common-Lisp-mailer%SAIL.Stanford:EDU:Xerox
+Date: 10 Nov 87 16:22
+From: franz!akbar!layer%ucbarpa.Berkeley:EDU:Xerox
+Subject: Re: Question regarding FORMAT with ~:^
+To: common-lisp%sail.stanford:EDU:Xerox
+
+GVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGV
+From: franz!akbar!layer@ucbarpa.Berkeley.EDU (Kevin Layer)
+To: common-lisp@sail.stanford.edu
+Subject: Re: Question regarding FORMAT with ~:^
+Return-Path: <Common-Lisp-mailer@SAIL.Stanford.EDU>
+Redistributed: Xerox-Common-Lisp^.x
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 10 NOV 87 16:22:46 PST
+Received: from UCBARPA.Berkeley.EDU by SAIL.STANFORD.EDU with TCP; 10 Nov 87  15:41:55 PST
+Received: by ucbarpa.Berkeley.EDU (5.58/1.25)	id AA02907; Tue, 10 Nov 87 15:46:05 PST
+Received: from akbar by franz (5.5/3.14)	id AA11686; Tue, 10 Nov 87 15:32:19 PST
+Received: by akbar (5.5/3.14)	id AA28113; Tue, 10 Nov 87 15:26:55 PST
+Return-Path: <akbar!layer>
+Message-Id: <8711102326.AA28113@akbar>
+Original-Date: Tue, 10 Nov 87 15:26:53 PST
+GVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGV
+
+>> I have a question regarding the correct behavior of FORMAT.  Please
+>> open up your CLtL books to page 406 and tell me what the following
+>> construct should return:
+>> 
+>> 	(format nil "~:{~@?~:^...~}" '(("a") ("b")))
+>> 
+
+Franz's Allegro Common Lisp returns "a", which we feel is the correct
+answer.
+
+	Kevin Layer
+
+
+*start*
+01095 00024 US 
+Originator: Common-Lisp-mailer%SAIL.Stanford:EDU:Xerox
+Date: 10 Nov 87 13:53
+From: robbins%expert.DEC%decwrl.dec:COM:Xerox
+Subject: Re: Question regarding FORMAT with ~:^
+To: common-lisp%sail.stanford:EDU:Xerox
+
+Return-Path: <Common-Lisp-mailer@SAIL.Stanford.EDU>
+Redistributed: Xerox-Common-Lisp^.x
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 10 NOV 87 13:47:47 PST
+Received: from DECWRL.DEC.COM by SAIL.STANFORD.EDU with TCP; 10 Nov 87  13:05:43 PST
+Received: by decwrl.dec.com (5.54.4/4.7.34)	id AA19455; Tue, 10 Nov 87 13:06:36 PST
+Original-Date: Tue, 10 Nov 87 13:06:36 PST
+Message-Id: <8711102106.AA19455@decwrl.dec.com>
+
+>> I have a question regarding the correct behavior of FORMAT.  Please
+>> open up your CLtL books to page 406 and tell me what the following
+>> construct should return:
+>> 
+>> 	(format nil "~:{~@?~:^...~}" '(("a") ("b")))
+>> 
+Should return "a" for exactly the reason you gave.  Otherwise "To
+terminate the entire iteration process, use ~:^." is meaningless.
+ 
+I agree with those who prefer "a"
+
+By the way, VAX-Lisp returns "a"
+
+-- Rich
+
+
+*start*
+02470 00024 US 
+Originator: Common-Lisp-mailer%SAIL.Stanford:EDU:Xerox
+Date:  9 Nov 87 19:47
+From: edsel!r%labrea.stanford:EDU:Xerox
+Subject: Question regarding FORMAT with ~:^ within ~:{
+To: labrea!common-lisp%sail.stanford.edu%labrea.stanford:EDU:Xerox
+
+GVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGV
+From: R Dunbar Poor <edsel!r@labrea.stanford.edu>
+To: labrea!common-lisp%sail.stanford.edu@labrea.stanford.edu
+Subject: Question regarding FORMAT with ~:^ within ~:{
+Return-Path: <Common-Lisp-mailer@SAIL.Stanford.EDU>
+Redistributed: Xerox-Common-Lisp^.x
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 09 NOV 87 19:47:25 PST
+Received: from LABREA.STANFORD.EDU by SAIL.STANFORD.EDU with TCP; 9 Nov 87  18:58:23 PST
+Received: by labrea.stanford.edu; Mon, 9 Nov 87 18:57:58 PST
+Received: from vesuvius.lucid.com by edsel id AA20827g; Mon, 9 Nov 87 18:52:11 PST
+Received: by vesuvius id AA07681g; Mon, 9 Nov 87 18:53:10 PST
+Original-Date: Mon, 9 Nov 87 18:53:10 PST
+Message-Id: <8711100253.AA07681@vesuvius.lucid.com>
+GVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGV
+
+I have a question regarding the correct behavior of FORMAT.  Please
+open up your CLtL books to page 406 and tell me what the following
+construct should return:
+
+	(format nil "~:{~@?~:^...~}" '(("a") ("b")))
+
+
+MY CLAIM: It should return "a".
+
+THE RATIONALE: According to the Steele's spec, the ~:^ construct (with
+the : modifier) should exit ALL iterations, therefore, FORMAT only gets
+as far as printing the "a" before it quits.  CLtL page 406 states that:
+
+   "If ~^ is used within a ~:{ construct, then it merely terminates
+   the current iteration step (because in the standard case it tests
+   for remaining arguments of the current step only); the next
+   iteration step commences immediately.  To terminate the entire
+   iteration process, use ~:^."
+
+
+OTHER PEOPLE CLAIM: It should return "a...b".
+
+THE RATIONALE: Since ~:^ is planning to exit the entire iteration it
+should check whether there are more arguments to the entire iteration,
+rather than checking for more arguments in the current sublist.
+
+
+A SYMBOLICS 3600 CLAIMS: It should return "a...b"
+
+THE RATIONALE:  I don't know, but that's what I got when I typed the
+example in.
+
+
+In closing, I might even agree that "a...b" would be more useful
+behavior, but it is not in keeping with a strict interpretation of
+Steele's specification.  I'd be interested in cogent comments and
+clarifications.
+
+- Robert Poor
+  Lucid, Inc
+
+
+*start*
+02625 00024 US 
+Originator: Common-Lisp-mailer%SAIL.Stanford:EDU:Xerox
+Date: 10 Nov 87 22:31
+Subject: Re: Question regarding FORMAT with ~:^ within ~:{
+From: NGALL%G.BBN:COM:Xerox
+In-Reply-to: <8711100253.AA07681@vesuvius.lucid.com>
+To: edsel!r%LABREA.STANFORD:EDU:Xerox
+cc: common-lisp%SAIL.STANFORD:EDU:Xerox
+
+Return-Path: <Common-Lisp-mailer@SAIL.Stanford.EDU>
+Redistributed: Xerox-Common-Lisp^.x
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 10 NOV 87 22:30:59 PST
+Received: from G.BBN.COM by SAIL.STANFORD.EDU with TCP; 10 Nov 87  21:52:21 PST
+Original-Date: 11 Nov 87 00:51 EST
+Message-ID: <[G.BBN.COM]11-Nov-87 00:51:10.NGALL>
+
+D	
+    Date: Mon, 9 Nov 87 18:53:10 PST
+    From: R Dunbar Poor <edsel!r@labrea.stanford.edu>
+    
+    ...
+	    (format nil "~:{~@?~:^...~}" '(("a") ("b")))
+    
+    
+    MY CLAIM: It should return "a".
+    
+    ...
+    CLtL page 406 states that:
+    
+       "If ~^ is used within a ~:{ construct, then it merely terminates
+       the current iteration step (because in the standard case it tests
+       for remaining arguments of the current step only); the next
+       iteration step commences immediately.  To terminate the entire
+       iteration process, use ~:^."
+
+Although I agree that a superficial reading of the above would lead
+one to expect "a" to be returned, if one thinks about the intent of
+the parenthetical
+   
+   (because in the standard case it tests for remaining arguments of
+   the current step only)
+
+one should agree that "a...b" will be returned.  In refering to ~^ as
+the "standard case", which tests the arguments remaining in the
+current argument sublist, this parenthetical implies that there is
+an `other case', which tests `something else.'  The only `other case'
+discussed is ~:^, which therefore must test `something else.'  I claim
+that the parentheical makes no sense if we interpret ~:^ as testing
+the same condition as ~^.  If they both test the same condition, why
+have the parenthetical explanation?
+
+If ~:^ doesn't test the same condition as ~^, then what does it test?
+I claim that the only test that makes sense is for ~:^ to test the
+only thing that affects the "entire iteration process:" the number of
+sublists.  When there are no more sublists, "the entire iteration
+process" is terminated.
+
+Finally, It makes no sense for ~:^ to test the number of args
+remaining in the current sublist, since this can be acheived by the
+following:
+    
+   (format nil "~:{~@?~#[~0:^~]...~}" '(("a") ("b")))
+
+But it makes perfect sense for ~:^ to test the number of arglists
+remaining, SINCE THERE IS NO OTHER WAY TO TEST THIS.
+
+Comments?
+
+-- Nick
+
+*start*
+01603 00024 US 
+Originator: Common-Lisp-mailer%SAIL.Stanford:EDU:Xerox
+Date: 16 Nov 87 19:39
+From: ejs%acorn%LIVE-OAK.LCS.MIT:EDU:Xerox
+Subject: [Question regarding FORMAT with ~:^ within ~:{]
+To: edsel!r%labrea.stanford:EDU:Xerox
+cc: common-lisp%sail.stanford:EDU:Xerox
+
+GVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGV
+From: ejs%acorn@LIVE-OAK.LCS.MIT.EDU
+To: R Dunbar Poor <edsel!r@labrea.stanford.edu>
+Subject: [Question regarding FORMAT with ~:^ within ~:{]
+cc: common-lisp@sail.stanford.edu
+Return-Path: <Common-Lisp-mailer@SAIL.Stanford.EDU>
+Redistributed: Xerox-Common-Lisp^.x
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 16 NOV 87 19:39:54 PST
+Received: from XX.LCS.MIT.EDU by SAIL.STANFORD.EDU with TCP; 16 Nov 87  18:52:22 PST
+Received: from LIVE-OAK.LCS.MIT.EDU by XX.LCS.MIT.EDU via Chaosnet; 16 Nov 87 21:51-EST
+Received: from ACORN.Gold-Hill.DialNet.Symbolics.COM by MIT-LIVE-OAK.DialNet.Symbolics.COM via DIAL with SMTP id 68043; 16 Nov 87 21:45:06-EST
+Received: from HPHCS_.Gold-Hill.DialNet.Symbolics.COM by ACORN.Gold-Hill.DialNet.Symbolics.COM via CHAOS with CHAOS-MAIL id 86411; Mon 16-Nov-87 20:51:58-EST
+Original-Date: Mon, 16 Nov 87 20:02 EST
+GVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGV
+
+
+> Date: Mon, 9 Nov 87 18:53:10 PST
+> From: R Dunbar Poor <edsel!r@labrea.stanford.edu>
+> To: labrea!common-lisp%sail.stanford.edu@labrea.stanford.edu
+> Subject: Question regarding FORMAT with ~:^ within ~:{
+> 
+>   ...
+> 
+> 	(format nil "~:{~@?~:^...~}" '(("a") ("b")))
+> 
+> 
+> MY CLAIM: It should return "a".
+> 
+
+For what it's worth, GCLISP 3.0 returns "a" as well.
+
+
+
+
+*start*
+05909 00024 US 
+Return-Path: <CL-Cleanup-mailer@SAIL.Stanford.EDU>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 30 NOV 87 15:34:04 PST
+Received: from THINK.COM by SAIL.STANFORD.EDU with TCP; 30 Nov 87  14:46:37 PST
+Return-Path: <gls@Think.COM>
+Received: from kali.think.com by Think.COM; Mon, 30 Nov 87 17:46:03 EST
+Received: by kali.think.com; Mon, 30 Nov 87 17:45:59 EST
+Date: Mon, 30 Nov 87 17:45:59 EST
+From: gls@Think.COM
+Message-Id: <8711302245.AA00685@kali.think.com>
+To: cl-cleanup@sail.stanford.edu
+In-Reply-To: Masinter.pa@xerox.com's message of 20 Nov 87 12:34 PST <871120-123444-1850@Xerox>
+Subject: Issue: FORMAT-COLON-UPARROW-SCOPE
+
+Issue: FORMAT-COLON-UPARROW-SCOPE
+
+References:    CLtL p. 406 and also p. 403
+
+Category:      CLARIFICATION
+
+Edit history:  version 1: Guy Steele, 30 November 1987
+
+
+Problem description:
+
+Implementations currently differ on the question of what is tested by the
+FORMAT command "~:^".  Some implementations test to see whether any
+arguments remain in the sublist for the current iteration step; others test
+to see whether any sublists remain.  The text on page 406 is not clear
+on this point.
+
+
+Proposal (FORMAT-COLON-UPARROW-SCOPE:TEST-FOR-REMAINING-SUBLISTS):
+~:^ may be used only if the command it would terminate is ~:{ or ~:@{.
+The entire iteration process is terminated if and only if the sublist
+that is supplying the arguments for the current iteration step is the
+last sublist (in the case of ~:{) or the last FORMAT argument (~:@{).
+Note that ~:^ is *not* equivalent to ~:#^; the latter terminates the
+entire iteration if and only if no arguments remain for the current
+iteration step.
+
+Proposal (FORMAT-COLON-UPARROW-SCOPE:TEST-FOR-REMAINING-ARGUMENTS):
+~:^ may be used only if the command it would terminate is ~:{ or ~:@{.
+The entire iteration process is terminated if and only if no more arguments
+remain for the current iteration step.  Thus ~:^ is equivalent to ~:#^,
+just as ~^ is equivalent to ~#^.
+
+
+Test Cases/Examples:
+
+(format nil "~:{~@?~:^...~}" '(("a") ("b")))
+
+Under proposal FORMAT-COLON-UPARROW-SCOPE:TEST-FOR-REMAINING-SUBLISTS
+this yields "a...b".
+
+Under proposal FORMAT-COLON-UPARROW-SCOPE:TEST-FOR-REMAINING-ARGUMENTS
+this yields "a".
+
+
+Rationale:
+
+FORMAT-COLON-UPARROW-SCOPE:TEST-FOR-REMAINING-SUBLISTS is desirable
+because otherwise there is no way to test whether any sublists remain.
+The text on page 406 may be construed to hint at this proposal
+indirectly.  To quote Nick Gall:
+
+   If one thinks about the intent of the parenthetical
+
+      (because in the standard case it tests for remaining arguments of
+      the current step only)
+
+   one should agree that "a...b" will be returned.  In referring to ~^ as
+   the "standard case", which tests the arguments remaining in the
+   current argument sublist, this parenthetical implies that there is
+   an `other case', which tests `something else.'  The only `other case'
+   discussed is ~:^, which therefore must test `something else.'  I claim
+   that the parentheical makes no sense if we interpret ~:^ as testing
+   the same condition as ~^.  If they both test the same condition, why
+   have the parenthetical explanation?
+
+   If ~:^ doesn't test the same condition as ~^, then what does it test?
+   I claim that the only test that makes sense is for ~:^ to test the
+   only thing that affects the "entire iteration process:" the number of
+   sublists.  When there are no more sublists, "the entire iteration
+   process" is terminated.
+
+FORMAT-COLON-UPARROW-SCOPE:TEST-FOR-REMAINING-ARGUMENTS is desirable
+only because it maintains the equivalence of ~:#^ and ~:^ and because
+some implementations have been produced that take this approach.
+
+
+Current practice:
+
+Implementations using FORMAT-COLON-UPARROW-SCOPE:TEST-FOR-REMAINING-SUBLISTS
+include Symbolics Common Lisp.
+
+Implementations using FORMAT-COLON-UPARROW-SCOPE:TEST-FOR-REMAINING-ARGUMENTS
+include Kyoto Common Lisp, Allegro Common Lisp, GCLISP, and VAXLISP.
+
+
+Cost to Implementors:
+
+One or the other batch of implementors will have to make a one-line change.
+
+
+Cost to Users:
+
+It is unlikely that much user code depends on the behavior
+FORMAT-COLON-UPARROW-SCOPE:TEST-FOR-REMAINING-ARGUMENTS, but it is
+possible.  The author of this writeup (Steele) judges it somewhat more
+likely that user code might depend on the behavior
+FORMAT-COLON-UPARROW-SCOPE:TEST-FOR-REMAINING-SUBLISTS.
+
+
+Cost of non-adoption:
+
+Users would have to be warned not to use ~:^ in code that is meant to be
+portable.
+
+
+Benefits:
+
+Elimination of yet one more ambiguity.
+
+FORMAT-COLON-UPARROW-SCOPE:TEST-FOR-REMAINING-SUBLISTS allows greater
+semantic power (there are more things one can test).
+
+FORMAT-COLON-UPARROW-SCOPE:TEST-FOR-REMAINING-ARGUMENTS maintains an
+elegant but useless symmetry.
+
+
+Esthetics:
+
+Absolutely none.  We're talking about FORMAT here.
+
+
+Discussion:
+
+Nick Gall favors FORMAT-COLON-UPARROW-SCOPE:TEST-FOR-REMAINING-SUBLISTS.
+
+Kevin Layer, Rich Robbins, and Robert Poor have spoken in favor of
+FORMAT-COLON-UPARROW-SCOPE:TEST-FOR-REMAINING-ARGUMENTS.
+
+Guy Steele strongly prefers the interpretation
+FORMAT-COLON-UPARROW-SCOPE:TEST-FOR-REMAINING-SUBLISTS.
+
+Historical note: Steele first implemented this "feature", in Zetalisp, and
+so the code in Symbolics Common Lisp is likely a direct descendant of the
+original code.  This might cause some to give weight to Steele's opinion.
+There are two arguments against such credence.  First, there is no reason
+why the original code should be regarded as part of the specification of
+Common Lisp any more than any other implementation; plainly, Steele botched
+the specification when he wrote the book.  Second, a professor of
+literature (I believe) once told Isaac Asimov concerning a short story of
+his (I quote from memory): "Tell me, Dr. Asimov, just because you wrote the
+story, what makes you think you know what it means?"
+
+*start*
+01001 00024 US 
+Return-Path: <CL-Cleanup-mailer@SAIL.Stanford.EDU>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 30 NOV 87 18:19:16 PST
+Received: from SCRC-STONY-BROOK.ARPA by SAIL.STANFORD.EDU with TCP; 30 Nov 87  17:33:23 PST
+Received: from EUPHRATES.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 291206; Mon 30-Nov-87 20:33:04 EST
+Date: Mon, 30 Nov 87 20:33 EST
+From: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: Issue: FORMAT-COLON-UPARROW-SCOPE
+To: cl-cleanup@SAIL.STANFORD.EDU
+cc: gls@Think.COM
+In-Reply-To: <8711302245.AA00685@kali.think.com>
+Message-ID: <19871201013304.2.MOON@EUPHRATES.SCRC.Symbolics.COM>
+
+This looks ready for release to me, unless we don't want to release any
+discussions containing more than one proposal.  In that case, my vote is
+with FORMAT-COLON-UPARROW-SCOPE:TEST-FOR-REMAINING-SUBLISTS on the grounds
+of its greater expressive power and slightly lower cost to users.
+
+*start*
+00620 00024 US 
+Return-Path: <CL-Cleanup-mailer@SAIL.Stanford.EDU>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 30 NOV 87 19:57:27 PST
+Received: from XEROX.COM by SAIL.STANFORD.EDU with TCP; 30 Nov 87  19:11:18 PST
+Received: from Cabernet.ms by ArpaGateway.ms ; 30 NOV 87 15:50:53 PST
+Date: Mon, 30 Nov 87 15:50:47 PST
+From: Pavel.pa
+Subject: Re: Issue: FORMAT-COLON-UPARROW-SCOPE
+In-reply-to: <8711302245.AA00685@kali.think.com>
+To: cl-cleanup@sail.stanford.edu
+Message-ID: <871130-155053-1317@Xerox>
+
+I also favor FORMAT-COLON-UPARROW-SCOPE:TEST-FOR-REMAINING-SUBLISTS.
+
+*start*
+01746 00024 US 
+Return-Path: <CL-Cleanup-mailer@SAIL.Stanford.EDU>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 01 DEC 87 09:26:27 PST
+Received: from SCRC-STONY-BROOK.ARPA by SAIL.STANFORD.EDU with TCP; 1 Dec 87  00:37:55 PST
+Received: from RIO-DE-JANEIRO.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 291526; Tue 1-Dec-87 11:26:00 EST
+Date: Tue, 1 Dec 87 11:25 EST
+From: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: Issue: FORMAT-COLON-UPARROW-SCOPE
+To: gls@Think.COM
+cc: cl-cleanup@sail.stanford.edu
+In-Reply-To: <8711302245.AA00685@kali.think.com>
+Message-ID: <871201112532.6.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+
+I side with TEST-FOR-REMAINING-SUBLISTS because it offers important
+flexibility that is otherwise tricky to obtain.
+
+If we can reach consensus within the group, I'd like to see the proposal
+rewritten to contain only one proposal.
+
+If we have to retain two proposals, I think the TEST-FOR-REMAINING-ARGUMENTS
+is going to need its rationale/benefits beefed up a bit. As it stands,
+Steele argues only elegance and then goes on to say later that
+aesthetics doesn't count in FORMAT. I don't think this is going to win
+many people who are hanging in the balance.
+
+I think the remark about aesthetics not counting at all in FORMAT is cute
+but not strictly true. But since I don't have anything more consequential
+to write there, I'll suggest the following compromise presentation which
+(for the sake of casual readers and future historians) makes it more clear
+that we're being flippant -- or at least less clear that we're being
+serious...
+
+ Aesthetics:
+
+ ``Absolutely none.  We're talking about FORMAT here.'' -- Guy L. Steele, Jr.
+
+
+*start*
+00820 00024 US 
+Return-Path: <CL-Cleanup-mailer@SAIL.Stanford.EDU>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 01 DEC 87 12:34:56 PST
+Received: from MULTIMAX.ARPA by SAIL.STANFORD.EDU with TCP; 1 Dec 87  10:43:35 PST
+Received:  by multimax.ARPA (5.51/25-eef)
+	id AA01311; Tue, 1 Dec 87 13:45:51 EST
+Message-Id: <8712011845.AA01311@multimax.ARPA>
+To: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Cc: gls@Think.COM, cl-cleanup@sail.stanford.edu
+Subject: Re: Issue: FORMAT-COLON-UPARROW-SCOPE 
+In-Reply-To: Your message of Tue, 01 Dec 87 11:25:00 -0500.
+             <871201112532.6.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM> 
+Date: Tue, 01 Dec 87 13:45:41 EST
+From: Dan L. Pierson <pierson@multimax.arpa> <pierson>
+
+Ooops, make that TEST-FOR-REMIANING-SUBLISTS.  Braino.
+
+*start*
+00899 00024 US 
+Return-Path: <CL-Cleanup-mailer@SAIL.Stanford.EDU>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 01 DEC 87 12:34:44 PST
+Received: from MULTIMAX.ARPA by SAIL.STANFORD.EDU with TCP; 1 Dec 87  10:42:13 PST
+Received:  by multimax.ARPA (5.51/25-eef)
+	id AA01261; Tue, 1 Dec 87 13:44:29 EST
+Message-Id: <8712011844.AA01261@multimax.ARPA>
+To: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Cc: gls@Think.COM, cl-cleanup@sail.stanford.edu
+Subject: Re: Issue: FORMAT-COLON-UPARROW-SCOPE 
+In-Reply-To: Your message of Tue, 01 Dec 87 11:25:00 -0500.
+             <871201112532.6.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM> 
+Date: Tue, 01 Dec 87 13:44:24 EST
+From: Dan L. Pierson <pierson@multimax.arpa> <pierson>
+
+Despite my earlier comments on the common-lisp mailing list, I also
+now favor TEST-FOR-REMAINING-ARGUMENTS.  It does gain more power.
+
+*start*
+01409 00024 USa
+Return-Path: <CL-Cleanup-mailer@SAIL.Stanford.EDU>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 03 DEC 87 10:44:04 PST
+Received: from THINK.COM by SAIL.STANFORD.EDU with TCP; 3 Dec 87  10:42:12 PST
+Return-Path: <gls@Think.COM>
+Received: from kali.think.com by Think.COM; Thu, 3 Dec 87 13:41:26 EST
+Received: by kali.think.com; Thu, 3 Dec 87 13:41:22 EST
+Date: Thu, 3 Dec 87 13:41:22 EST
+From: gls@Think.COM
+Message-Id: <8712031841.AA07746@kali.think.com>
+To: KMP@stony-brook.scrc.symbolics.com
+Cc: gls@Think.COM, cl-cleanup@sail.stanford.edu
+In-Reply-To: Kent M Pitman's message of Tue, 1 Dec 87 11:25 EST <871201112532.6.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+Subject: Issue: FORMAT-COLON-UPARROW-SCOPE
+
+   Date: Tue, 1 Dec 87 11:25 EST
+   From: Kent M Pitman <KMP@stony-brook.scrc.symbolics.com>
+   ...
+   I think the remark about aesthetics not counting at all in FORMAT is cute
+   but not strictly true. But since I don't have anything more consequential
+   to write there, I'll suggest the following compromise presentation which
+   (for the sake of casual readers and future historians) makes it more clear
+   that we're being flippant -- or at least less clear that we're being
+   serious...
+
+    Aesthetics:
+
+    ``Absolutely none.  We're talking about FORMAT here.'' -- Guy L. Steele, Jr.
+
+I would accept this friendly amendment.
+--Guy
+
+*start*
+06041 00024 USf
+Return-Path: <CL-Cleanup-mailer@SAIL.Stanford.EDU>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 18 JAN 88 16:23:47 PST
+Received: from Think.COM by SAIL.Stanford.EDU with TCP; 18 Jan 88  16:18:36 PST
+Return-Path: <gls@Think.COM>
+Received: from kali.think.com by Think.COM; Mon, 18 Jan 88 16:47:00 EST
+Received: by kali.think.com; Mon, 18 Jan 88 16:46:55 EST
+Date: Mon, 18 Jan 88 16:46:55 EST
+From: gls@Think.COM
+Message-Id: <8801182146.AA14007@kali.think.com>
+To: cl-cleanup@sail.stanford.edu
+Subject: Issue: FORMAT-COLON-UPARROW-SCOPE (version 2)
+
+Issue: FORMAT-COLON-UPARROW-SCOPE
+
+References:    CLtL p. 406 and also p. 403
+
+Category:      CLARIFICATION
+
+Edit history:  version 1: Guy Steele, 30 November 1987
+	       version 2: Guy Steele, 18 January 1988
+
+Problem description:
+
+Implementations currently differ on the question of what is tested by the
+FORMAT command "~:^".  Some implementations test to see whether any
+arguments remain in the sublist for the current iteration step; others test
+to see whether any sublists remain.  The text on page 406 is not clear
+on this point.  The two behaviors are presented below as two proposals.
+
+
+Proposal (FORMAT-COLON-UPARROW-SCOPE:TEST-FOR-REMAINING-SUBLISTS):
+~:^ may be used only if the command it would terminate is ~:{ or ~:@{.
+The entire iteration process is terminated if and only if the sublist
+that is supplying the arguments for the current iteration step is the
+last sublist (in the case of ~:{) or the last FORMAT argument (~:@{).
+Note that ~:^ is *not* equivalent to ~:#^; the latter terminates the
+entire iteration if and only if no arguments remain for the current
+iteration step.
+
+Proposal (FORMAT-COLON-UPARROW-SCOPE:TEST-FOR-REMAINING-ARGUMENTS):
+~:^ may be used only if the command it would terminate is ~:{ or ~:@{.
+The entire iteration process is terminated if and only if no more arguments
+remain for the current iteration step.  Thus ~:^ is equivalent to ~:#^,
+just as ~^ is equivalent to ~#^.
+
+
+Test Cases/Examples:
+
+(format nil "~:{~@?~:^...~}" '(("a") ("b")))
+
+Under proposal FORMAT-COLON-UPARROW-SCOPE:TEST-FOR-REMAINING-SUBLISTS
+this yields "a...b".
+
+Under proposal FORMAT-COLON-UPARROW-SCOPE:TEST-FOR-REMAINING-ARGUMENTS
+this yields "a".
+
+
+Rationale:
+
+FORMAT-COLON-UPARROW-SCOPE:TEST-FOR-REMAINING-SUBLISTS is desirable
+because otherwise there is no way to test whether any sublists remain.
+The text on page 406 may be construed to hint at this proposal
+indirectly.  To quote Nick Gall:
+
+   If one thinks about the intent of the parenthetical
+
+      (because in the standard case it tests for remaining arguments of
+      the current step only)
+
+   one should agree that "a...b" will be returned.  In referring to ~^ as
+   the "standard case", which tests the arguments remaining in the
+   current argument sublist, this parenthetical implies that there is
+   an `other case', which tests `something else.'  The only `other case'
+   discussed is ~:^, which therefore must test `something else.'  I claim
+   that the parentheical makes no sense if we interpret ~:^ as testing
+   the same condition as ~^.  If they both test the same condition, why
+   have the parenthetical explanation?
+
+   If ~:^ doesn't test the same condition as ~^, then what does it test?
+   I claim that the only test that makes sense is for ~:^ to test the
+   only thing that affects the "entire iteration process:" the number of
+   sublists.  When there are no more sublists, "the entire iteration
+   process" is terminated.
+
+FORMAT-COLON-UPARROW-SCOPE:TEST-FOR-REMAINING-ARGUMENTS is desirable
+only because it maintains the equivalence of ~:#^ and ~:^ and because
+some implementations have been produced that take this approach.
+
+
+Current practice:
+
+Implementations using FORMAT-COLON-UPARROW-SCOPE:TEST-FOR-REMAINING-SUBLISTS
+include Symbolics Common Lisp and TI Lisp.
+
+Implementations using FORMAT-COLON-UPARROW-SCOPE:TEST-FOR-REMAINING-ARGUMENTS
+include Kyoto Common Lisp, Allegro Common Lisp, GCLISP, and VAXLISP.
+
+
+Cost to Implementors:
+
+One or the other batch of implementors will have to make a small change,
+probably a one-liner.
+
+
+Cost to Users:
+
+It is unlikely that much user code depends on the behavior
+FORMAT-COLON-UPARROW-SCOPE:TEST-FOR-REMAINING-ARGUMENTS, but it is
+possible.  The author of this writeup (Steele) judges it somewhat more
+likely that user code might depend on the behavior
+FORMAT-COLON-UPARROW-SCOPE:TEST-FOR-REMAINING-SUBLISTS.
+
+
+Cost of non-adoption:
+
+Users would have to be warned not to use ~:^ in code that is meant to be
+portable.
+
+
+Benefits:
+
+Elimination of yet one more ambiguity.
+
+FORMAT-COLON-UPARROW-SCOPE:TEST-FOR-REMAINING-SUBLISTS allows greater
+semantic power (there are more things one can test).
+
+FORMAT-COLON-UPARROW-SCOPE:TEST-FOR-REMAINING-ARGUMENTS maintains an
+elegant but useless symmetry.
+
+
+Esthetics:
+
+``Absolutely none.  We're talking about FORMAT here.'' -- Guy L. Steele Jr.
+
+
+Discussion:
+
+Guy Steele very strongly prefers the interpretation
+FORMAT-COLON-UPARROW-SCOPE:TEST-FOR-REMAINING-SUBLISTS.
+
+David Moon, Kent Pitman, Pavel Curtis, Dan Pierson, Rob Poor, and Nick Gall
+favor FORMAT-COLON-UPARROW-SCOPE:TEST-FOR-REMAINING-SUBLISTS.
+
+Kevin Layer and Rich Robbins have spoken in favor of
+FORMAT-COLON-UPARROW-SCOPE:TEST-FOR-REMAINING-ARGUMENTS.
+
+Historical note: Steele first implemented this "feature", in Zetalisp, and
+so the code in Symbolics Common Lisp is likely a direct descendant of the
+original code.  This might cause some to give weight to Steele's opinion.
+There are two arguments against such credence.  First, there is no reason
+why the original code should be regarded as part of the specification of
+Common Lisp any more than any other implementation; plainly, Steele botched
+the specification when he wrote the book.  Second, a professor of
+literature (I believe) once told Isaac Asimov concerning a short story of
+his (I quote from memory): "Tell me, Dr. Asimov, just because you wrote the
+story, what makes you think you know what it means?"
+
+*start*
+00903 00024 US 
+Return-Path: <CL-Cleanup-mailer@SAIL.Stanford.EDU>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 18 JAN 88 18:33:19 PST
+Received: from C.CS.CMU.EDU by SAIL.Stanford.EDU with TCP; 18 Jan 88  18:31:24 PST
+Received: ID <FAHLMAN@C.CS.CMU.EDU.#Internet>; Mon 18 Jan 88 21:31:19-EST
+Date: Mon, 18 Jan 88 21:31 EST
+Message-ID: <FAHLMAN.12367719313.BABYL@C.CS.CMU.EDU>
+Sender: FAHLMAN@C.CS.CMU.EDU
+From: "Scott E. Fahlman" <Fahlman@C.CS.CMU.EDU>
+To: cl-cleanup@SAIL.STANFORD.EDU
+Subject: Issue: FORMAT-COLON-UPARROW-SCOPE (version 2)
+In-reply-to: Msg of 18 Jan 1988  16:46-EST from gls at Think.COM
+
+
+CMU Common Lisp (known as Spice Lisp in spicier days) seems to implement
+TEST-FOR-REMAINING-ARGUMENTS.  Some other implementations may have taken
+their cue from us.
+
+Nevertheless, following the herd, I favor TEST-FOR-REMAINING-SUBLISTS.
+
+-- Scott
+
+*start*
+05057 00024 USR
+Date: 13 Feb 88 13:51 PST
+From: Masinter.pa
+to: Masinter
+Subject: Issue: FORMAT-COLON-UPARROW-SCOPE (version 3)
+
+This apparently did not get mailed before. 
+
+This issue is too simple to present two proposals. I've tried to represent
+TEST-FOR-REMAINING-SUBLISTS as the single proposal and eliminate
+TEST-FOR-REMAINING-ARGUMENTS. 
+
+
+!
+Issue: FORMAT-COLON-UPARROW-SCOPE
+
+References:    CLtL p. 406 and also p. 403
+
+Category:      CLARIFICATION
+
+Edit history:  version 1: Guy Steele, 30 November 1987
+	       version 2: Guy Steele, 18 January 1988
+	       version 3: Masinter,  5 February 1988
+
+Problem description:
+
+Implementations currently differ on the question of what is tested by the FORMAT
+command "~:^".  Some implementations test to see whether any arguments remain in
+the sublist for the current iteration step; others test to see whether any
+sublists remain.  The text on page 406 is not clear on this point.
+
+Proposal (FORMAT-COLON-UPARROW-SCOPE:TEST-FOR-REMAINING-SUBLISTS):
+~:^ may be used only if the command it would terminate is ~:{ or ~:@{. The
+entire iteration process is terminated if and only if the sublist that is
+supplying the arguments for the current iteration step is the last sublist (in
+the case of ~:{) or the last FORMAT argument (~:@{). Note that ~:^ is *not*
+equivalent to ~:#^; the latter terminates the entire iteration if and only if no
+arguments remain for the current iteration step.
+
+Test Cases/Examples:
+
+(format nil "~:{~@?~:^...~}" '(("a") ("b")))
+
+Under this proposal, this yields "a...b", rather than "a".
+
+Rationale:
+
+This proposal is desirable because otherwise there is no way to test whether any
+sublists remain. The text on page 406 may be construed to hint at this proposal
+indirectly.  To quote Nick Gall:
+
+   If one thinks about the intent of the parenthetical
+
+      (because in the standard case it tests for remaining arguments of
+      the current step only)
+
+   one should agree that "a...b" will be returned.  In referring to ~^ as
+   the "standard case", which tests the arguments remaining in the
+   current argument sublist, this parenthetical implies that there is
+   an `other case', which tests `something else.'  The only `other case'
+   discussed is ~:^, which therefore must test `something else.'  I claim
+   that the parentheical makes no sense if we interpret ~:^ as testing
+   the same condition as ~^.  If they both test the same condition, why
+   have the parenthetical explanation?
+
+   If ~:^ doesn't test the same condition as ~^, then what does it test?
+   I claim that the only test that makes sense is for ~:^ to test the
+   only thing that affects the "entire iteration process:" the number of
+   sublists.  When there are no more sublists, "the entire iteration
+   process" is terminated.
+
+Current practice:
+
+Some implementations already have the proposed behavior, including Symbolics
+Common Lisp and TI Lisp.
+
+Many other implementations currently have a different interpretation: the test
+case returns "a", since ~:^ in those implementations test for the remaining
+arguments rather than remaining sublists. These currently include  Kyoto Common
+Lisp, Allegro Common Lisp, GCLISP, Xerox Common Lisp, Spice Lisp, and VAXLISP.
+
+Cost to Implementors:
+
+Many implementations will have to make a small change, probably a one-liner.
+
+
+Cost to Users:
+
+It is unlikely that much user code depends on the behavior of testing for
+remaining arguments, but it is possible.  The author of this writeup (Steele)
+judges it somewhat more likely that user code might depend on the behavior of
+testing for remaining sublists.
+
+
+Cost of non-adoption:
+
+Users would have to be warned not to use ~:^ in code that is meant to be
+portable.
+
+
+Benefits:
+
+Elimination of yet one more ambiguity.
+
+The proposed semantics allows greater semantic power (there are more things one
+can test).
+
+Esthetics:
+
+``Absolutely none.  We're talking about FORMAT here.'' -- Guy L. Steele Jr.
+
+Discussion:
+
+Guy Steele very strongly prefers the interpretation
+FORMAT-COLON-UPARROW-SCOPE:TEST-FOR-REMAINING-SUBLISTS.
+
+David Moon, Kent Pitman, Pavel Curtis, Dan Pierson, Rob Poor, Scott Fahlman and
+Nick Gall favor 
+FORMAT-COLON-UPARROW-SCOPE:TEST-FOR-REMAINING-SUBLISTS.
+
+Kevin Layer and Rich Robbins have spoken in favor of an alternative proposal, to
+test for the remaining arguments.
+
+Historical note: Steele first implemented this "feature", in Zetalisp, and so
+the code in Symbolics Common Lisp is likely a direct descendant of the original
+code.  This might cause some to give weight to Steele's opinion. There are two
+arguments against such credence.  First, there is no reason why the original
+code should be regarded as part of the specification of Common Lisp any more
+than any other implementation; plainly, Steele botched the specification when he
+wrote the book.  Second, a professor of literature (I believe) once told Isaac
+Asimov concerning a short story of his (I quote from memory): "Tell me, Dr.
+Asimov, just because you wrote the story, what makes you think you know what it
+means?"
+*start*
+05423 00024 USf
+Return-Path: <CL-Cleanup-mailer@SAIL.Stanford.EDU>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 13 FEB 88 13:36:05 PST
+Received: from Xerox.COM by SAIL.Stanford.EDU with TCP; 13 Feb 88  13:33:42 PST
+Received: from Cabernet.ms by ArpaGateway.ms ; 13 FEB 88 13:33:24 PST
+Date: 13 Feb 88 13:32 PST
+From: Masinter.pa
+to: cl-cleanup@Sail.stanford.edu
+Subject: Issue: FORMAT-COLON-UPARROW-SCOPE (version 3)
+Message-ID: <880213-133324-10349@Xerox>
+
+This apparently did not get mailed before. 
+
+This issue is too simple to present two proposals. I've tried to represent
+TEST-FOR-REMAINING-SUBLISTS as the single proposal and eliminate
+TEST-FOR-REMAINING-ARGUMENTS. 
+
+
+!
+Issue: FORMAT-COLON-UPARROW-SCOPE
+
+References:    CLtL p. 406 and also p. 403
+
+Category:      CLARIFICATION
+
+Edit history:  version 1: Guy Steele, 30 November 1987
+	       version 2: Guy Steele, 18 January 1988
+	       version 3: Masinter,  5 February 1988
+
+Problem description:
+
+Implementations currently differ on the question of what is tested by the FORMAT
+command "~:^".  Some implementations test to see whether any arguments remain in
+the sublist for the current iteration step; others test to see whether any
+sublists remain.  The text on page 406 is not clear on this point.
+
+Proposal (FORMAT-COLON-UPARROW-SCOPE:TEST-FOR-REMAINING-SUBLISTS):
+~:^ may be used only if the command it would terminate is ~:{ or ~:@{. The
+entire iteration process is terminated if and only if the sublist that is
+supplying the arguments for the current iteration step is the last sublist (in
+the case of ~:{) or the last FORMAT argument (~:@{). Note that ~:^ is *not*
+equivalent to ~:#^; the latter terminates the entire iteration if and only if no
+arguments remain for the current iteration step.
+
+Test Cases/Examples:
+
+(format nil "~:{~@?~:^...~}" '(("a") ("b")))
+
+Under this proposal, this yields "a...b", rather than "a".
+
+Rationale:
+
+This proposal is desirable because otherwise there is no way to test whether any
+sublists remain. The text on page 406 may be construed to hint at this proposal
+indirectly.  To quote Nick Gall:
+
+   If one thinks about the intent of the parenthetical
+
+      (because in the standard case it tests for remaining arguments of
+      the current step only)
+
+   one should agree that "a...b" will be returned.  In referring to ~^ as
+   the "standard case", which tests the arguments remaining in the
+   current argument sublist, this parenthetical implies that there is
+   an `other case', which tests `something else.'  The only `other case'
+   discussed is ~:^, which therefore must test `something else.'  I claim
+   that the parentheical makes no sense if we interpret ~:^ as testing
+   the same condition as ~^.  If they both test the same condition, why
+   have the parenthetical explanation?
+
+   If ~:^ doesn't test the same condition as ~^, then what does it test?
+   I claim that the only test that makes sense is for ~:^ to test the
+   only thing that affects the "entire iteration process:" the number of
+   sublists.  When there are no more sublists, "the entire iteration
+   process" is terminated.
+
+Current practice:
+
+Some implementations already have the proposed behavior, include Symbolics
+Common Lisp and TI Lisp.
+
+Many other implementations currently have a different interpretation: the test
+case returns "a", since ~:^ in those implementations test for the remaining
+arguments rather than remaining sublists. These currently include  Kyoto Common
+Lisp, Allegro Common Lisp, GCLISP, Xerox Common Lisp, Spice Lisp, and VAXLISP.
+
+Cost to Implementors:
+
+Many implementations will have to make a small change, probably a one-liner.
+
+
+Cost to Users:
+
+It is unlikely that much user code depends on the behavior of testing for
+remaining arguments, but it is possible.  The author of this writeup (Steele)
+judges it somewhat more likely that user code might depend on the behavior of
+testing for remaining sublists..
+
+
+Cost of non-adoption:
+
+Users would have to be warned not to use ~:^ in code that is meant to be
+portable.
+
+
+Benefits:
+
+Elimination of yet one more ambiguity.
+
+The proposed semantics allows greater semantic power (there are more things one
+can test).
+
+Esthetics:
+
+``Absolutely none.  We're talking about FORMAT here.'' -- Guy L. Steele Jr.
+
+Discussion:
+
+Guy Steele very strongly prefers the interpretation
+FORMAT-COLON-UPARROW-SCOPE:TEST-FOR-REMAINING-SUBLISTS.
+
+David Moon, Kent Pitman, Pavel Curtis, Dan Pierson, Rob Poor, Scott Fahlman and
+Nick Gall
+favor FORMAT-COLON-UPARROW-SCOPE:TEST-FOR-REMAINING-SUBLISTS.
+
+Kevin Layer and Rich Robbins have spoken in favor f an alternative proposal, to
+test for the remaining arguments.
+
+Historical note: Steele first implemented this "feature", in Zetalisp, and so
+the code in Symbolics Common Lisp is likely a direct descendant of the original
+code.  This might cause some to give weight to Steele's opinion. There are two
+arguments against such credence.  First, there is no reason why the original
+code should be regarded as part of the specification of Common Lisp any more
+than any other implementation; plainly, Steele botched the specification when he
+wrote the book.  Second, a professor of literature (I believe) once told Isaac
+Asimov concerning a short story of his (I quote from memory): "Tell me, Dr.
+Asimov, just because you wrote the story, what makes you think you know what it
+means?"
+
+*start*
+00680 00024 USa
+Date: Sat, 13 Feb 88 13:49:09 PST
+From: Pavel.pa
+Subject: Re: Issue: FORMAT-COLON-UPARROW-SCOPE (version 3)
+In-reply-to: <880213-133324-10349@Xerox>
+To: Masinter
+
+Typos:
+
+``Some implementations already have the proposed behavior, include Symbolics Common Lisp and TI Lisp.''  The word ``include'' should be ``including''.
+
+``The author of this writeup (Steele) judges it somewhat more likely that user code might depend on the behavior of testing for remaining sublists..''  There's an extra period.
+
+``Kevin Layer and Rich Robbins have spoken in favor f an alternative proposal, to test for the remaining arguments.''  Missing `o' after the word `favor'.
+*start*
+05057 00024 US 
+Date: 13 Feb 88 13:51 PST
+From: Masinter.pa
+to: Masinter
+Subject: Issue: FORMAT-COLON-UPARROW-SCOPE (version 3)
+
+This apparently did not get mailed before. 
+
+This issue is too simple to present two proposals. I've tried to represent
+TEST-FOR-REMAINING-SUBLISTS as the single proposal and eliminate
+TEST-FOR-REMAINING-ARGUMENTS. 
+
+
+!
+Issue: FORMAT-COLON-UPARROW-SCOPE
+
+References:    CLtL p. 406 and also p. 403
+
+Category:      CLARIFICATION
+
+Edit history:  version 1: Guy Steele, 30 November 1987
+	       version 2: Guy Steele, 18 January 1988
+	       version 3: Masinter,  5 February 1988
+
+Problem description:
+
+Implementations currently differ on the question of what is tested by the FORMAT
+command "~:^".  Some implementations test to see whether any arguments remain in
+the sublist for the current iteration step; others test to see whether any
+sublists remain.  The text on page 406 is not clear on this point.
+
+Proposal (FORMAT-COLON-UPARROW-SCOPE:TEST-FOR-REMAINING-SUBLISTS):
+~:^ may be used only if the command it would terminate is ~:{ or ~:@{. The
+entire iteration process is terminated if and only if the sublist that is
+supplying the arguments for the current iteration step is the last sublist (in
+the case of ~:{) or the last FORMAT argument (~:@{). Note that ~:^ is *not*
+equivalent to ~:#^; the latter terminates the entire iteration if and only if no
+arguments remain for the current iteration step.
+
+Test Cases/Examples:
+
+(format nil "~:{~@?~:^...~}" '(("a") ("b")))
+
+Under this proposal, this yields "a...b", rather than "a".
+
+Rationale:
+
+This proposal is desirable because otherwise there is no way to test whether any
+sublists remain. The text on page 406 may be construed to hint at this proposal
+indirectly.  To quote Nick Gall:
+
+   If one thinks about the intent of the parenthetical
+
+      (because in the standard case it tests for remaining arguments of
+      the current step only)
+
+   one should agree that "a...b" will be returned.  In referring to ~^ as
+   the "standard case", which tests the arguments remaining in the
+   current argument sublist, this parenthetical implies that there is
+   an `other case', which tests `something else.'  The only `other case'
+   discussed is ~:^, which therefore must test `something else.'  I claim
+   that the parentheical makes no sense if we interpret ~:^ as testing
+   the same condition as ~^.  If they both test the same condition, why
+   have the parenthetical explanation?
+
+   If ~:^ doesn't test the same condition as ~^, then what does it test?
+   I claim that the only test that makes sense is for ~:^ to test the
+   only thing that affects the "entire iteration process:" the number of
+   sublists.  When there are no more sublists, "the entire iteration
+   process" is terminated.
+
+Current practice:
+
+Some implementations already have the proposed behavior, including Symbolics
+Common Lisp and TI Lisp.
+
+Many other implementations currently have a different interpretation: the test
+case returns "a", since ~:^ in those implementations test for the remaining
+arguments rather than remaining sublists. These currently include  Kyoto Common
+Lisp, Allegro Common Lisp, GCLISP, Xerox Common Lisp, Spice Lisp, and VAXLISP.
+
+Cost to Implementors:
+
+Many implementations will have to make a small change, probably a one-liner.
+
+
+Cost to Users:
+
+It is unlikely that much user code depends on the behavior of testing for
+remaining arguments, but it is possible.  The author of this writeup (Steele)
+judges it somewhat more likely that user code might depend on the behavior of
+testing for remaining sublists.
+
+
+Cost of non-adoption:
+
+Users would have to be warned not to use ~:^ in code that is meant to be
+portable.
+
+
+Benefits:
+
+Elimination of yet one more ambiguity.
+
+The proposed semantics allows greater semantic power (there are more things one
+can test).
+
+Esthetics:
+
+``Absolutely none.  We're talking about FORMAT here.'' -- Guy L. Steele Jr.
+
+Discussion:
+
+Guy Steele very strongly prefers the interpretation
+FORMAT-COLON-UPARROW-SCOPE:TEST-FOR-REMAINING-SUBLISTS.
+
+David Moon, Kent Pitman, Pavel Curtis, Dan Pierson, Rob Poor, Scott Fahlman and
+Nick Gall favor 
+FORMAT-COLON-UPARROW-SCOPE:TEST-FOR-REMAINING-SUBLISTS.
+
+Kevin Layer and Rich Robbins have spoken in favor of an alternative proposal, to
+test for the remaining arguments.
+
+Historical note: Steele first implemented this "feature", in Zetalisp, and so
+the code in Symbolics Common Lisp is likely a direct descendant of the original
+code.  This might cause some to give weight to Steele's opinion. There are two
+arguments against such credence.  First, there is no reason why the original
+code should be regarded as part of the specification of Common Lisp any more
+than any other implementation; plainly, Steele botched the specification when he
+wrote the book.  Second, a professor of literature (I believe) once told Isaac
+Asimov concerning a short story of his (I quote from memory): "Tell me, Dr.
+Asimov, just because you wrote the story, what makes you think you know what it
+means?"
+*start*
+05259 00024 US 
+Date: 14 Feb 88 12:14 PST
+From: Masinter.pa
+Subject: Issue: FORMAT-COLON-UPARROW-SCOPE (version 3)
+To: X3J13@Sail.stanford.edu
+cc: Masinter
+reply-to: CL-CLEANUP@Sail.Stanford.EDU
+
+This issue is new.
+
+
+Issue: FORMAT-COLON-UPARROW-SCOPE
+
+References:    CLtL p. 406 and also p. 403
+
+Category:      CLARIFICATION
+
+Edit history:  version 1: Guy Steele, 30 November 1987
+	       version 2: Guy Steele, 18 January 1988
+	       version 3: Masinter,  5 February 1988
+
+Problem description:
+
+Implementations currently differ on the question of what is tested by the FORMAT command "~:^".  Some implementations test to see whether any arguments remain in the sublist for the current iteration step; others test to see whether any sublists remain.  The text on page 406 is not clear on this point.
+
+Proposal (FORMAT-COLON-UPARROW-SCOPE:TEST-FOR-REMAINING-SUBLISTS):
+
+~:^ may be used only if the command it would terminate is ~:{ or ~:@{. The entire iteration process is terminated if and only if the sublist that is supplying the arguments for the current iteration step is the last sublist (in the case of ~:{) or the last FORMAT argument (~:@{). Note that ~:^ is *not* equivalent to ~:#^; the latter terminates the entire iteration if and only if no arguments remain for the current iteration step.
+
+Example:
+
+(format nil "~:{~@?~:^...~}" '(("a") ("b")))
+
+Under this proposal, this yields "a...b", rather than "a".
+
+Rationale:
+
+This proposal is desirable because otherwise there is no way to test whether any sublists remain. The text on page 406 may be construed to hint at this proposal indirectly.  To quote Nick Gall:
+
+"If one thinks about the intent of the parenthetical `(because in the standard case it tests for remaining arguments of the current step only)', one should agree that "a...b" will be returned.  In referring to ~^ as the `standard case', which tests the arguments remaining in the current argument sublist, this parenthetical implies that there is an `other case', which tests `something else.'  The only `other case' discussed is ~:^, which therefore must test `something else.'  I claim that the parentheical makes no sense if we interpret ~:^ as testing the same condition as ~^.  If they both test the same condition, why have the parenthetical explanation?
+
+"If ~:^ doesn't test the same condition as ~^, then what does it test? I claim that the only test that makes sense is for ~:^ to test the only thing that affects the `entire iteration process:' the number of sublists.  When there are no more sublists, `the entire iteration process' is terminated."
+
+Current practice:
+
+Some implementations already have the proposed behavior, including Symbolics Common Lisp and TI Lisp.
+
+Many other implementations currently have a different interpretation: the test case returns "a", since ~:^ in those implementations test for the remaining arguments rather than remaining sublists. These currently include  Kyoto Common Lisp, Allegro Common Lisp, GCLISP, Xerox Common Lisp, Spice Lisp, and VAXLISP.
+
+Cost to Implementors:
+
+Many implementations will have to make a small change, probably a one-liner.
+
+Cost to Users:
+
+It is unlikely that much user code depends on the behavior of testing for remaining arguments, but it is possible.  The author of this writeup (Steele) judges it somewhat more likely that user code might depend on the behavior of testing for remaining sublists.
+
+Cost of non-adoption:
+
+Users would have to be warned not to use ~:^ in code that is meant to be portable.
+
+Benefits:
+
+Elimination of yet one more ambiguity. The proposed semantics allows greater semantic power (there are more things one can test).
+
+Esthetics:
+
+``Absolutely none.  We're talking about FORMAT here.'' -- Guy L. Steele Jr.
+
+Discussion:
+
+Guy Steele very strongly prefers the interpretation FORMAT-COLON-UPARROW-SCOPE:TEST-FOR-REMAINING-SUBLISTS.
+
+David Moon, Kent Pitman, Pavel Curtis, Dan Pierson, Rob Poor, Scott Fahlman and Nick Gall favor FORMAT-COLON-UPARROW-SCOPE:TEST-FOR-REMAINING-SUBLISTS.
+
+Kevin Layer and Rich Robbins have spoken in favor of an alternative proposal, to test for the remaining arguments.
+
+Historical note: Steele first implemented this "feature", in Zetalisp, and so the code in Symbolics Common Lisp is likely a direct descendant of the original code.  This might cause some to give weight to Steele's opinion. There are two arguments against such credence.  First, there is no reason why the original code should be regarded as part of the specification of Common Lisp any more than any other implementation; plainly, Steele botched the specification when he wrote the book.  Second, a professor of literature (I believe) once told Isaac Asimov concerning a short story of his (I quote from memory): "Tell me, Dr. Asimov, just because you wrote the story, what makes you think you know what it means?"
+        TITAN 
+         TITAN 
+          
+TIMESROMAN 
+          
+TIMESROMAN 
+           c       P                                                               †             2       C      ´       	       k             †             £              O                           U       
+       „              N             F      ä !zº

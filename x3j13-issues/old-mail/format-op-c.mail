@@ -1,0 +1,797 @@
+*start*
+04033 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 23 FEB 87 17:12:01 PST
+Received: from SCRC-STONY-BROOK.ARPA by SAIL.STANFORD.EDU with TCP; 23 Feb 87  17:09:54 PST
+Received: from RIO-DE-JANEIRO.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL Date: Mon, 23 Feb 87 20:08 EST
+From: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: FORMAT-OP-C
+To: CL-Cleanup@SAIL.STANFORD.EDU
+cc: KMP@STONY-BROOK.SCRC.Symbolics.COM
+Message-ID: <870223200820.7.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+
+Proposal:     FORMAT-OP-C
+References:   WRITE-CHAR (p384), ~C (p389)
+Category:     CHANGE/CLARIFICATION
+Edit History: Revision 1 by KMP 02/23/87
+Problem Description:
+
+  The manual is not adequately specific about the function of the format
+  operation ~C. The description on p389 says that "~C prints the character 
+  in an implementation-dependent abbreviated format. This format should
+  be culturally compatible with the host environment." This description
+  is not very useful in practice.
+
+  I'm assuming the authors intended the `cultural compatibility' part to
+  gloss issues like how the SAIL character set printed, but unfortunately
+  another completely reasonable (albeit unplanned) interpretation arose
+  that wasn't planned on:
+    (FORMAT NIL "~C" #\Space) might "Space" rather than " ".
+  [Anyone who would argue that the word `abbreviated' in the definition
+  was supposed to prevent this should just be happy that some implementors 
+  didn't choose to interpret that word to mean that "Sp" should come back.]
+
+  Some implementations have (FORMAT NIL "~C" #\Space) => "Space".
+  Others have the same form return " ".
+
+  Users can use (FORMAT NIL "~:C" #\Space) to get "Space" if they want it.
+  As nearly as I can tell, the implementations which return "Space" treat
+  ~C and ~:C equivalently. That seems like a waste of a FORMAT op.
+
+  Since the behavior of ~A is also vague on characters (a separate 
+  proposal will address this), the only way to safely output a literal
+  character is to WRITE-CHAR; FORMAT does not suffice (unless you use
+  ~Q of #'WRITE-CHAR -- which is generally neither pretty nor convenient).
+
+Proposal (FORMAT-OP-C:WRITE-CHAR):
+
+  The vague wording about cultural compatibility should be struck from
+  the description of ~C. The description of ~C should be changed to simply
+  state that (FORMAT stream "~C" char) has the same effect as
+  (WRITE-CHAR char stream).
+
+  Some explanatory text should be added to the description of WRITE-CHAR
+  which admits the concept that non-standard characters may be presented
+  using different glyphs from implementation to implementation, but that
+  turning one character into many is not appropriate.
+
+  (Note: Someone very familiar with the problem of quoting issues for normal
+   and image mode terminals should probably review the description prior 
+   to its acceptance to make sure that the wording doesn't forbid 
+   reasonable behavior in that regard.)
+
+Rationale:
+
+  I believe this was probably the intent of the authors. 
+  It makes things clear enough that programmers can know what to expect.
+
+Current Practice:
+
+  Implementations are divided. Some implementations have
+     (FORMAT NIL "~C" #\Space) => "Space".
+  Others have the same form return " ".
+
+Adoption Cost:
+
+  Those implementations which did not already implement ~C as WRITE-CHAR
+  would suffer an incompatible change.
+
+Benefits:
+
+  User code that uses ~C would have a chance of being portable.
+  As things stand, users who use ~C can't reliably port their code.
+
+  ~C and ~:C would perform usefully distinct operations.
+
+Conversion Cost:
+
+  Standard ``Query Replace'' technology for finding occurrences of
+  "~C" and changing them to "~:C" semi-automatically should suffice.
+
+Aesthetics:
+
+  Making ~C do something well-defined will probably be perceived as
+  a simplification.
+
+Discussion:
+
+  KMP thinks it's important to get this cleared up as soon as possible.
+
+*start*
+01259 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 23 FEB 87 17:43:14 PST
+Received: from SCRC-STONY-BROOK.ARPA by SAIL.STANFORD.EDU with TCP; 23 Feb 87  17:41:39 PST
+Received: from EUPHRATES.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 77Date: Mon, 23 Feb 87 20:40 EST
+From: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: FORMAT-OP-C
+To: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+cc: CL-Cleanup@SAIL.STANFORD.EDU
+In-Reply-To: <870223200820.7.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+Message-ID: <870223204036.9.MOON@EUPHRATES.SCRC.Symbolics.COM>
+
+May I suggest an amendment?  After reading the corresponding sections
+of the CLtL and the Lisp Machine Manual, I believe the error in CLtL
+is that it was not stated explicitly that the "implementation-dependent
+abbreviated format" applies only to characters with non-zero char-bits.
+Thus instead of removing the mumbling about cultural compatibility, I
+suggest simply adding a sentence saying that ~C is the same as write-char
+for characters with zero char-bits.  I don't think we want to require
+~C and write-char to do the same thing for characters with bits.
+
+*start*
+00945 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:FAHLMAN@C.CS.CMU.EDU>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 23 FEB 87 18:20:45 PST
+Received: from C.CS.CMU.EDU by SAIL.STANFORD.EDU with TCP; 23 Feb 87  18:19:14 PST
+Received: ID <FAHLMAN@C.CS.CMU.EDU>; Mon 23 Feb 87 21:11:20-EST
+Date: Mon, 23 Feb 87 21:11 EST
+Message-ID: <FAHLMAN.12281470298.BABYL@C.CS.CMU.EDU>
+Sender: FAHLMAN@C.CS.CMU.EDU
+From: "Scott E. Fahlman" <Fahlman@C.CS.CMU.EDU>
+To: CL-Cleanup@SAIL.STANFORD.EDU
+Subject: FORMAT-OP-C
+In-reply-to: Msg of 23 Feb 1987  20:40-EST from David A. Moon <Moon at STONY-BROOK.SCRC.Symbolics.COM>
+
+
+I like Moon's amendment.  It would solve the #\SPACE problem, while
+not contraining the freedom of implementations to do what they like with
+the crockish bits attributes (which is where the cultural differences
+come in).  Truly portable code can't make use of bits anyway, so
+allowing differences there doesn't hurt.
+
+-- Scott
+
+*start*
+00597 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:gls@Think.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 24 FEB 87 07:44:44 PST
+Received: from THINK.COM by SAIL.STANFORD.EDU with TCP; 24 Feb 87  07:42:51 PST
+Received: from boethius by Think.COM via CHAOS; Tue, 24 Feb 87 10:42:24 EST
+Date: Tue, 24 Feb 87 10:44 EST
+From: Guy Steele <gls@Think.COM>
+Subject: FORMAT-OP-C
+To: CL-Cleanup@sail.stanford.edu
+In-Reply-To: <870223200820.7.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+Message-Id: <870224104409.4.GLS@BOETHIUS.THINK.COM>
+
+I favor KMP's proposal for ~C, as amended by Moon.  --Guy
+
+*start*
+05331 00024 USa
+Return-Path: <@SAIL.STANFORD.EDU:KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 29 APR 87 09:41:06 PDT
+Received: from SCRC-STONY-BROOK.ARPA by SAIL.STANFORD.EDU with TCP; 29 Apr 87  09:38:26 PDT
+Received: from RIO-DE-JANEIRO.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 127175; Wed 29-Apr-87 12:38:42 EDT
+Date: Wed, 29 Apr 87 12:38 EDT
+From: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: FORMAT-OP-C (Version 2)
+To: CL-Cleanup@SAIL.STANFORD.EDU
+cc: KMP@STONY-BROOK.SCRC.Symbolics.COM
+Message-ID: <870429123832.4.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+
+Issue:	      FORMAT-OP-C
+References:   WRITE-CHAR (p384), ~C (p389)
+Category:     CHANGE/CLARIFICATION
+Edit History: 23-Feb-87, Version 1 by Pitman
+	      29-Apr-87, Version 2 by Pitman (merge Moon's suggestion)
+Status:	      For Internal Discussion
+
+Problem Description:
+
+  The manual is not adequately specific about the function of the format
+  operation ~C. The description on p389 says that "~C prints the character 
+  in an implementation-dependent abbreviated format. This format should
+  be culturally compatible with the host environment." This description
+  is not very useful in practice.
+
+  Presumably the authors intended the `cultural compatibility' part to
+  gloss issues like how the SAIL character set printed, but unfortunately
+  another completely reasonable (albeit unplanned) interpretation arose
+  that wasn't planned on:
+    (FORMAT NIL "~C" #\Space) might "Space" rather than " ".
+  [Anyone who would argue that the word `abbreviated' in the definition
+  was supposed to prevent this should just be happy that some implementors 
+  didn't choose to interpret that word to mean that "Sp" should come back.]
+
+  Some implementations have (FORMAT NIL "~C" #\Space) => "Space".
+  Others have the same form return " ".
+
+  Users can use (FORMAT NIL "~:C" #\Space) to get "Space" if they want it.
+  It seems as if the implementations which return "Space" treat ~C and
+  ~:C equivalently or very similarly, which seems like a waste of a FORMAT op.
+
+  Since the behavior of ~A is also vague on characters (a separate 
+  proposal will address this), the only way to safely output a literal
+  character is to WRITE-CHAR; FORMAT does not suffice (unless you use
+  ~Q of #'WRITE-CHAR -- which is generally neither pretty nor convenient).
+
+Proposal (FORMAT-OP-C:WRITE-CHAR):
+
+  Change the description of ~C on p389 to say:
+
+       ~C prints the character using WRITE-CHAR if it has zero bits.
+     Characters with bits are not necessarily printed as WRITE-CHAR
+     would do, but are displayed in an implementation-dependent
+     abbreviated format that is culturally compatible with the host
+     environment.
+
+  Add the following to the description of WRITE-CHAR on p384:
+
+     Note: The glyphs used to present characters which are not in
+     the standard character set may vary from implementation to
+     implementation or output device to output device. WRITE-CHAR
+     will always output a single character to the indicated stream.
+     On some streams, super-quoting, character substitution, or
+     substitution of a string for a single character may be 
+     necessary; it is appropriate for the stream to decide to do
+     this, but WRITE-CHAR itself will never do this.
+
+Rationale:
+
+  This was probably the intent of the authors. 
+
+  It makes things clear enough that programmers can know what to
+  expect in the normal case (standard characters with zero bits)
+  while leaving some flexibility to implementors about what to do in
+  the case of bits (which are not particularly well-defined across
+  different implementations anyway).
+
+Current Practice:
+
+  Implementations are divided. Some implementations have
+     (FORMAT NIL "~C" #\Space) => "Space".
+  Others have the same form return " ".
+
+Adoption Cost:
+
+  Those implementations which did not already implement ~C as WRITE-CHAR
+  would suffer an incompatible change.
+
+Benefits:
+
+  User code that uses ~C would have a chance of being portable.
+  As things stand, users who use ~C can't reliably port their code.
+
+  ~C and ~:C would perform usefully distinct operations.
+
+Conversion Cost:
+
+  Standard ``Query Replace'' technology for finding occurrences of
+  "~C" and changing them to "~:C" semi-automatically should suffice.
+
+Aesthetics:
+
+  Making ~C do something well-defined will probably be perceived as
+  a simplification.
+
+Discussion:
+
+  Pitman thinks it's important to get this cleared up as soon as possible.
+
+  Moon's comment on Version 1 (which tried to make WRITE-CHAR and ~C
+  identical in all cases) was:
+    I believe the error in CLtL is that it was not stated explicitly
+    that the "implementation-dependent abbreviated format" applies only
+    to characters with non-zero char-bits. Thus instead of removing the
+    mumbling about cultural compatibility, I suggest simply adding a
+    sentence saying that ~C is the same as write-char for characters
+    with zero char-bits.  I don't think we want to require ~C and
+    write-char to do the same thing for characters with bits.
+
+  Steele and Fahlman seemed to like the idea of the proposal if amended
+  as Moon suggested. Pitman did the merge, creating Version 2. If he didn't
+  blow it somehow, they should now be happy.
+
+*start*
+00719 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:Pavel.pa@Xerox.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 29 APR 87 12:38:31 PDT
+Received: from XEROX.COM by SAIL.STANFORD.EDU with TCP; 29 Apr 87  12:34:10 PDT
+Received: from Cabernet.ms by ArpaGateway.ms ; 29 APR 87 11:53:00 PDT
+Date: 29 Apr 87 11:52 PDT
+From: Pavel.pa
+Subject: Re: FORMAT-OP-C (Version 2)
+In-reply-to: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>'s
+ message of Wed, 29 Apr 87 12:38 EDT
+To: KMP@STONY-BROOK.SCRC.Symbolics.COM
+cc: CL-Cleanup@SAIL.STANFORD.EDU
+Message-ID: <870429-115300-2626@Xerox>
+
+The mention of the non-standard format directive ~Q should be removed
+from the proposal.  Other than that, I favor it.
+
+	Pavel
+
+*start*
+00719 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 29 APR 87 17:46:35 PDT
+Received: from SCRC-STONY-BROOK.ARPA by SAIL.STANFORD.EDU with TCP; 29 Apr 87  17:44:49 PDT
+Received: from EUPHRATES.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 127778; Wed 29-Apr-87 20:29:19 EDT
+Date: Wed, 29 Apr 87 20:29 EDT
+From: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: FORMAT-OP-C (Version 2)
+To: CL-Cleanup@SAIL.STANFORD.EDU
+In-Reply-To: <870429123832.4.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+Message-ID: <870429202910.0.MOON@EUPHRATES.SCRC.Symbolics.COM>
+
+I favor FORMAT-OP-C:WRITE-CHAR.
+
+*start*
+01577 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:Masinter.pa@Xerox.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 29 APR 87 18:46:33 PDT
+Received: from XEROX.COM by SAIL.STANFORD.EDU with TCP; 29 Apr 87  18:44:01 PDT
+Received: from Cabernet.ms by ArpaGateway.ms ; 29 APR 87 18:45:08 PDT
+Date: 29 Apr 87 18:46 PDT
+From: Masinter.pa
+Subject: Re: FORMAT-OP-C (Version 2)
+In-reply-to: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>'s
+ message of Wed, 29 Apr 87 12:38 EDT
+To: KMP@STONY-BROOK.SCRC.Symbolics.COM
+cc: CL-Cleanup@SAIL.STANFORD.EDU
+Message-ID: <870429-184508-3208@Xerox>
+
+Kent, I'll point out again that the proposal should not say "Change the
+wording on p. 3241 to say...". The proposal should describe what ANSI
+Standard Lisp should do, not what Guy Steele's second edition should
+say. The words you use can be pretty much the same, but a number of
+folks expressed some sensitivity that the cleanup committee not dictate
+wording.
+
+E.g., rather than
+
+"  Change the description of ~C on p389 to say:
+
+       ~C prints the character using WRITE-CHAR if it has zero bits.
+     Characters with bits are not necessarily printed as WRITE-CHAR
+     would do, but are displayed in an implementation-dependent
+     abbreviated format that is culturally compatible with the host
+     environment."
+
+
+Proposal (FORMAT-OP-C:WRITE-CHAR):
+
+The ~C option of format, when given a character with zero bits, will
+perform the same action as WRITE-CHAR. (The behavior of FORMAT with the
+~C directive given a character with non-zero bits attributes remains
+unspecified.)
+
+*start*
+00714 00024 USf
+Return-Path: <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Received: from STONY-BROOK.SCRC.Symbolics.COM (SCRC-STONY-BROOK.ARPA) by Xerox.COM ; 29 APR 87 18:52:14 PDT
+Received: from RIO-DE-JANEIRO.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 127874; Wed 29-Apr-87 21:51:16 EDT
+Date: Wed, 29 Apr 87 21:51 EDT
+From: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: Re: FORMAT-OP-C (Version 2)
+To: Masinter.pa
+cc: KMP@STONY-BROOK.SCRC.Symbolics.COM
+In-Reply-To: <870429-184508-3208@Xerox>
+Message-ID: <870429215106.3.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+
+Sounds right. I'll edit that in to Version 3 with Pavel's
+correction when the comments subside.
+
+*start*
+00840 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:FAHLMAN@C.CS.CMU.EDU>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 02 MAY 87 13:26:30 PDT
+Received: from C.CS.CMU.EDU by SAIL.STANFORD.EDU with TCP; 2 May 87  13:24:02 PDT
+Received: ID <FAHLMAN@C.CS.CMU.EDU>; Sat 2 May 87 16:25:02-EDT
+Date: Sat, 2 May 87 16:24 EDT
+Message-ID: <FAHLMAN.12299233050.BABYL@C.CS.CMU.EDU>
+Sender: FAHLMAN@C.CS.CMU.EDU
+From: "Scott E. Fahlman" <Fahlman@C.CS.CMU.EDU>
+To: CL-Cleanup@SAIL.STANFORD.EDU
+Subject: FORMAT-OP-C (Version 2)
+In-reply-to: Msg of 29 Apr 1987  12:38-EDT from Kent M Pitman <KMP at STONY-BROOK.SCRC.Symbolics.COM>
+
+
+I support this proposl.  I think that the presentation should be
+simplified before it goes out.  Most of the lengthy discussion in the
+problem description is unnecessary.  This is a simple clarification.
+
+-- Scott
+
+*start*
+00948 00024 US 
+Date: 29 May 87 21:18 PDT
+From: Masinter.pa
+Subject: Re: FORMAT-OP-C (Version 2)
+To: cl-cleanup@sail.stanford.edu
+cc: Masinter.pa
+
+Did I miss this?
+
+
+     ----- Begin Forwarded Messages -----
+
+Return-Path: <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Received: from STONY-BROOK.SCRC.Symbolics.COM (SCRC-STONY-BROOK.ARPA) by Xerox.COM ; 29 APR 87 18:52:14 PDT
+Received: from RIO-DE-JANEIRO.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 127874; Wed 29-Apr-87 21:51:16 EDT
+Date: Wed, 29 Apr 87 21:51 EDT
+From: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: Re: FORMAT-OP-C (Version 2)
+To: Masinter.pa
+cc: KMP@STONY-BROOK.SCRC.Symbolics.COM
+In-Reply-To: <870429-184508-3208@Xerox>
+Message-ID: <870429215106.3.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+
+Sounds right. I'll edit that in to Version 3 with Pavel's
+correction when the comments subside.
+
+
+     ----- End Forwarded Messages -----
+*start*
+06119 00024 USf
+Return-Path: <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Received: from STONY-BROOK.SCRC.Symbolics.COM (SCRC-STONY-BROOK.ARPA) by Xerox.COM ; 01 JUN 87 21:35:45 PDT
+Received: from RIO-DE-JANEIRO.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 161299; Tue 2-Jun-87 00:35:40 EDT
+Date: Tue, 2 Jun 87 00:37 EDT
+From: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: FORMAT-OP-C (Version 3)
+To: Masinter.PA
+cc: CL-Cleanup@SAIL.STANFORD.EDU
+Message-ID: <870602003737.0.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+
+Changes since version 2:
+ * Pavel's request to strike reference to ~Q at the end of the
+   Problem Description field.
+ * Masinter's request to reword proposal to not talk directly about
+   modifying CLtL in the Proposal field.
+ * The last paragraph of the Discussion field is new.
+-kmp
+
+-----Proposal Follows-----
+Issue:	      FORMAT-OP-C
+References:   WRITE-CHAR (p384), ~C (p389)
+Category:     CHANGE/CLARIFICATION
+Edit History: 23-Feb-87, Version 1 by Pitman
+	      29-Apr-87, Version 2 by Pitman (merge Moon's suggestion)
+	      29-Apr-87, Version 3 by Pitman (misc editing)
+Status:	      For Internal Discussion
+
+Problem Description:
+
+  The manual is not adequately specific about the function of the format
+  operation ~C. The description on p389 says that "~C prints the character 
+  in an implementation-dependent abbreviated format. This format should
+  be culturally compatible with the host environment." This description
+  is not very useful in practice.
+
+  Presumably the authors intended the `cultural compatibility' part to
+  gloss issues like how the SAIL character set printed, but unfortunately
+  another completely reasonable (albeit unplanned) interpretation arose
+  that wasn't planned on:
+    (FORMAT NIL "~C" #\Space) might "Space" rather than " ".
+  [Anyone who would argue that the word `abbreviated' in the definition
+  was supposed to prevent this should just be happy that some implementors 
+  didn't choose to interpret that word to mean that "Sp" should come back.]
+
+  Some implementations have (FORMAT NIL "~C" #\Space) => "Space".
+  Others have the same form return " ".
+
+  Users can use (FORMAT NIL "~:C" #\Space) to get "Space" if they want it.
+  It seems as if the implementations which return "Space" treat ~C and
+  ~:C equivalently or very similarly, which seems like a waste of a FORMAT op.
+
+  Since the behavior of ~A is also vague on characters (a separate 
+  proposal will address this), the only way to safely output a literal
+  character is to WRITE-CHAR; FORMAT does not suffice.
+
+Proposal (FORMAT-OP-C:WRITE-CHAR):
+
+  Change the behavior of ~C to say that, when given a character with zero
+  bits, it will perform the same action as WRITE-CHAR. Leave the behavior
+  of ~C with non-zero bits incompletely specified. For example, the
+  description of ~C on p389 of CLTL might read:
+
+       ~C prints the character using WRITE-CHAR if it has zero bits.
+     Characters with bits are not necessarily printed as WRITE-CHAR
+     would do, but are displayed in an implementation-dependent
+     abbreviated format that is culturally compatible with the host
+     environment.
+
+  Clarify that WRITE-CHAR puts only one character on its argument stream,
+  but which allows that stream to perform arbitrary destination-dependent
+  actions based upon that character:
+
+     Note: The glyphs used to present characters which are not in
+     the standard character set may vary from implementation to
+     implementation or output device to output device. WRITE-CHAR
+     will always output a single character to the indicated stream.
+     On some streams, super-quoting, character substitution, or
+     substitution of a string for a single character may be 
+     necessary; it is appropriate for the stream to decide to do
+     this, but WRITE-CHAR itself will never do this.
+
+Rationale:
+
+  This was probably the intent of the authors. 
+
+  It makes things clear enough that programmers can know what to
+  expect in the normal case (standard characters with zero bits)
+  while leaving some flexibility to implementors about what to do in
+  the case of bits (which are not particularly well-defined across
+  different implementations anyway).
+
+Current Practice:
+
+  Implementations are divided. Some implementations have
+     (FORMAT NIL "~C" #\Space) => "Space".
+  Others have the same form return " ".
+
+Adoption Cost:
+
+  Those implementations which did not already implement ~C as WRITE-CHAR
+  would suffer an incompatible change.
+
+Benefits:
+
+  User code that uses ~C would have a chance of being portable.
+  As things stand, users who use ~C can't reliably port their code.
+
+  ~C and ~:C would perform usefully distinct operations.
+
+Conversion Cost:
+
+  Standard ``Query Replace'' technology for finding occurrences of
+  "~C" and changing them to "~:C" semi-automatically should suffice.
+
+Aesthetics:
+
+  Making ~C do something well-defined will probably be perceived as
+  a simplification.
+
+Discussion:
+
+  KMP and Pavel support this proposal.
+
+  KMP thinks it's important to get this cleared up as soon as possible.
+
+  Moon's comment on Version 1 (which tried to make WRITE-CHAR and ~C
+  identical in all cases) was:
+    I believe the error in CLtL is that it was not stated explicitly
+    that the "implementation-dependent abbreviated format" applies only
+    to characters with non-zero char-bits. Thus instead of removing the
+    mumbling about cultural compatibility, I suggest simply adding a
+    sentence saying that ~C is the same as write-char for characters
+    with zero char-bits.  I don't think we want to require ~C and
+    write-char to do the same thing for characters with bits.
+
+  Steele and Fahlman seemed to like the idea of the proposal if amended
+  as Moon suggested. Pitman did the merge, creating Version 2. If he didn't
+  blow it somehow, they should now be happy.
+
+  Moon and Fahlman voiced support for version 2.
+  Fahlman thinks the problem description is too long.
+  KMP isn't sure if he agrees that the problem description is too long,
+  but doesn't think it's worth anyone's time to edit it.
+
+*start*
+05426 00024 USf
+Date:  5 Jun 87 15:04 PDT
+From: Masinter.pa
+Subject: FORMAT-OP-C (Version 4)
+To: CL-Cleanup@SAIL.STANFORD.EDU
+cc: Masinter
+
+I'm not sure it wouldn't be simpler to make the use of ~C on characters with non-zero BITS (and FONT?!) an error, rather than attempting to leave it unspecified. I suppose if we can get up a vote to remove BITS and FONT from the standard, it is moot.
+
+The discussion of the stream-dependent behavior confused bytes with characters in an unfortunate way. I rewrote that part of it to be what I believe the truth is; I'm not sure if you agree, however. My notion was that write-char always writes a single character; writing a single-character causes multiple bytes to be written. However, a subsequent read-char of the same stream should produce EQL characters as were given to write-char. The only thing which is stream/operating-system dependent is the mapping of characters to bytes.  
+
+When I thought about *that* some more, I decided it was really a clarification about WRITE-CHAR and not about FORMAT ~C, so I moved the whole paragraph about clarifying WRITE-CHAR to the discussion section. This proposal is now very short.
+
+
+
+Issue:        FORMAT-OP-C
+References:   WRITE-CHAR (p384), ~C (p389)
+Category:     CHANGE/CLARIFICATION
+Edit History: 23-Feb-87, Version 1 by Pitman
+              29-Apr-87, Versions 2,3 by Pitman (merge in suggestions)
+               5-Jun-87, Version 4 by Masinter, minor copy-editing
+
+Problem Description:
+
+The manual is not adequately specific about the function of the format operation ~C. The description on p389 says that "~C prints the character in an implementation-dependent abbreviated format. This format should be culturally compatible with the host environment." This description is not very useful in practice.
+
+Presumably the authors intended the `cultural compatibility' part to gloss issues like how the SAIL character set printed, but unfortunately another completely reasonable (albeit unplanned) interpretation arose: some implementations have (FORMAT NIL "~C" #\Space) => "Space" rather than " ".
+
+Since the behavior of ~A is also vague on characters (a separate proposal addresses this), the only way to safely output a literal character is to WRITE-CHAR; currently, FORMAT does not suffice.
+
+Proposal (FORMAT-OP-C:WRITE-CHAR):
+
+Change the behavior of ~C to say that, when given a character with zero bits, it will perform the same action as WRITE-CHAR. (This proposal leaves the behavior of ~C with non-zero bits incompletely specified.) For example, the description of the ~C format directive on p389 of CLTL might read:
+
+       ~C prints the character using WRITE-CHAR if it has zero bits.
+     Characters with bits are not necessarily printed as WRITE-CHAR
+     would do, but are displayed in an implementation-dependent
+     abbreviated format that is culturally compatible with the host
+     environment.
+
+Test Case:
+
+(EQUAL (FORMAT NIL "~C" #\Space) " ")
+
+Rationale:
+
+This was probably the intent of the Common Lisp designers. 
+
+It makes things clear enough that programmers can know what to expect in the normal case (standard characters with zero bits).
+
+Users can use (FORMAT NIL "~:C" #\Space) to get "Space" if they want it. It seems as if the implementations which return "Space" treat ~C and ~:C equivalently or very similarly.
+
+Current Practice:
+
+Implementations are divided. Some implementations have
+     (FORMAT NIL "~C" #\Space) => "Space".
+Others have the same form return " ".
+
+Adoption Cost:
+
+Those implementations which did not already implement ~C as WRITE-CHAR would require an incompatible change.
+
+Benefits:
+
+User code that uses ~C would have a chance of being portable. As things stand, users who use ~C can't reliably port their code.
+
+~C and ~:C would perform usefully distinct operations.
+
+Conversion Cost:
+
+Standard ``Query Replace'' technology for finding occurrences of "~C" and changing them to "~:C" semi-automatically should suffice.
+
+Aesthetics:
+
+Making ~C do something well-defined will probably be perceived as a simplification.
+
+Discussion:
+
+The cleanup committee supports this clarification.
+
+
+The original version of this proposal (which tried to make WRITE-CHAR and ~C identical in all cases) prompted the following comment:
+
+ I believe the error in CLtL is that it was not stated explicitly
+ that the "implementation-dependent abbreviated format" applies only
+ to characters with non-zero char-bits. Thus instead of removing the
+ mumbling about cultural compatibility, I suggest simply adding a
+ sentence saying that ~C is the same as write-char for characters
+ with zero char-bits.  I don't think we want to require ~C and
+ write-char to do the same thing for characters with bits.
+
+It may be necessary to clarify that WRITE-CHAR puts only one character on its argument stream, such that a subsequent READ-CHAR of the same file would read only one character. (Of course, in some operating systems or for some devices, WRITE-CHAR of a single character might cause multiple bytes to be written, substituted, escaped, quoted or the like.) 
+        TITAN          TITAN           
+TIMESROMAN 
+          …                                                        ª             '       #      H              (             q              Š              o       
+       º              †              V             é      Ç zº*start*
+00516 00024 US 
+Return-Path: <gls@Think.COM>
+Received: from Think.COM by Xerox.COM ; 08 JUN 87 06:46:07 PDT
+Received: from boethius by Think.COM via CHAOS; Mon, 8 Jun 87 09:48:58 EDT
+Date: Mon, 8 Jun 87 09:46 EDT
+From: Guy Steele <gls@Think.COM>
+Subject: FORMAT-OP-C (Version 4)
+To: Masinter.pa, CL-Cleanup@sail.stanford.edu
+Cc: gls@think.com
+In-Reply-To: <870605-150551-2556@Xerox>
+Message-Id: <870608094647.1.GLS@BOETHIUS.THINK.COM>
+
+I approve of FORMAT-OP-C:WRITE-CHAR, version 4.
+Good work, Larry.
+--Guy
+*start*
+01094 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:FAHLMAN@C.CS.CMU.EDU>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 07 JUN 87 16:03:44 PDT
+Received: from C.CS.CMU.EDU by SAIL.STANFORD.EDU with TCP; 7 Jun 87  16:02:56 PDT
+Received: ID <FAHLMAN@C.CS.CMU.EDU>; Sun 7 Jun 87 19:02:22-EDT
+Date: Sun, 7 Jun 87 19:02 EDT
+Message-ID: <FAHLMAN.12308698874.BABYL@C.CS.CMU.EDU>
+Sender: FAHLMAN@C.CS.CMU.EDU
+From: "Scott E. Fahlman" <Fahlman@C.CS.CMU.EDU>
+To: Masinter.pa
+Cc: CL-Cleanup@SAIL.STANFORD.EDU
+Subject: FORMAT-OP-C (Version 4)
+In-reply-to: Msg of 5 Jun 1987  18:04-EDT from Masinter.pa at Xerox.COM
+
+
+This version is OK by me except for the last paragraph of the
+discussion.  I think you're introducing an entirely new topic in the
+offhand comment about READ-CHAR always returning one charater for every
+one WRITE-CHAR has written.  This might be worth a clarification of its
+own, but it shouldn't be introduced here, especially as a
+"clarification", which makes it sound like that interpretation is
+obvious to the people who endorse FORMAT-OP-C.
+
+Drop the last paragraph?
+
+-- Scott
+
+*start*
+04123 00024 USm
+Date: 11 Jun 87 14:07 PDT
+From: Masinter.pa
+Subject: Issue FORMAT-OP-C (Version 5)
+To: X3J13@SAIL.STANFORD.EDU
+cc: Masinter
+reply-to: CL-CLEANUP@Sail.stanford.edu
+
+
+Issue:        FORMAT-OP-C
+References:   WRITE-CHAR (p384), ~C (p389)
+Category:     CHANGE/CLARIFICATION
+Edit History: 23-Feb-87, Version 1 by Pitman
+              29-Apr-87, Versions 2,3 by Pitman
+               5-Jun-87, Version 4 by Masinter (copy-editing)
+              11-Jun-87, Version 5 release to X3J13
+					(remove confusing paragraph)
+
+Problem Description:
+
+CLtL is not adequately specific about the function of the format operation ~C. The description on p389 says that "~C prints the character in an implementation-dependent abbreviated format. This format should be culturally compatible with the host environment." This description is not very useful in practice.
+
+Presumably the authors intended the `cultural compatibility' part to gloss issues like how the SAIL character set printed, but unfortunately another completely reasonable (albeit unplanned) interpretation arose: some implementations have (FORMAT NIL "~C" #\Space) => "Space" rather than " ".
+
+Since the behavior of ~A is also vague on characters (a separate proposal will address this), the only way to safely output a literal character is to WRITE-CHAR; currently, FORMAT does not suffice.
+
+Proposal (FORMAT-OP-C:WRITE-CHAR):
+
+Change the behavior of ~C to say that, when given a character with zero bits, it will perform the same action as WRITE-CHAR. (This proposal leaves the behavior of ~C with non-zero bits incompletely specified.) For example, the description of the ~C format directive on p389 of CLTL might read:
+
+  ~C prints the character using WRITE-CHAR if it has zero bits.
+  Characters with bits are not necessarily printed as WRITE-CHAR
+  would do, but are displayed in an implementation-dependent
+  abbreviated format that is culturally compatible with the host
+  environment.
+
+Test Case:
+
+(EQUAL (FORMAT NIL "~C" #\Space) " ")
+
+Rationale:
+
+This was probably the intent of the Common Lisp designers. 
+
+It makes things clear enough that programmers can know what to expect in the normal case (standard characters with zero bits).
+
+Users can use (FORMAT NIL "~:C" #\Space) to get "Space" if they want it. It seems as if the implementations which return "Space" treat ~C and ~:C equivalently or very similarly.
+
+Current Practice:
+
+Implementations are divided. Some implementations have
+     (FORMAT NIL "~C" #\Space) => "Space".
+Others have the same form return " ".
+
+Adoption Cost:
+
+Those implementations which did not already implement ~C as WRITE-CHAR would require an incompatible change.
+
+Benefits:
+
+User code that uses ~C would have a chance of being portable. As things stand, users who use ~C can't reliably port their code.
+
+~C and ~:C would perform usefully distinct operations.
+
+Conversion Cost:
+
+Standard ``Query Replace'' technology for finding occurrences of "~C" and changing them to "~:C" semi-automatically should suffice.
+
+Aesthetics:
+
+Making ~C do something well-defined will probably be perceived as a simplification.
+
+Discussion:
+
+The cleanup committee generally supports this clarification.
+
+The original version of this proposal (which tried to make WRITE-CHAR and ~C identical in all cases) prompted the following comment:
+
+"I believe the error in CLtL is that it was not stated explicitly that the `implementation-dependent abbreviated format' applies only to characters with non-zero char-bits. Thus instead of removing the mumbling about cultural compatibility, I suggest simply adding a sentence saying that ~C is the same as WRITE-CHAR for characters with zero char-bits.  I don't think we want to require ~C and write-char to do the same thing for characters with bits."
+
+        TITAN           TITAN          
+TIMESROMAN 
+           ¦                                                        ä             $       #      7              (             q              Š              o       
+       º              †              V             ‹      ° zº

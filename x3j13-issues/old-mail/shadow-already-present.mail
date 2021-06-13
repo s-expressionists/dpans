@@ -1,0 +1,1395 @@
+*start*
+00787 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:FAHLMAN@C.CS.CMU.EDU>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 24 AUG 87 18:09:34 PDT
+Received: from C.CS.CMU.EDU by SAIL.STANFORD.EDU with TCP; 24 Aug 87  18:07:54 PDT
+Received: ID <FAHLMAN@C.CS.CMU.EDU>; Mon 24 Aug 87 21:08:04-EDT
+Date: Mon, 24 Aug 87 21:08 EDT
+Message-ID: <FAHLMAN.12329168991.BABYL@C.CS.CMU.EDU>
+Sender: FAHLMAN@C.CS.CMU.EDU
+From: "Scott E. Fahlman" <Fahlman@C.CS.CMU.EDU>
+To: Cl-Cleanup@SAIL.STANFORD.EDU
+Subject: Issue: SHADOW-ALREADY-PRESENT (version 1)
+In-reply-to: Msg of 24 Aug 1987  14:33-EDT from David A. Moon <Moon at STONY-BROOK.SCRC.Symbolics.COM>
+
+
+I'm in favor of SHADOW-ALREADY-PRESENT:WORKS.
+Thanks to Moon for writing this up so quickly.
+
+-- Scott
+
+*start*
+03634 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 24 AUG 87 11:40:50 PDT
+Received: from SCRC-STONY-BROOK.ARPA by SAIL.STANFORD.EDU with TCP; 24 Aug 87  11:38:46 PDT
+Received: from EUPHRATES.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 219273; Mon 24-Aug-87 14:33:31 EDT
+Date: Mon, 24 Aug 87 14:33 EDT
+From: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: Issue: SHADOW-ALREADY-PRESENT (version 1)
+To: Cl-Cleanup@sail.stanford.edu
+References: <8708241350.AA23968@ztivax.uucp>, <8708241451.AA28748@HADES.MIT.EDU>
+Message-ID: <870824143300.5.MOON@EUPHRATES.SCRC.Symbolics.COM>
+
+Issue:         SHADOW-ALREADY-PRESENT
+
+References:    CLtL p.186
+
+Category:      CLARIFICATION
+
+Edit history:  Moon 24 Aug 87 new issue (version 1)
+
+Problem description:
+
+The description of the SHADOW function can be interpreted as saying that
+the function has no effect, if the symbol is already present in the
+package.  This happens if the third sentence in the description ("then
+nothing is done") is interpreted as applying to the entire description
+rather than just to the fourth sentence.
+
+Proposal SHADOW-ALREADY-PRESENT:WORKS:  The SHADOW function always adds
+the symbol to the PACKAGE-SHADOWING-SYMBOLS list, even when the symbol is
+already present in the package.
+
+Test Case:
+
+(make-package 'test-1)
+(intern "TEST" (find-package 'test-1))
+(shadow 'test-1::test (find-package 'test-1))
+(assert (not (null (member 'test-1::test (package-shadowing-symbols
+					   (find-package 'test-1))))))
+(make-package 'test-2)
+(intern "TEST" (find-package 'test-2))
+(use-package 'test-2 (find-package 'test-1))	;should not error
+
+Rationale:
+
+Page 180 describes a name conflict problem that can occur when calling
+the function USE-PACKAGE. The name conflict is between a symbol directly
+present in the using package and an external symbol of the used package.
+This name conflict may be resolved in favor of the symbol directly
+present in the using package by making it a shadowing symbol.  For this
+to work, SHADOW must add the symbol to the PACKAGE-SHADOWING-SYMBOLS list
+even when it is already present in the package.
+
+Current practice:
+
+[I have not confirmed any of these myself except Symbolics --Moon]
+
+Symbolics and Spice Lisp behave as proposed here.  Kyoto Common Lisp
+behaves the other way.  Kolb implied, but did not state explicitly,
+that Lucid Common Lisp and Xerox Common Lisp behave like KCL.  It seems
+likely that we will find several implementations in each camp.
+
+Adoption Cost:  It should be a one-line change in one function.
+
+Cost of non-adoption: Inconsistency among implementations and lack of a
+clear way to resolve the name conflict mentioned in Rationale.
+
+Benefits: Consistency.
+
+Conversion Cost: Technically this would be an incompatible change to
+implementations that do not already behave as proposed, however it is
+difficult to conceive of a user program that would require any
+conversion to cope with the change.  Some users might want to remove
+kludges that were only necessary to get around the misbehavior of
+SHADOW.
+
+Esthetics: The proposal would remove an unnecessary special case,
+thus simplifying the language slightly.
+
+Discussion:
+
+The issue was raised by Dieter Kolb on the Common-Lisp mailing list.
+
+It would be useless for SHADOW to fail to put a symbol that is already
+present in the package onto the PACKAGE-SHADOWING-SYMBOLS list.  Moon
+believes CLtL intended to describe what is being proposed, but
+unfortunately used ambiguous language.
+
+*start*
+03213 00024 US 
+Originator: @SAIL.STANFORD.EDU:samalone%ATHENA.MIT:EDU:Xerox
+Date: 24 Aug 87 08:28
+From: samalone%ATHENA.MIT:EDU:Xerox
+Subject: Re: Interpretation of shadowing
+In-Reply-to: Your message of Mon, 24 Aug 87 14:50:37 -0100.             <8708241350.AA23968@ztivax.uucp>
+To: unido!ztivax!kolb%seismo.CSS:GOV:Xerox
+cc: common-lisp%sail.stanford:EDU:Xerox
+
+GVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGV
+From: <samalone@ATHENA.MIT.EDU>
+To: "Dieter Kolb" <unido!ztivax!kolb@seismo.CSS.GOV>
+Cc: common-lisp@sail.stanford.edu
+Subject: Re: Interpretation of shadowing
+In-Reply-To: Your message of Mon, 24 Aug 87 14:50:37 -0100.             <8708241350.AA23968@ztivax.uucp>
+Return-Path: <@SAIL.STANFORD.EDU:samalone@ATHENA.MIT.EDU>
+Redistributed: Xerox-Common-Lisp^.x
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 24 AUG 87 08:28:14 PDT
+Received: from ATHENA.MIT.EDU by SAIL.STANFORD.EDU with TCP; 24 Aug 87  07:53:01 PDT
+Received: by ATHENA.MIT.EDU (5.45/4.7) id AA18770; Mon, 24 Aug 87 10:52:55 EDT
+Received: by HADES.MIT.EDU (5.45/4.7) id AA28748; Mon, 24 Aug 87 10:51:46 EDT
+Message-Id: <8708241451.AA28748@HADES.MIT.EDU>
+Original-Date: Mon, 24 Aug 87 10:51:44 EDT
+GVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGV
+
+
+	CLtL describes in section 11.5, page 180 a name conflict
+	problem by applying the function use-package. The name
+	conflict is between a symbol directly present in the using
+	package and an external symbol of the used package. This name
+	conflict may be resolved in favor of the symbol directly
+	present in the using package by making it a shadowing symbol.
+
+	However, CLtL gives no advice how that should be done.
+
+	In our understanding the function shadow should be used to
+	resolve this name conflict. 
+
+	However the function shadow has no effect, if the symbol is
+	already present in the package (CLtL, section 11.7). So,
+	following CLtL, this could not be the solution...
+
+I understand your confusion.  I believe that the problem is due to an
+ambiguity in the definition of SHADOW given in CLtL.  (Someone on the cleanup
+committee should correct me if I'm wrong.)  Unfortunately, many Common Lisp
+implementers have taken the wrong interpretation of this section of the
+manual, and so propagated the confusion on to their users.
+
+You are correct that SHADOW should be used to resolve the name conflict you
+described.  Interpreted correctly, CLtL describes a SHADOW function that _is_
+capable of resolving the name conflict.
+
+When CLtL says that "If such a symbol is present in this package, nothing is
+done", this is intended to contrast only with the following sentence, which
+says "Otherwise, a new symbol is created with this print name..."  The next
+sentence that says "The symbol is also placed on the shadowing-symbols list of
+package" applies regardless of whether such a symbol is present in this
+package or not.
+
+Given this interpretation, SHADOW has an effect whether the symbol is already
+present in the package or not (unless it is already a shadowing symbol), and
+so is the correct way to resolve the name conflict you described.  From the
+descriptions you provided, it sounds like the SPICE LISP implementers did the
+right thing.
+
+				--Stuart A. Malone
+
+
+*start*
+01647 00024 US 
+Originator: @SAIL.STANFORD.EDU:Moon%STONY-BROOK.SCRC.Symbolics:COM:Xerox
+Date: 24 Aug 87 11:42
+From: Moon%STONY-BROOK.SCRC.Symbolics:COM:Xerox
+Subject: Interpretation of shadowing
+In-Reply-to: <8708241350.AA23968@ztivax.uucp>,             <8708241451.AA28748@HADES.MIT.EDU>
+To: unido!ztivax!kolb%seismo.CSS:GOV:Xerox, samalone%ATHENA.MIT:EDU:Xerox
+cc: Common-lisp%sail.stanford:EDU:Xerox
+
+GVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGV
+From: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: Interpretation of shadowing
+To: Dieter Kolb <unido!ztivax!kolb@seismo.CSS.GOV>, samalone@ATHENA.MIT.EDU
+cc: Common-lisp@sail.stanford.edu
+In-Reply-To: <8708241350.AA23968@ztivax.uucp>,             <8708241451.AA28748@HADES.MIT.EDU>
+Return-Path: <@SAIL.STANFORD.EDU:Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Redistributed: Xerox-Common-Lisp^.x
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 24 AUG 87 11:42:07 PDT
+Received: from SCRC-STONY-BROOK.ARPA by SAIL.STANFORD.EDU with TCP; 24 Aug 87  11:11:39 PDT
+Received: from EUPHRATES.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 219204; Mon 24-Aug-87 14:07:36 EDT
+Original-Date: Mon, 24 Aug 87 14:07 EDT
+Message-ID: <870824140704.4.MOON@EUPHRATES.SCRC.Symbolics.COM>
+GVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGV
+
+I agree with Malone.  The SHADOW function always adds the symbol
+to the PACKAGE-SHADOWING-SYMBOLS list, and the informal wording
+on p.186 of CLtL should not be interpreted otherwise.
+
+This does not seem to be on the cleanup subcommittee's agenda yet,
+so I'll add a writeup of the issue.  Thanks for pointing it out.
+
+
+*start*
+02495 00024 US 
+Originator: @SAIL.STANFORD.EDU:unido!ztivax!kolb%seismo.CSS:GOV:Xerox
+Date: 24 Aug 87 06:56
+From: unido!ztivax!kolb%seismo.CSS:GOV:Xerox
+Subject: Interpretation of shadowing
+To: Common-lisp%sail.stanford:EDU:Xerox
+cc: unido!Dieter%seismo.CSS:GOV:Xerox, unido!Kolb%seismo.CSS:GOV:Xerox
+
+GVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGV
+From: "Dieter Kolb" <unido!ztivax!kolb@seismo.CSS.GOV>
+To: Common-lisp@sail.stanford.edu
+Subject: Interpretation of shadowing
+Cc: unido!Dieter@seismo.CSS.GOV, unido!Kolb@seismo.CSS.GOV
+Return-Path: <@SAIL.STANFORD.EDU:unido!ztivax!kolb@seismo.CSS.GOV>
+Redistributed: Xerox-Common-Lisp^.x
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 24 AUG 87 06:57:00 PDT
+Received: from seismo.CSS.GOV by SAIL.STANFORD.EDU with TCP; 24 Aug 87  06:28:20 PDT
+Received: from unido.UUCP by seismo.CSS.GOV (5.54/1.14) with UUCP 	id AA04764; Mon, 24 Aug 87 09:28:24 EDT
+Received: by unido.uucp with uucp; 	  Mon, 24 Aug 87 14:52:38 +0100
+Original-Date: Mon, 24 Aug 87 14:50:37 -0100
+Message-Id: <8708241350.AA23968@ztivax.uucp>
+Received: by ztivax.uucp; Mon, 24 Aug 87 14:50:37 -0100
+GVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGV
+
+CLtL describes in section 11.5, page 180 a name conflict problem by 
+applying the function use-package. The name conflict is between a symbol 
+directly present in the using package and an external symbol of the used 
+package. This name conflict may be resolved in favor of the symbol 
+directly present in the using package by making it a shadowing symbol. 
+
+However, CLtL gives no advice how that should be done.
+
+In our understanding the function shadow should be used to resolve this 
+name conflict. 
+
+However the function shadow has no effect, if the symbol is already 
+present in the package (CLtL, section 11.7). So, following CLtL, this 
+could not be the solution. Therefore, we investigated some other CL 
+implementations:
+
+Lucid Common LISP on Apollo DOMAIN as well as Xerox LISP:
+The name conflict can be resolved by using the function shadowing-import
+
+SPICE LISP: 
+The functionality of the function shadow in SPICE LISP is extended. 
+shadow works also if the symbol is already present. So, the name 
+conflict can be resolved by using the function shadow. (However, shadow 
+works different as described in CLtL.)
+
+Kyoto Common Lisp on VAX:
+shadow works as described in CLtL. The name conflict cannot be resolved 
+in this system.
+
+How should CLtL be interpreted with respect to this problem?
+
+
+Dieter Kolb
+
+
+*start*
+05133 00024 US 
+Originator: @SAIL.STANFORD.EDU:edsel!bhopal!jonl%labrea.stanford:EDU:Xerox
+Date: 25 Aug 87 12:49
+From: edsel!bhopal!jonl%labrea.stanford:EDU:Xerox
+In-Reply-to: David A. Moon's message of Mon, 24 Aug 87 14:07 EDT <870824140704.4.MOON@EUPHRATES.SCRC.Symbolics.CO
+Subject: Interpretation of shadowing [and type of argument to SHADOW]
+To: labrea!Moon%STONY-BROOK.SCRC.Symbolics.COM%labrea.stanford:EDU:Xerox
+cc: labrea!unido!ztivax!kolb%seismo.CSS.GOV%labrea.stanford:EDU:Xerox, labrea!samalone%ATHENA.MIT.EDU%labrea.stanford:EDU:Xerox, labrea!Common-lisp%sail%labrea.stanford:EDU:Xerox
+
+GVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGV
+From: edsel!bhopal!jonl@labrea.stanford.edu (Jon L White)
+To: labrea!Moon%STONY-BROOK.SCRC.Symbolics.COM@labrea.stanford.edu
+Cc: labrea!unido!ztivax!kolb%seismo.CSS.GOV@labrea.stanford.edu, labrea!samalone%ATHENA.MIT.EDU@labrea.stanford.edu, labrea!Common-lisp%sail@labrea.stanford.edu
+In-Reply-To: David A. Moon's message of Mon, 24 Aug 87 14:07 EDT <870824140704.4.MOON@EUPHRATES.SCRC.Symbolics.COM>
+Subject: Interpretation of shadowing [and type of argument to SHADOW]
+Return-Path: <@SAIL.STANFORD.EDU:edsel!bhopal!jonl@labrea.stanford.edu>
+Redistributed: Xerox-Common-Lisp^.x
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 25 AUG 87 12:48:38 PDT
+Received: from LABREA.STANFORD.EDU by SAIL.STANFORD.EDU with TCP; 25 Aug 87  12:01:51 PDT
+Received: by labrea.stanford.edu; Tue, 25 Aug 87 11:42:33 PDT
+Received: from bhopal.edsel.com by edsel.uucp (3.2/SMI-2.0)	id AA05644; Tue, 25 Aug 87 11:50:54 PDT
+Received: by bhopal.edsel.com (3.2/SMI-3.2)	id AA15097; Tue, 25 Aug 87 11:51:21 PDT
+Original-Date: Tue, 25 Aug 87 11:51:21 PDT
+Message-Id: <8708251851.AA15097@bhopal.edsel.com>
+GVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGV
+
+re: ... The SHADOW function always adds the symbol
+    to the PACKAGE-SHADOWING-SYMBOLS list, and the informal wording
+    on p.186 of CLtL should not be interpreted otherwise.
+
+At Lucid (against our better instincts!) we followed the "letter of the 
+law" on page 186.  That phraseology is certainly misguided, but not exactly 
+ambiguous:
+   "If <condition A is true>, then nothing is done.
+    Otherwise,  <step B is taken>.  [And]... also <step C is taken>."
+I say, "not ambiguous" because the sentence
+    "[And]... also <step C is taken>"
+only parses in the context of "something having been done", so that
+<step C> is done ALSO, or "in addition" to that "something".
+
+However, that behaviour -- even if mandated by CLtL -- is not productive,
+and I would very much like to see it redefined.
+
+On the other hand, this glitch hasn't been the source of the most serious
+problem with SHADOW.  The fact that it's argument is a symbol, which it
+immediately discards after extracting the symbol-name, has caused a very
+subtle bug in virtually every implementation's compiled-code format.  To 
+avoid this bug, I would like to see SHADOW changed to take strings as 
+arguments, rather than symbols.  More realistically, it should at least be 
+permitted to take strings as well as symbols so that one can avoid the 
+lossage evident in the following example.
+
+Consider the file:
+
+    (in-package "FOO")
+    (shadow 'bar)		   ;maybe this BAR is inherited from LISP?
+    (print (symbol-package 'bar))  ;but this BAR should be only in FOO.
+
+How will the call to shadow be compiled when BAR is already present in FOO
+as an internal shadowing symbol?  Now consider how that compiled file will 
+load into a runtime environment whose package structure is DIFFERENT from 
+that of the compile-time environment in the critical aspect that BAR is not 
+present in the FOO package (much less being present as a shadowing symbol).
+Admittedly, CLtL give the user no guarantees if he doesn't arrange to have 
+his runtime package environment "the same" as the compile time one; but this 
+scenario is a very common, forgivable one.  It will happen if you compile a 
+file twice (from the same Lisp image), and then load the result into a fresh
+Lisp image.
+
+At least one Common Lisp implementation has it's compiler recognize
+top-level calls to shadow and compile them specially.  But this is
+a fix only for the specific situation of top-level calls, not for a
+call like:
+
+    (in-package "FOO)
+    (funcall (if (probably-true) 
+                 #'shadow 
+                 #'print)
+             'bar)                  ;maybe this BAR is inherited from LISP?
+    (print (symbol-package 'bar))   ;but this BAR should be only in FOO.
+
+A much better solution would be to allow the author of this code to write:
+
+    (in-package "FOO)
+    (funcall (if (probably-true) 
+                 #'shadow 
+                 #'print)
+             "BAR")                 ;No question about this "BAR" !
+    (print (symbol-package 'bar))   ;and this BAR should be only in FOO.
+
+instead.
+               
+
+-- JonL --
+
+
+P.S. Please, no discussion on why  (if (probably-true)  #'shadow  #'print))
+     is a useless line of code.  I picked it only to illustrate that this
+     particular SHADOW problem isn't completely solved by having the 
+     compiler statically re-write the user's code.
+
+
+*start*
+01882 00024 US 
+Originator: @SAIL.STANFORD.EDU:Moon%STONY-BROOK.SCRC.Symbolics:COM:Xerox
+Date: 25 Aug 87 14:30
+From: Moon%STONY-BROOK.SCRC.Symbolics:COM:Xerox
+Subject: Interpretation of shadowing [and type of argument to SHADOW]
+In-Reply-to: <8708251851.AA15097@bhopal.edsel.com>
+To: edsel!bhopal!jonl%labrea.stanford:EDU:Xerox
+cc: Common-lisp%sail.stanford:EDU:Xerox
+
+GVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGV
+From: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: Interpretation of shadowing [and type of argument to SHADOW]
+To: Jon L White <edsel!bhopal!jonl@labrea.stanford.edu>
+cc: Common-lisp@sail.stanford.edu
+In-Reply-To: <8708251851.AA15097@bhopal.edsel.com>
+Return-Path: <@SAIL.STANFORD.EDU:Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Redistributed: Xerox-Common-Lisp^.x
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 25 AUG 87 14:29:53 PDT
+Received: from SCRC-STONY-BROOK.ARPA by SAIL.STANFORD.EDU with TCP; 25 Aug 87  13:54:50 PDT
+Received: from EUPHRATES.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 220537; Tue 25-Aug-87 16:52:56 EDT
+Original-Date: Tue, 25 Aug 87 16:52 EDT
+Message-ID: <870825165230.3.MOON@EUPHRATES.SCRC.Symbolics.COM>
+GVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGV
+
+    Date: Tue, 25 Aug 87 11:51:21 PDT
+    From: edsel!bhopal!jonl@labrea.stanford.edu (Jon L White)
+
+    I would like to see SHADOW changed to take strings as 
+    arguments, rather than symbols.  More realistically, it should at least be 
+    permitted to take strings as well as symbols.
+
+You're right of course.
+
+A close reading of CLtL shows that one can already use (shadow '#:bar)
+in place of (shadow 'bar), to achieve much the same effect as (shadow "bar").
+But the user should not have to play such games, strings should be accepted.
+Current practice: shadow already accepts strings in Symbolics Common Lisp.
+
+
+*start*
+05232 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 27 AUG 87 14:31:05 PDT
+Received: from SCRC-STONY-BROOK.ARPA by SAIL.STANFORD.EDU with TCP; 27 Aug 87  14:28:52 PDT
+Received: from EUPHRATES.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 222476; Thu 27-Aug-87 17:30:06 EDT
+Date: Thu, 27 Aug 87 17:29 EDT
+From: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: Issue: SHADOW-ALREADY-PRESENT (version 2)
+To: Cl-Cleanup@sail.stanford.edu
+cc: Jon L White <edsel!bhopal!jonl@labrea.stanford.edu>
+References: <870824143300.5.MOON@EUPHRATES.SCRC.Symbolics.COM>
+Message-ID: <870827172932.8.MOON@EUPHRATES.SCRC.Symbolics.COM>
+
+Issue:         SHADOW-ALREADY-PRESENT
+
+References:    CLtL p.186
+
+Category:      CLARIFICATION
+
+Edit history:  Moon 24 Aug 87 new issue (version 1)
+               Moon 27 Aug 87 incorporate suggestions from JonL (version 2)
+
+Problem description:
+
+The description of the SHADOW function can be interpreted as saying that
+the function has no effect, if the symbol is already present in the
+package.  This happens if the third sentence in the description ("then
+nothing is done") is interpreted as applying to the entire description
+rather than just to the fourth sentence.
+
+SHADOW is said to take symbols as arguments, however only the print-name
+is meaningful for this operation (that fact is already documented).
+
+Proposal SHADOW-ALREADY-PRESENT:WORKS:
+
+The SHADOW function always adds the symbol to the PACKAGE-SHADOWING-SYMBOLS
+list, even when the symbol is already present in the package.  In addition,
+the first argument is allowed to be or contain strings as well as symbols.
+The specification "the print name of each symbol is extracted" is to be
+modified accordingly.
+
+Test Case:
+
+(make-package 'test-1)
+(intern "TEST" (find-package 'test-1))
+(shadow 'test-1::test (find-package 'test-1))
+(assert (not (null (member 'test-1::test (package-shadowing-symbols
+                                           (find-package 'test-1))))))
+(make-package 'test-2)
+(intern "TEST" (find-package 'test-2))
+(use-package 'test-2 (find-package 'test-1))    ;should not error
+
+To test the use of strings in place of symbols, change the
+third line of the test case to
+(shadow "TEST" (find-package 'test-1))
+Note the use of capital letters in the string.
+
+Rationale:
+
+Page 180 describes a name conflict problem that can occur when calling
+the function USE-PACKAGE. The name conflict is between a symbol directly
+present in the using package and an external symbol of the used package.
+This name conflict may be resolved in favor of the symbol directly
+present in the using package by making it a shadowing symbol.  For this
+to work, SHADOW must add the symbol to the PACKAGE-SHADOWING-SYMBOLS list
+even when it is already present in the package.
+
+Since only the print name of a symbol argument is meaningful, a string
+should also be accepted.  This is particularly useful to avoid problems
+when compiling code in one package environment and loading it into a
+slightly different package environment, where the symbol that was referred
+to at compile time may not be present at load time.  This is particularly
+important because the symbol referred to by the print name may be changed
+by evaluation of the SHADOW form.  A close reading of CLtL shows that one
+can already use (shadow '#:bar) in place of (shadow 'bar), to achieve much
+the same effect as (shadow "BAR").  But the user should not have to play
+such games, strings should be accepted.
+
+Current practice:
+
+[I have not confirmed any of these myself except Symbolics --Moon]
+
+Symbolics and Spice Lisp add the symbol to the PACKAGE-SHADOWING-SYMBOLS
+list, even when the symbol is already present in the package.  Kyoto Common
+Lisp, Lucid Common Lisp, and Xerox Common Lisp ignore SHADOW when the
+symbol is already present in the package.  It seems likely that we will
+find several implementations in each camp.
+
+SHADOW accepts strings in Symbolics Common Lisp.
+
+Adoption Cost:
+
+It should be two one-line changes in one function.
+
+Cost of non-adoption:
+
+Inconsistency among implementations and lack of a clear way to resolve the
+name conflict mentioned in Rationale.
+
+Benefits:
+
+Consistency among implementations and fewer mysterious package problems.
+
+Conversion Cost:
+
+Technically this would be an incompatible change to implementations that do
+not already behave as proposed, however it is difficult to conceive of a
+user program that would require any conversion to cope with the change.
+Some users might want to remove kludges that were only necessary to get
+around the former misbehavior of SHADOW.
+
+Esthetics:
+
+The proposal would remove an unnecessary special case, thus simplifying the
+language slightly.
+
+Discussion:
+
+The issue was raised by Dieter Kolb on the Common-Lisp mailing list.
+
+It would be useless for SHADOW to fail to put a symbol that is already
+present in the package onto the PACKAGE-SHADOWING-SYMBOLS list.  Moon
+believes CLtL intended to describe what is being proposed, but
+unfortunately used ambiguous language.
+
+Epigram:
+
+"Who knows what evil lurks in the hearts of men?"
+
+*start*
+05624 00024 US 
+Date: 26 Oct 87 15:20 PST
+From: Masinter.pa
+Subject: Re: Issue: SHADOW-ALREADY-PRESENT (version 3)
+To: cl-cleanup@Sail-stanford.edu
+cc: Masinter
+line-fold: 80
+
+There was no response to Moon's version 2. I modified the description and rationale to emphasize that this is really two separate proposals, one a clarification, the other a change (allowing strings.)  I added a few comments to the test cases. [I removed Moon's parenthetical remark in brackets.] I added an endorsement to the discussion. 
+
+I don't understand this:
+
+Epigram:
+
+"Who knows what evil lurks in the hearts of men?"
+
+I tried to imagine a package as the heart of a man and evil as a symbol, lurking there, but it escaped me....
+
+
+
+
+Issue:         SHADOW-ALREADY-PRESENT
+
+References:    CLtL p.186
+
+Category:      CLARIFICATION/CHANGE
+
+Edit history:  Version 1 Moon 24 Aug 87 
+               Version 2 Moon 27 Aug 87 incorporate suggestions from JonL
+               Version 3 Masinter 26-Oct-87
+
+Problem description:
+
+The description of the SHADOW function can be interpreted as saying that
+the function has no effect, if the symbol is already present in the
+package.  This happens if the third sentence in the description ("then
+nothing is done") is interpreted as applying to the entire description
+rather than just to the fourth sentence.
+
+SHADOW is said to take symbols as arguments, however only the print-name
+is meaningful for this operation (that fact is already documented).
+
+Proposal SHADOW-ALREADY-PRESENT:WORKS:
+
+1) The SHADOW function always adds the symbol to the PACKAGE-SHADOWING-SYMBOLS
+list, even when the symbol is already present in the package. 
+
+2) The first argument to SHADOW is allowed to be or contain strings as well as symbols. The specification "the print name of each symbol is extracted" is to be modified accordingly.
+
+Test Case:
+
+;;; SHADOW always adds the symbol to the PACKAGE-SHADOWING-SYMBOLS
+list of a package
+
+(make-package 'test-1)
+(intern "TEST" (find-package 'test-1))
+(shadow 'test-1::test (find-package 'test-1))
+(assert (not (null (member 'test-1::test (package-shadowing-symbols
+                                           (find-package 'test-1))))))
+
+(make-package 'test-2)
+(intern "TEST" (find-package 'test-2))
+(use-package 'test-2 (find-package 'test-1))    ;should not error
+
+;;; To test the use of strings in place of symbols
+;;; change the third line of the test case to
+;;;     (shadow "TEST" (find-package 'test-1))
+;;; Note the use of capital letters in the string.
+
+Rationale:
+
+CLtL p. 180 describes a name conflict problem that can occur when calling the function USE-PACKAGE. The name conflict is between a symbol directly present in the using package and an external symbol of the used package. This name conflict may be resolved in favor of the symbol directly present in the using package by making it a shadowing symbol.  For this to work, SHADOW must add the symbol to the PACKAGE-SHADOWING-SYMBOLS list even when it is already present in the package.
+
+Since only the print name of a symbol argument is meaningful, a string should also be accepted.  This is particularly useful to avoid problems when compiling code in one package environment and loading it into a slightly different package environment, where the symbol that was referred to at compile time may not be present at load time.  This is particularly important because the symbol referred to by the print name may be changed by evaluation of the SHADOW form.  A close reading of CLtL shows that one can already use (shadow '#:bar) in place of (shadow 'bar), to achieve much the same effect as (shadow "BAR").  But the user should not have to play such games, strings should be accepted.
+
+Current practice:
+
+Symbolics and Spice Lisp add the symbol to the PACKAGE-SHADOWING-SYMBOLS list, even when the symbol is already present in the package.  Kyoto Common Lisp, Lucid Common Lisp, and Xerox Common Lisp ignore SHADOW when the symbol is already present in the package.  It seems likely that we will find several implementations in each camp.
+
+SHADOW accepts strings in Symbolics Common Lisp.
+
+Adoption Cost:
+
+It should be two one-line changes in one function.
+
+Cost of non-adoption:
+
+Inconsistency among implementations and lack of a clear way to resolve the name conflict mentioned in Rationale.
+
+Benefits:
+
+Consistency among implementations and fewer mysterious package problems.
+
+Conversion Cost:
+
+Technically this would be an incompatible change to implementations that do not already behave as proposed, however it is difficult to conceive of a user program that would require any conversion to cope with the change. Some users might want to remove kludges that were only necessary to get around the former misbehavior of SHADOW.
+
+Esthetics:
+
+The proposal would remove an unnecessary special case, thus simplifying the language slightly.
+
+Discussion:
+
+The issue was raised by Dieter Kolb on the Common-Lisp mailing list.
+
+It would be useless for SHADOW to fail to put a symbol that is already present in the package onto the PACKAGE-SHADOWING-SYMBOLS list.  Moon believes CLtL intended to describe what is being proposed, but unfortunately used ambiguous language.
+
+The cleanup committee endorses this proposal.
+
+
+
+
+        TITAN          TITAN           
+TIMESROMAN 
+                 	       2       u                                                        ë             ‘       '      G             î             ù             Ç              5              s       
+       K             P              a             m      ` "z∫*start*
+05231 00024 US 
+Date: 26 Oct 87 16:57 PST
+From: Masinter.pa
+Subject:  Issue: SHADOW-ALREADY-PRESENT (version 3)
+To: cl-cleanup@Sail.stanford.edu
+cc: Masinter
+line-fold: 80
+
+There was no response to Moon's version 2. I modified the description and rationale to emphasize that this is really two separate proposals, one a clarification, the other a change (allowing strings.)  I added a few comments to the test cases. [I removed Moon's parenthetical remark in brackets.] I added an endorsement to the discussion. 
+
+I don't understand this:
+
+Epigram:
+
+"Who knows what evil lurks in the hearts of men?"
+
+I tried to imagine a package as the heart of a man and evil as a symbol, lurking there, but it escaped me....
+
+
+Issue:         SHADOW-ALREADY-PRESENT
+
+References:    CLtL p.186
+
+Category:      CLARIFICATION/CHANGE
+
+Edit history:  Version 1 Moon 24 Aug 87 
+               Version 2 Moon 27 Aug 87 incorporate suggestions from JonL
+               Version 3 Masinter 26-Oct-87
+
+Problem description:
+
+The description of the SHADOW function can be interpreted as saying that
+the function has no effect, if the symbol is already present in the
+package.  This happens if the third sentence in the description ("then
+nothing is done") is interpreted as applying to the entire description
+rather than just to the fourth sentence.
+
+SHADOW is said to take symbols as arguments, however only the print-name
+is meaningful for this operation (that fact is already documented).
+
+Proposal SHADOW-ALREADY-PRESENT:WORKS:
+
+1) The SHADOW function always adds the symbol to the PACKAGE-SHADOWING-SYMBOLS
+list, even when the symbol is already present in the package. 
+
+2) The first argument to SHADOW is allowed to be or contain strings as well as symbols. The specification "the print name of each symbol is extracted" is to be modified accordingly.
+
+Test Case:
+
+;;; SHADOW always adds the symbol to the PACKAGE-SHADOWING-SYMBOLS
+list of a package
+
+(make-package 'test-1)
+(intern "TEST" (find-package 'test-1))
+(shadow 'test-1::test (find-package 'test-1))
+(assert (not (null (member 'test-1::test (package-shadowing-symbols
+                                           (find-package 'test-1))))))
+
+(make-package 'test-2)
+(intern "TEST" (find-package 'test-2))
+(use-package 'test-2 (find-package 'test-1))    ;should not error
+
+;;; To test the use of strings in place of symbols
+;;; change the third line of the test case to
+;;;     (shadow "TEST" (find-package 'test-1))
+;;; Note the use of capital letters in the string.
+
+Rationale:
+
+CLtL p. 180 describes a name conflict problem that can occur when calling the function USE-PACKAGE. The name conflict is between a symbol directly present in the using package and an external symbol of the used package. This name conflict may be resolved in favor of the symbol directly present in the using package by making it a shadowing symbol.  For this to work, SHADOW must add the symbol to the PACKAGE-SHADOWING-SYMBOLS list even when it is already present in the package.
+
+Since only the print name of a symbol argument is meaningful, a string should also be accepted.  This is particularly useful to avoid problems when compiling code in one package environment and loading it into a slightly different package environment, where the symbol that was referred to at compile time may not be present at load time.  This is particularly important because the symbol referred to by the print name may be changed by evaluation of the SHADOW form.  A close reading of CLtL shows that one can already use (shadow '#:bar) in place of (shadow 'bar), to achieve much the same effect as (shadow "BAR").  But the user should not have to play such games, strings should be accepted.
+
+Current practice:
+
+Symbolics and Spice Lisp add the symbol to the PACKAGE-SHADOWING-SYMBOLS list, even when the symbol is already present in the package.  Kyoto Common Lisp, Lucid Common Lisp, and Xerox Common Lisp ignore SHADOW when the symbol is already present in the package.  It seems likely that we will find several implementations in each camp.
+
+SHADOW accepts strings in Symbolics Common Lisp.
+
+Adoption Cost:
+
+It should be two one-line changes in one function.
+
+Cost of non-adoption:
+
+Inconsistency among implementations and lack of a clear way to resolve the name conflict mentioned in Rationale.
+
+Benefits:
+
+Consistency among implementations and fewer mysterious package problems.
+
+Conversion Cost:
+
+Technically this would be an incompatible change to implementations that do not already behave as proposed, however it is difficult to conceive of a user program that would require any conversion to cope with the change. Some users might want to remove kludges that were only necessary to get around the former misbehavior of SHADOW.
+
+Esthetics:
+
+The proposal would remove an unnecessary special case, thus simplifying the language slightly.
+
+Discussion:
+
+The issue was raised by Dieter Kolb on the Common-Lisp mailing list.
+
+It would be useless for SHADOW to fail to put a symbol that is already present in the package onto the PACKAGE-SHADOWING-SYMBOLS list.  Moon believes CLtL intended to describe what is being proposed, but unfortunately used ambiguous language.
+
+The cleanup committee endorses this proposal.
+*start*
+05586 00024 USf
+Return-Path: <@SAIL.Stanford.EDU:Masinter.pa@Xerox.COM>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 26 OCT 87 17:03:28 PST
+Received: from XEROX.COM by SAIL.STANFORD.EDU with TCP; 26 Oct 87  17:00:58 PST
+Received: from Cabernet.ms by ArpaGateway.ms ; 26 OCT 87 16:57:48 PST
+Date: 26 Oct 87 16:57 PST
+From: Masinter.pa
+Subject:  Issue: SHADOW-ALREADY-PRESENT (version 3)
+To: cl-cleanup@Sail.stanford.edu
+cc: Masinter.pa
+line-fold: 80
+Message-ID: <871026-165748-2355@Xerox>
+
+There was no response to Moon's version 2. I modified the description
+and rationale to emphasize that this is really two separate proposals,
+one a clarification, the other a change (allowing strings.)  I added a
+few comments to the test cases. [I removed Moon's parenthetical remark
+in brackets.] I added an endorsement to the discussion. 
+
+I don't understand this:
+
+Epigram:
+
+"Who knows what evil lurks in the hearts of men?"
+
+I tried to imagine a package as the heart of a man and evil as a symbol,
+lurking there, but it escaped me....
+
+!
+Issue:         SHADOW-ALREADY-PRESENT
+
+References:    CLtL p.186
+
+Category:      CLARIFICATION/CHANGE
+
+Edit history:  Version 1 Moon 24 Aug 87 
+               Version 2 Moon 27 Aug 87 incorporate suggestions from
+JonL
+               Version 3 Masinter 26-Oct-87
+
+Problem description:
+
+The description of the SHADOW function can be interpreted as saying that
+the function has no effect, if the symbol is already present in the
+package.  This happens if the third sentence in the description ("then
+nothing is done") is interpreted as applying to the entire description
+rather than just to the fourth sentence.
+
+SHADOW is said to take symbols as arguments, however only the print-name
+is meaningful for this operation (that fact is already documented).
+
+Proposal SHADOW-ALREADY-PRESENT:WORKS:
+
+1) The SHADOW function always adds the symbol to the
+PACKAGE-SHADOWING-SYMBOLS
+list, even when the symbol is already present in the package. 
+
+2) The first argument to SHADOW is allowed to be or contain strings as
+well as symbols. The specification "the print name of each symbol is
+extracted" is to be modified accordingly.
+
+Test Case:
+
+;;; SHADOW always adds the symbol to the PACKAGE-SHADOWING-SYMBOLS
+list of a package
+
+(make-package 'test-1)
+(intern "TEST" (find-package 'test-1))
+(shadow 'test-1::test (find-package 'test-1))
+(assert (not (null (member 'test-1::test (package-shadowing-symbols
+                                           (find-package 'test-1))))))
+
+(make-package 'test-2)
+(intern "TEST" (find-package 'test-2))
+(use-package 'test-2 (find-package 'test-1))    ;should not error
+
+;;; To test the use of strings in place of symbols
+;;; change the third line of the test case to
+;;;     (shadow "TEST" (find-package 'test-1))
+;;; Note the use of capital letters in the string.
+
+Rationale:
+
+CLtL p. 180 describes a name conflict problem that can occur when
+calling the function USE-PACKAGE. The name conflict is between a symbol
+directly present in the using package and an external symbol of the used
+package. This name conflict may be resolved in favor of the symbol
+directly present in the using package by making it a shadowing symbol.
+For this to work, SHADOW must add the symbol to the
+PACKAGE-SHADOWING-SYMBOLS list even when it is already present in the
+package.
+
+Since only the print name of a symbol argument is meaningful, a string
+should also be accepted.  This is particularly useful to avoid problems
+when compiling code in one package environment and loading it into a
+slightly different package environment, where the symbol that was
+referred to at compile time may not be present at load time.  This is
+particularly important because the symbol referred to by the print name
+may be changed by evaluation of the SHADOW form.  A close reading of
+CLtL shows that one can already use (shadow '#:bar) in place of (shadow
+'bar), to achieve much the same effect as (shadow "BAR").  But the user
+should not have to play such games, strings should be accepted.
+
+Current practice:
+
+Symbolics and Spice Lisp add the symbol to the PACKAGE-SHADOWING-SYMBOLS
+list, even when the symbol is already present in the package.  Kyoto
+Common Lisp, Lucid Common Lisp, and Xerox Common Lisp ignore SHADOW when
+the symbol is already present in the package.  It seems likely that we
+will find several implementations in each camp.
+
+SHADOW accepts strings in Symbolics Common Lisp.
+
+Adoption Cost:
+
+It should be two one-line changes in one function.
+
+Cost of non-adoption:
+
+Inconsistency among implementations and lack of a clear way to resolve
+the name conflict mentioned in Rationale.
+
+Benefits:
+
+Consistency among implementations and fewer mysterious package problems.
+
+Conversion Cost:
+
+Technically this would be an incompatible change to implementations that
+do not already behave as proposed, however it is difficult to conceive
+of a user program that would require any conversion to cope with the
+change. Some users might want to remove kludges that were only necessary
+to get around the former misbehavior of SHADOW.
+
+Esthetics:
+
+The proposal would remove an unnecessary special case, thus simplifying
+the language slightly.
+
+Discussion:
+
+The issue was raised by Dieter Kolb on the Common-Lisp mailing list.
+
+It would be useless for SHADOW to fail to put a symbol that is already
+present in the package onto the PACKAGE-SHADOWING-SYMBOLS list.  Moon
+believes CLtL intended to describe what is being proposed, but
+unfortunately used ambiguous language.
+
+The cleanup committee endorses this proposal.
+
+*start*
+00887 00024 US 
+Return-Path: <FAHLMAN@C.CS.CMU.EDU>
+Received: from C.CS.CMU.EDU by Xerox.COM ; 26 OCT 87 17:39:44 PST
+Received: ID <FAHLMAN@C.CS.CMU.EDU>; Mon 26 Oct 87 20:38:29-EST
+Date: Mon, 26 Oct 87 20:38 EST
+Message-ID: <FAHLMAN.12345689595.BABYL@C.CS.CMU.EDU>
+Sender: FAHLMAN@C.CS.CMU.EDU
+From: "Scott E. Fahlman" <Fahlman@C.CS.CMU.EDU>
+To: Masinter.pa
+Cc: cl-cleanup@SAIL.STANFORD.EDU
+Subject: Issue: SHADOW-ALREADY-PRESENT (version 3)
+In-reply-to: Msg of 26 Oct 1987  19:57-EST from Masinter.pa at Xerox.COM
+
+
+    I don't understand this:
+
+    Epigram:
+
+    "Who knows what evil lurks in the hearts of men?"
+
+    I tried to imagine a package as the heart of a man and evil as a symbol,
+    lurking there, but it escaped me....
+
+Obviously you didn't spend enough time listening to radio back in the
+1930's.  The next line is "The Shadow knows!"  Does that help?
+
+-- Scott
+*start*
+00695 00024 US 
+Return-Path: <@SAIL.Stanford.EDU:FAHLMAN@C.CS.CMU.EDU>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 26 OCT 87 17:43:27 PST
+Received: from C.CS.CMU.EDU by SAIL.STANFORD.EDU with TCP; 26 Oct 87  17:41:27 PST
+Received: ID <FAHLMAN@C.CS.CMU.EDU>; Mon 26 Oct 87 20:41:57-EST
+Date: Mon, 26 Oct 87 20:41 EST
+Message-ID: <FAHLMAN.12345690226.BABYL@C.CS.CMU.EDU>
+Sender: FAHLMAN@C.CS.CMU.EDU
+From: "Scott E. Fahlman" <Fahlman@C.CS.CMU.EDU>
+To: Masinter.pa
+Cc: cl-cleanup@SAIL.STANFORD.EDU
+Subject: Issue: SHADOW-ALREADY-PRESENT (version 3)
+In-reply-to: Msg of 26 Oct 1987  19:57-EST from Masinter.pa at Xerox.COM
+
+
+I favor WORKS.
+
+-- Scott
+
+*start*
+00823 00024 US 
+Date: 28 Oct 87 09:43 PST
+From: Brotsky.pa
+Subject: Re: Issue: SHADOW-ALREADY-PRESENT (version 3)
+In-reply-to: Masinter.pa's message of 26 Oct 87 16:57 PST
+To: Masinter.pa
+
+Larry,
+
+In your test case, you have
+
+(make-package 'test-1)
+(intern "TEST" (find-package 'test-1))
+(shadow 'test-1::test (find-package 'test-1))
+(assert (not (null (member 'test-1::test (package-shadowing-symbols
+                                           (find-package 'test-1))))))
+
+(make-package 'test-2)
+(intern "TEST" (find-package 'test-2))
+(use-package 'test-2 (find-package 'test-1))    ;should not error
+
+
+Unless I'm missing something, this will never cause an error.  I believe you want the line
+
+(export 'test-2::test (find-package 'test-2))
+
+just after the line
+
+(intern "TEST" (find-package 'test-2))
+
+
+     dan
+
+*start*
+00327 00024 US 
+Date: 28 Oct 87 13:06 PST
+From: Masinter.pa
+Subject: Re: Issue: SHADOW-ALREADY-PRESENT (version 3)
+In-reply-to: Brotsky.pa's message of 28 Oct 87 09:43 PST
+To: Brotsky.pa
+cc: Masinter
+
+The example was Moon's. I didn't check it, because I don't pretend to grok packages.
+
+I'll just stick the EXPORT in.
+
+*start*
+00931 00024 US 
+Return-Path: <CL-Cleanup-mailer@SAIL.Stanford.EDU>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 08 NOV 87 11:20:39 PST
+Received: from SCRC-STONY-BROOK.ARPA by SAIL.STANFORD.EDU with TCP; 8 Nov 87  11:19:14 PST
+Received: from EUPHRATES.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 274769; Sun 8-Nov-87 14:18:53 EST
+Date: Sun, 8 Nov 87 14:19 EST
+From: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: Issue: SHADOW-ALREADY-PRESENT (version 3)
+To: cl-cleanup@SAIL.STANFORD.EDU
+In-Reply-To: <871026-165748-2355@Xerox>
+Message-ID: <19871108191910.1.MOON@EUPHRATES.SCRC.Symbolics.COM>
+
+I favor version 3 of SHADOW-ALREADY-PRESENT and the proposal
+SHADOW-ALREADY-PRESENT:WORKS.  The epigram was just there to
+test whether anyone was reading all the way through, and of
+course should not be included in the published version.
+
+*start*
+00812 00024 US 
+Return-Path: <CL-Cleanup-mailer@SAIL.Stanford.EDU>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 09 NOV 87 10:37:04 PST
+Received: from SCRC-STONY-BROOK.ARPA by SAIL.STANFORD.EDU with TCP; 9 Nov 87  10:32:50 PST
+Received: from RIO-DE-JANEIRO.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 275344; Mon 9-Nov-87 13:33:27 EST
+Date: Mon, 9 Nov 87 13:33 EST
+From: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: Issue: SHADOW-ALREADY-PRESENT (version 3)
+To: Moon@STONY-BROOK.SCRC.Symbolics.COM
+cc: CL-Cleanup@SAIL.Stanford.EDU
+In-Reply-To: <19871108191910.1.MOON@EUPHRATES.SCRC.Symbolics.COM>
+Message-ID: <871109133311.2.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+
+SHADOW-ALREADY-PRESENT:WORKS looks fine to me.
+
+*start*
+05557 00024 USf
+Date: 10 Nov 87 23:59 PST
+From: Masinter.pa
+Subject:  Issue: SHADOW-ALREADY-PRESENT (version 4)
+To: cl-cleanup@Sail.stanford.edu
+cc: Masinter.pa
+line-fold: no
+Message-ID: <871026-165748-2355@Xerox>
+
+Dan Brotsky pointed out that the test case was missing an EXPORT. I added it.
+
+I modified the Adoption Cost section to be more vague about the number of lines
+this proposal requires changing.
+
+I'm going up the list in reverse order. This is the first issue I've come to that seems
+completely ready for release with no further discussion.
+
+
+!
+Issue:         SHADOW-ALREADY-PRESENT
+
+References:    CLtL p.186
+
+Category:      CLARIFICATION/CHANGE
+
+Edit history:  Version 1 Moon 24 Aug 87 
+               Version 2 Moon 27 Aug 87 incorporate JonL's suggestions 
+               Version 3 Masinter 26-Oct-87
+               Version 4 Masinter 10-Nov-87
+
+Problem description:
+
+The description of the SHADOW function can be interpreted as saying that
+the function has no effect, if the symbol is already present in the
+package.  This happens if the third sentence in the description ("then
+nothing is done") is interpreted as applying to the entire description
+rather than just to the fourth sentence.
+
+SHADOW is said to take symbols as arguments, however only the print-name
+is meaningful for this operation (that fact is already documented).
+
+Proposal SHADOW-ALREADY-PRESENT:WORKS:
+
+1) The SHADOW function always adds the symbol to the
+PACKAGE-SHADOWING-SYMBOLS list, even when the symbol is already
+present in the package. 
+
+2) The first argument to SHADOW is allowed to be or contain strings as
+well as symbols. The specification "the print name of each symbol is
+extracted" is to be modified accordingly.
+
+Test Case:
+
+;;; SHADOW always adds the symbol to the PACKAGE-SHADOWING-SYMBOLS
+;;; list of a package
+
+(make-package 'test-1)
+(intern "TEST" (find-package 'test-1))
+(shadow 'test-1::test (find-package 'test-1))
+(assert (not (null (member 'test-1::test (package-shadowing-symbols
+                                           (find-package 'test-1))))))
+
+(make-package 'test-2)
+(intern "TEST" (find-package 'test-2))
+(export 'test-2::test (find-package 'test-2))
+(use-package 'test-2 (find-package 'test-1))    ;should not error
+
+;;; To test the use of strings in place of symbols
+;;; change the third line of the test case to
+;;;     (shadow "TEST" (find-package 'test-1))
+;;; Note the use of capital letters in the string.
+
+Rationale:
+
+CLtL p. 180 describes a name conflict problem that can occur when
+calling the function USE-PACKAGE. The name conflict is between a symbol
+directly present in the using package and an external symbol of the used
+package. This name conflict may be resolved in favor of the symbol
+directly present in the using package by making it a shadowing symbol.
+For this to work, SHADOW must add the symbol to the
+PACKAGE-SHADOWING-SYMBOLS list even when it is already present in the
+package.
+
+Since only the print name of a symbol argument is meaningful, a string
+should also be accepted.  This is particularly useful to avoid problems
+when compiling code in one package environment and loading it into a
+slightly different package environment, where the symbol that was
+referred to at compile time may not be present at load time.  This is
+particularly important because the symbol referred to by the print name
+may be changed by evaluation of the SHADOW form.  A close reading of
+CLtL shows that one can already use (shadow '#:bar) in place of (shadow
+'bar), to achieve much the same effect as (shadow "BAR").  But the user
+should not have to play such games, strings should be accepted.
+
+Current practice:
+
+Symbolics and Spice Lisp add the symbol to the PACKAGE-SHADOWING-SYMBOLS
+list, even when the symbol is already present in the package.  Kyoto
+Common Lisp, Lucid Common Lisp, and Xerox Common Lisp ignore SHADOW when
+the symbol is already present in the package.  It seems likely that we
+will find several implementations in each camp.
+
+SHADOW accepts strings in Symbolics Common Lisp.
+
+Adoption Cost:
+
+This should be a minor change to implementations that do not currently
+work this way.
+
+Cost of non-adoption:
+
+Inconsistency among implementations and lack of a clear way to resolve
+the name conflict mentioned in Rationale.
+
+Benefits:
+
+Consistency among implementations and fewer mysterious package problems.
+
+Conversion Cost:
+
+Technically this would be an incompatible change to implementations that
+do not already behave as proposed, however it is difficult to conceive
+of a user program that would require any conversion to cope with the
+change. Some users might want to remove kludges that were only necessary
+to get around the former misbehavior of SHADOW.
+
+Esthetics:
+
+The proposal would remove an unnecessary special case, thus simplifying
+the language slightly.
+
+Discussion:
+
+The issue was raised by Dieter Kolb on the Common-Lisp mailing list.
+
+It would be useless for SHADOW to fail to put a symbol that is already
+present in the package onto the PACKAGE-SHADOWING-SYMBOLS list.  Moon
+believes CLtL intended to describe what is being proposed, but
+unfortunately used ambiguous language.
+
+The cleanup committee endorses this proposal.
+        TITAN          TITAN           
+TIMESROMAN 
+                                                                  ª             ‘       '      G             ∆             ú             Ç              X              s       
+       K             P              a             i      8 z∫*start*
+05141 00024 US 
+Date: 14 Nov 87 21:52 PST
+From: Masinter.pa
+Subject:  Issue: SHADOW-ALREADY-PRESENT (version 4) formatted
+To: Masinter.pa
+
+
+Issue:         SHADOW-ALREADY-PRESENT
+
+References:    CLtL p.186
+
+Category:      CLARIFICATION/CHANGE
+
+Edit history:  Version 1 Moon 24 Aug 87 
+               Version 2 Moon 27 Aug 87 incorporate JonL's suggestions 
+               Version 3 Masinter 26-Oct-87
+               Version 4 Masinter 10-Nov-87
+
+Problem description:
+
+The description of the SHADOW function can be interpreted as saying that the function has no effect, if the symbol is already present in the package.  This happens if the third sentence in the description ("then nothing is done") is interpreted as applying to the entire description rather than just to the fourth sentence.
+
+SHADOW is said to take symbols as arguments, however only the print-name is meaningful for this operation (that fact is already documented).
+
+Proposal SHADOW-ALREADY-PRESENT:WORKS:
+
+1) The SHADOW function always adds the symbol to the PACKAGE-SHADOWING-SYMBOLS list, even when the symbol is already present in the package. 
+
+2) The first argument to SHADOW is allowed to be or contain strings as well as symbols. The specification "the print name of each symbol is extracted" is to be modified accordingly.
+
+Test Case:
+
+;;; SHADOW always adds the symbol to the PACKAGE-SHADOWING-SYMBOLS
+;;; list of a package
+
+(make-package 'test-1)
+(intern "TEST" (find-package 'test-1))
+(shadow 'test-1::test (find-package 'test-1))
+(assert (not (null (member 'test-1::test (package-shadowing-symbols
+                                           (find-package 'test-1))))))
+
+(make-package 'test-2)
+(intern "TEST" (find-package 'test-2))
+(export 'test-2::test (find-package 'test-2))
+(use-package 'test-2 (find-package 'test-1))    ;should not error
+
+;;; To test the use of strings in place of symbols
+;;; change the third line of the test case to
+;;;     (shadow "TEST" (find-package 'test-1))
+;;; Note the use of capital letters in the string.
+
+Rationale:
+
+CLtL p. 180 describes a name conflict problem that can occur when calling the function USE-PACKAGE. The name conflict is between a symbol directly present in the using package and an external symbol of the used package. This name conflict may be resolved in favor of the symbol directly present in the using package by making it a shadowing symbol. For this to work, SHADOW must add the symbol to the PACKAGE-SHADOWING-SYMBOLS list even when it is already present in the package.
+
+Since only the print name of a symbol argument is meaningful, a string should also be accepted.  This is particularly useful to avoid problems when compiling code in one package environment and loading it into a slightly different package environment, where the symbol that was referred to at compile time may not be present at load time.  This is particularly important because the symbol referred to by the print name may be changed by evaluation of the SHADOW form.  A close reading of CLtL shows that one can already use (shadow '#:bar) in place of (shadow 'bar), to achieve much the same effect as (shadow "BAR").  But the user should not have to play such games, strings should be accepted.
+
+Current practice:
+
+Symbolics and Spice Lisp add the symbol to the PACKAGE-SHADOWING-SYMBOLS list, even when the symbol is already present in the package.  Kyoto Common Lisp, Lucid Common Lisp, and Xerox Common Lisp ignore SHADOW when the symbol is already present in the package.  It seems likely that we will find several implementations in each camp.
+
+SHADOW accepts strings in Symbolics Common Lisp.
+
+Adoption Cost:
+
+This should be a minor change to implementations that do not currently work this way.
+
+Cost of non-adoption:
+
+Inconsistency among implementations and lack of a clear way to resolve the name conflict mentioned in Rationale.
+
+Benefits:
+
+Consistency among implementations and fewer mysterious package problems.
+
+Conversion Cost:
+
+Technically this would be an incompatible change to implementations that do not already behave as proposed, however it is difficult to conceive of a user program that would require any conversion to cope with the change. Some users might want to remove kludges that were only necessary to get around the former misbehavior of SHADOW.
+
+Esthetics:
+
+The proposal would remove an unnecessary special case, thus simplifying the language slightly.
+
+Discussion:
+
+The issue was raised by Dieter Kolb on the Common-Lisp mailing list.
+
+It would be useless for SHADOW to fail to put a symbol that is already present in the package onto the PACKAGE-SHADOWING-SYMBOLS list.  Moon believes CLtL intended to describe what is being proposed, but unfortunately used ambiguous language.
+
+The cleanup committee endorses this proposal.
+        TITAN 
+          TITAN 
+         
+TIMESROMAN 
+           }                                                        ª             ‘       '      G             ∆             ú             Ç              X              s       
+       K             P              a             i      ò z∫*start*
+05219 00024 US 
+Date: 14 Feb 88 14:03 PST
+From: Masinter.pa
+Subject:  Issue: SHADOW-ALREADY-PRESENT (version 4)
+To: X3J13@Sail.stanford.edu
+cc: Masinter
+reply-to: CL-CLEANUP@Sail.Stanford.EDU
+
+This issue is new.
+
+Issue:         SHADOW-ALREADY-PRESENT
+
+References:    CLtL p.186
+
+Category:      CLARIFICATION/CHANGE
+
+Edit history:  Version 1 Moon 24 Aug 87 
+               Version 2 Moon 27 Aug 87 incorporate JonL's suggestions 
+               Version 3 Masinter 26-Oct-87
+               Version 4 Masinter 10-Nov-87
+
+Problem description:
+
+The description of the SHADOW function can be interpreted as saying that the function has no effect, if the symbol is already present in the package.  This happens if the third sentence in the description ("then nothing is done") is interpreted as applying to the entire description rather than just to the fourth sentence.
+
+SHADOW is said to take symbols as arguments, however only the print-name is meaningful for this operation (that fact is already documented).
+
+Proposal SHADOW-ALREADY-PRESENT:WORKS:
+
+1) The SHADOW function always adds the symbol to the PACKAGE-SHADOWING-SYMBOLS list, even when the symbol is already present in the package. 
+
+2) The first argument to SHADOW is allowed to be or contain strings as well as symbols. The specification "the print name of each symbol is extracted" is to be modified accordingly.
+
+Test Case:
+
+;;; SHADOW always adds the symbol to the PACKAGE-SHADOWING-SYMBOLS
+;;; list of a package
+
+(make-package 'test-1)
+(intern "TEST" (find-package 'test-1))
+(shadow 'test-1::test (find-package 'test-1))
+(assert (not (null (member 'test-1::test (package-shadowing-symbols
+                                           (find-package 'test-1))))))
+
+(make-package 'test-2)
+(intern "TEST" (find-package 'test-2))
+(export 'test-2::test (find-package 'test-2))
+(use-package 'test-2 (find-package 'test-1))    ;should not error
+
+;;; To test the use of strings in place of symbols
+;;; change the third line of the test case to
+;;;     (shadow "TEST" (find-package 'test-1))
+;;; Note the use of capital letters in the string.
+
+Rationale:
+
+CLtL p. 180 describes a name conflict problem that can occur when calling the function USE-PACKAGE. The name conflict is between a symbol directly present in the using package and an external symbol of the used package. This name conflict may be resolved in favor of the symbol directly present in the using package by making it a shadowing symbol. For this to work, SHADOW must add the symbol to the PACKAGE-SHADOWING-SYMBOLS list even when it is already present in the package.
+
+Since only the print name of a symbol argument is meaningful, a string should also be accepted.  This is particularly useful to avoid problems when compiling code in one package environment and loading it into a slightly different package environment, where the symbol that was referred to at compile time may not be present at load time.  This is particularly important because the symbol referred to by the print name may be changed by evaluation of the SHADOW form.  A close reading of CLtL shows that one can already use (shadow '#:bar) in place of (shadow 'bar), to achieve much the same effect as (shadow "BAR").  But the user should not have to play such games, strings should be accepted.
+
+Current practice:
+
+Symbolics and Spice Lisp add the symbol to the PACKAGE-SHADOWING-SYMBOLS list, even when the symbol is already present in the package.  Kyoto Common Lisp, Lucid Common Lisp, and Xerox Common Lisp ignore SHADOW when the symbol is already present in the package.  It seems likely that we will find several implementations in each camp.
+
+SHADOW accepts strings in Symbolics Common Lisp.
+
+Cost to implementors:
+
+This should be a minor change to implementations that do not currently work this way.
+
+Cost to users:
+
+Technically this would be an incompatible change to implementations that do not already behave as proposed, however it is difficult to conceive of a user program that would require any conversion to cope with the change. Some users might want to remove kludges that were only necessary to get around the former misbehavior of SHADOW.
+
+Cost of non-adoption:
+
+Inconsistency among implementations and lack of a clear way to resolve the name conflict mentioned in Rationale.
+
+Benefits:
+
+Consistency among implementations and fewer mysterious package problems.
+
+Esthetics:
+
+The proposal would remove an unnecessary special case, thus simplifying the language slightly.
+
+Discussion:
+
+The issue was raised by Dieter Kolb on the Common-Lisp mailing list.
+
+It would be useless for SHADOW to fail to put a symbol that is already present in the package onto the PACKAGE-SHADOWING-SYMBOLS list.  Moon believes CLtL intended to describe what is being proposed, but unfortunately used ambiguous language.
+
+The cleanup committee endorses this proposal.
+        TITAN 
+          TITAN 
+         
+TIMESROMAN 
+           ∆                                                        ª             ‘       '      G             ∆             ú             Ç              X             P              s       
+       K              a             i      Ê z∫

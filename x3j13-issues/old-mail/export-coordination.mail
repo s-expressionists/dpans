@@ -1,0 +1,679 @@
+*start*
+03057 00024 USa
+Return-Path: <CARNESE@SPAR-20.ARPA>
+Received: from SPAR-20.ARPA by Xerox.COM ; 25 AUG 87 11:19:39 PDT
+Date: Tue, 25 Aug 87 11:17:11 PDT
+From: Dan Carnese <CARNESE@SPAR-20.ARPA>
+Subject: Re: [Dan Carnese <CARNESE@SPAR-20.ARPA>: Re: CLX draft 3
+To: Masinter.pa
+In-Reply-To: <870526-143104-170@Xerox>
+Message-ID: <12329356345.33.CARNESE@SPAR-20.ARPA>
+
+
+    Return-Path: <Masinter.pa@Xerox.COM>
+    Received: from Xerox.COM by SPAR-20.ARPA with TCP; Tue 26 May 87 20:23:41-PDT
+    Received: from Cabernet.ms by ArpaGateway.ms ; 26 MAY 87 14:31:04 PDT
+    Date: 26 May 87 14:30 PDT
+    From: Masinter.pa@Xerox.COM
+    Subject: Re: [Dan Carnese <CARNESE@SPAR-20.ARPA>: Re: CLX draft 3
+     revisions
+    In-reply-to: Dan Carnese <CARNESE@SPAR-20.ARPA>'s message of Thu, 14 May
+     87 16:27:40 PDT
+    To: CARNESE@SPAR-20.ARPA
+    Message-ID: <870526-143104-170@Xerox>
+
+    "There are certainly more issues that need to be raised and sorted out.
+    But it seems likely that some reasonable proposal could be made."
+
+    I had hoped that you had one, rather than merely the conjecture that one
+    could be created...
+
+    Your "extremely naive approach" seems to confound load time and
+    execution time in an uncomfortable way, and isn't at all consistent with
+    what Common Lisp currently means as a "package".
+
+Well, I wasn't entirely happy with my proposal either, since so much would
+be happening automatically.  But I didn't think of a more flexible approach
+until I started to write something up for the clos workshop.
+
+As it turned out, the proposal is primarily oriented toward Common Lisp
+rather than CLOS.  I haven't been following the broader Common Lisp
+discussions, so perhaps you could tell me if this sort of thing has been
+proposed before.  Of course, I'd appreciate your own comments as well.
+
+-- Dan
+
+                             ----------------
+
+The use of classes is much more difficult when the package system is used
+aggressively.  One of the goals of an object system is to let orthogonal
+extensions be defined independently and used in arbitrary combinations.
+Associating a package for each group of classes that together define a
+"protocol" and defining seperate packages for each implementation of a
+protocol seems a reasonable way to ensure non-interference.  Unfortunately,
+the current interface to the Common Lisp package system makes this approach
+difficult to carry out, due in part to the need to maintain explicit export
+lists seperate from the actual symbol definitions and the difficulty most
+users have in recovering from package errors that cause inappropriate
+interning.
+
+A simple idea which would help with the former is to allow a single form to
+define and export a symbol.  This could be done by introducing versions of
+each "def" macro (e.g., defun*, defparameter*, defmethod*) which both
+define and export symbols.  It should also be possible to have the
+symbol-exporting versions of defclass and defstruct export the names of the
+reader and accessor functions created by the form.
+-------
+*start*
+02144 00024 USf
+Return-Path: <@SPAR-20.ARPA,@KATYDID.SPAR.CAS.SLB.COM:Carnese@SPAR-20.ARPA>
+Received: from SPAR-20.ARPA by Xerox.COM ; 25 AUG 87 13:01:17 PDT
+Received: from KATYDID.SPAR.CAS.SLB.COM (KATYDID.#Internet) by SPAR-20.ARPA with TCP; Tue 25 Aug 87 12:59:13-PDT
+Date: Tue, 25 Aug 87 12:59 PDT
+From: Dan Carnese <Carnese@SPAR-20.ARPA>
+Subject: proposal
+To: masinter.pa
+Message-ID: <870825125906.2.CARNESE@KATYDID.SPAR.CAS.SLB.COM>
+
+Thanks for the information.  I didn't realize that proposals were required
+to be in such a detailed format but of course that makes sense.
+
+I think the problem can be "symbolized" as
+multiple-forms-for-exported-defined-symbols.  Its definition could be:
+
+        Exporting a defined symbol currently requires two seperate forms:
+        one to give a value to the symbol and another to cause the symbol
+        to be on a package export list.  These two forms must be kept in
+        sync as the program evolves.
+
+The benefit would be:
+
+        Explicit export lists could be eliminated in many cases.
+
+The thrust of the discussion would be:
+
+        This is an extremely straightforward addition, one which could be
+        implemented by macros that would simply expand to an export and an
+        existing definition form.  Only DEFSTRUCT* would involve actual
+        programming, to process the additional defstruct and slot options.
+
+        The proposal does not completely eliminate the need for explicit
+        calls to EXPORT for two reasons.   First, it is sometimes useful to
+        export symbols for which no definition forms are applicable, e.g.,
+        to be used as arguments to functions.  Second, explicit exports of
+        defined symbols are still needed in the following case.  Suppose A
+        and B are packages, A defines an external symbol F, and B uses A.
+        Suppose further that F appears in a form being read into package B,
+        and that this form is to be read before the definition of F is
+        loaded.  In this case, an explicit export of F must occur, to avoid
+        F being inappropriately interned in B.
+
+Does this sound reasonable?
+
+-- Dan
+
+*start*
+02898 00024 USh
+Return-Path: <@SAIL.STANFORD.EDU:Masinter.pa@Xerox.COM>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 29 AUG 87 13:38:37 PDT
+Received: from XEROX.COM by SAIL.STANFORD.EDU with TCP; 29 Aug 87  13:36:56 PDT
+Received: from Cabernet.ms by ArpaGateway.ms ; 29 AUG 87 13:36:54 PDT
+Date: 29 Aug 87 13:36 PDT
+From: Masinter.pa
+Subject: [Dan Carnese <Carnese@SPAR-20.ARPA>: proposal]
+To: cl-cleanup@sail.stanford.edu
+cc: Carnese@SPAR-20.ARPA
+Message-ID: <870829-133654-4656@Xerox>
+
+I've given the name "EXPORT-COORDINATION" to this issue. I think this is
+an interesting proposal. Comments? (Before Dan writes up a more formal
+proposal?)
+
+
+
+     ----- Begin Forwarded Messages -----
+
+Return-Path:
+<@SPAR-20.ARPA,@KATYDID.SPAR.CAS.SLB.COM:Carnese@SPAR-20.ARPA>
+Received: from SPAR-20.ARPA by Xerox.COM ; 25 AUG 87 13:01:17 PDT
+Received: from KATYDID.SPAR.CAS.SLB.COM (KATYDID.#Internet) by
+SPAR-20.ARPA with TCP; Tue 25 Aug 87 12:59:13-PDT
+Date: Tue, 25 Aug 87 12:59 PDT
+From: Dan Carnese <Carnese@SPAR-20.ARPA>
+Subject: proposal
+To: masinter.pa
+Message-ID: <870825125906.2.CARNESE@KATYDID.SPAR.CAS.SLB.COM>
+
+Thanks for the information.  I didn't realize that proposals were
+required
+to be in such a detailed format but of course that makes sense.
+
+I think the problem can be "symbolized" as
+multiple-forms-for-exported-defined-symbols.  Its definition could be:
+
+        Exporting a defined symbol currently requires two seperate
+forms:
+        one to give a value to the symbol and another to cause the
+symbol
+        to be on a package export list.  These two forms must be kept in
+        sync as the program evolves.
+
+The benefit would be:
+
+        Explicit export lists could be eliminated in many cases.
+
+The thrust of the discussion would be:
+
+        This is an extremely straightforward addition, one which could
+be
+        implemented by macros that would simply expand to an export and
+an
+        existing definition form.  Only DEFSTRUCT* would involve actual
+        programming, to process the additional defstruct and slot
+options.
+
+        The proposal does not completely eliminate the need for explicit
+        calls to EXPORT for two reasons.   First, it is sometimes useful
+to
+        export symbols for which no definition forms are applicable,
+e.g.,
+        to be used as arguments to functions.  Second, explicit exports
+of
+        defined symbols are still needed in the following case.  Suppose
+A
+        and B are packages, A defines an external symbol F, and B uses
+A.
+        Suppose further that F appears in a form being read into package
+B,
+        and that this form is to be read before the definition of F is
+        loaded.  In this case, an explicit export of F must occur, to
+avoid
+        F being inappropriately interned in B.
+
+Does this sound reasonable?
+
+-- Dan
+
+
+     ----- End Forwarded Messages -----
+
+*start*
+02477 00024 USh
+Return-Path: <RAM@C.CS.CMU.EDU>
+Received: from C.CS.CMU.EDU by Xerox.COM ; 29 AUG 87 14:39:49 PDT
+Received: ID <RAM@C.CS.CMU.EDU>; Sat 29 Aug 87 17:40:55-EDT
+Date: Sat, 29 Aug 87 17:40 EDT
+Message-ID: <RAM.12330441992.BABYL@>
+Sender: RAM@
+From: Ram@C.CS.CMU.EDU
+To: Masinter.pa
+Cc: Carnese@SPAR-20.ARPA, cl-cleanup@SAIL.STANFORD.EDU
+Subject: [Dan Carnese <Carnese@SPAR-20.ARPA>: proposal]
+In-reply-to: Msg of 29 Aug 1987  16:36-EDT from Masinter.pa at Xerox.COM
+
+
+The idea has obvious intuitive appeal, since people tend to think of
+exporting definitions rather than names.  Unfortunately, I think that
+there is likely to be some messy semantics due to name resolution
+happening at read time and the implicit package manipulation happening
+later on.  The semantics of package manipulation with respect to
+compile-file/load is currently not defined.  [Except perhaps in some
+vague language that suggests the semantics of loading the source are
+preserved, which is clearly wrong.]  It is certainly naive to suppose
+that a macro can expand into arbirary package manipulation code and
+"the right thing" will happen.
+
+I think that exporting symbols from the current package happens to be
+safe as long as all the code in a file is restricted to one package,
+but I certainly don't want to have to figure out which of all possible
+kinds of package manipulation will break what possible reasonable
+compiler organizations.
+
+You should also be careful that you aren't thinking of this issue in
+terms of "top-level defining forms", since I am convinced that the
+notion of a "top-level form" is semantically bankrupt.  Although some
+forms are most often used at "top-level" (however defined), the
+semantics of those forms are a result of its evaluation, and a form can
+be evaluated anywhere.  Consider the semantics of:
+  (if <whatever>
+      (defun-exported foo ...))
+
+Consider the possible range of implementations such as "compilers" and
+"interpreters".  Is Foo {always | never | sometimes} exported at 
+{read | macroexpand | compile | load | run} time?
+
+I currently favor requiring all package manipulation to be done at the
+head of the file.  This has the advantage that it allows compilers and
+editors to find all stuff pertinent to read-time semantics without
+having to go through the motions of compiling the entire file.
+
+Of course, it would be possible to have an automatic exporting feature
+without allowing users to have package-hacking macros.
+
+  Rob
+*start*
+02898 00024 USh
+Return-Path: <@SAIL.STANFORD.EDU:Masinter.pa@Xerox.COM>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 29 AUG 87 13:38:37 PDT
+Received: from XEROX.COM by SAIL.STANFORD.EDU with TCP; 29 Aug 87  13:36:56 PDT
+Received: from Cabernet.ms by ArpaGateway.ms ; 29 AUG 87 13:36:54 PDT
+Date: 29 Aug 87 13:36 PDT
+From: Masinter.pa
+Subject: [Dan Carnese <Carnese@SPAR-20.ARPA>: proposal]
+To: cl-cleanup@sail.stanford.edu
+cc: Carnese@SPAR-20.ARPA
+Message-ID: <870829-133654-4656@Xerox>
+
+I've given the name "EXPORT-COORDINATION" to this issue. I think this is
+an interesting proposal. Comments? (Before Dan writes up a more formal
+proposal?)
+
+
+
+     ----- Begin Forwarded Messages -----
+
+Return-Path:
+<@SPAR-20.ARPA,@KATYDID.SPAR.CAS.SLB.COM:Carnese@SPAR-20.ARPA>
+Received: from SPAR-20.ARPA by Xerox.COM ; 25 AUG 87 13:01:17 PDT
+Received: from KATYDID.SPAR.CAS.SLB.COM (KATYDID.#Internet) by
+SPAR-20.ARPA with TCP; Tue 25 Aug 87 12:59:13-PDT
+Date: Tue, 25 Aug 87 12:59 PDT
+From: Dan Carnese <Carnese@SPAR-20.ARPA>
+Subject: proposal
+To: masinter.pa
+Message-ID: <870825125906.2.CARNESE@KATYDID.SPAR.CAS.SLB.COM>
+
+Thanks for the information.  I didn't realize that proposals were
+required
+to be in such a detailed format but of course that makes sense.
+
+I think the problem can be "symbolized" as
+multiple-forms-for-exported-defined-symbols.  Its definition could be:
+
+        Exporting a defined symbol currently requires two seperate
+forms:
+        one to give a value to the symbol and another to cause the
+symbol
+        to be on a package export list.  These two forms must be kept in
+        sync as the program evolves.
+
+The benefit would be:
+
+        Explicit export lists could be eliminated in many cases.
+
+The thrust of the discussion would be:
+
+        This is an extremely straightforward addition, one which could
+be
+        implemented by macros that would simply expand to an export and
+an
+        existing definition form.  Only DEFSTRUCT* would involve actual
+        programming, to process the additional defstruct and slot
+options.
+
+        The proposal does not completely eliminate the need for explicit
+        calls to EXPORT for two reasons.   First, it is sometimes useful
+to
+        export symbols for which no definition forms are applicable,
+e.g.,
+        to be used as arguments to functions.  Second, explicit exports
+of
+        defined symbols are still needed in the following case.  Suppose
+A
+        and B are packages, A defines an external symbol F, and B uses
+A.
+        Suppose further that F appears in a form being read into package
+B,
+        and that this form is to be read before the definition of F is
+        loaded.  In this case, an explicit export of F must occur, to
+avoid
+        F being inappropriately interned in B.
+
+Does this sound reasonable?
+
+-- Dan
+
+
+     ----- End Forwarded Messages -----
+
+*start*
+01071 00024 USh
+Return-Path: <@SAIL.STANFORD.EDU:CARNESE@SPAR-20.ARPA>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 02 SEP 87 19:28:17 PDT
+Received: from SPAR-20.ARPA by SAIL.STANFORD.EDU with TCP; 2 Sep 87  19:26:25 PDT
+Date: Wed, 2 Sep 87 19:25:58 PDT
+From: Dan Carnese <CARNESE@SPAR-20.ARPA>
+Subject: Re: [Dan Carnese <Carnese@SPAR-20.ARPA>: proposal]
+To: Ram@C.CS.CMU.EDU
+cc: cl-cleanup@SAIL.STANFORD.EDU
+In-Reply-To: <RAM.12330441992.BABYL@>
+Message-ID: <12331542476.10.CARNESE@SPAR-20.ARPA>
+
+Although not explicitly stated in the message Larry forwarded, the proposal
+is for def...* forms that export the defined symbols from their packages.
+Of course, your observations are valid about the non-clarity of the value
+of *package* and of when a symbol is actually defined.  But they don't seem
+directly relevant to this proposal, since they describe problems in the
+current language definition.  So long as the export occurs just after the
+cell is filled, I don't think we're adding to the existing murkiness.
+
+-------
+
+*start*
+01482 00024 USh
+Return-Path: <@SAIL.STANFORD.EDU:FAHLMAN@C.CS.CMU.EDU>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 02 SEP 87 19:54:04 PDT
+Received: from C.CS.CMU.EDU by SAIL.STANFORD.EDU with TCP; 2 Sep 87  19:52:23 PDT
+Received: ID <FAHLMAN@C.CS.CMU.EDU>; Wed 2 Sep 87 22:52:27-EDT
+Date: Wed, 2 Sep 87 22:52 EDT
+Message-ID: <FAHLMAN.12331547288.BABYL@C.CS.CMU.EDU>
+Sender: FAHLMAN@C.CS.CMU.EDU
+From: "Scott E. Fahlman" <Fahlman@C.CS.CMU.EDU>
+To: Dan Carnese <CARNESE@SPAR-20.ARPA>
+Cc: cl-cleanup@SAIL.STANFORD.EDU
+Subject: [Dan Carnese <Carnese@SPAR-20.ARPA>: proposal]
+In-reply-to: Msg of 2 Sep 1987  22:25-EDT from Dan Carnese <CARNESE at SPAR-20.ARPA>
+
+
+I'll stay out of the argument about whether it is a good idea to scatter
+the exports (implicit or explicit) all through the file, rather than
+requiring all the exports to occur at the start of each file.  This is
+tied up with some big questions about the compiler, and it can't really
+be settled in isolation.
+
+Just for the record, though, I would strongly oppose any proposal to use
+DEF...* for naming the def-exporting forms.  The last thing we need in
+this language is to start sticking stars and other meaningless
+decorations on the end of symbols whenever we want to say "different in
+some way that I know and you'll have to guess".  There's already some of
+this kind of thing in the language, held over from other Lisps, but we
+shouldn't extend the practice.
+
+-- Scott
+
+*start*
+02950 00024 USa
+Return-Path: <@SAIL.STANFORD.EDU:CARNESE@SPAR-20.ARPA>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 04 SEP 87 10:52:20 PDT
+Received: from SPAR-20.ARPA by SAIL.STANFORD.EDU with TCP; 4 Sep 87  10:47:43 PDT
+Date: Fri, 4 Sep 87 10:15:49 PDT
+From: Dan Carnese <CARNESE@SPAR-20.ARPA>
+Subject: Re: [Dan Carnese <Carnese@SPAR-20.ARPA>: proposal]
+To: Ram@C.CS.CMU.EDU
+cc: cl-cleanup@SAIL.STANFORD.EDU
+In-Reply-To: <RAM.12331715786.BABYL@>
+Message-ID: <12331966613.10.CARNESE@SPAR-20.ARPA>
+
+
+    Return-Path: <RAM@C.CS.CMU.EDU>
+    Received: from C.CS.CMU.EDU by SPAR-20.ARPA with TCP; Thu 3 Sep 87 11:18:03-PDT
+    Received: ID <RAM@C.CS.CMU.EDU>; Thu 3 Sep 87 14:18:04-EDT
+    Date: Thu, 3 Sep 1987  14:17 EDT
+    Message-ID: <RAM.12331715786.BABYL@>
+    Sender: RAM@
+    From: Ram@C.CS.CMU.EDU
+    To:   Dan Carnese <CARNESE@SPAR-20.ARPA>
+    Cc:   cl-cleanup@SAIL.STANFORD.EDU
+    Subject: [Dan Carnese <Carnese@SPAR-20.ARPA>: proposal]
+    In-reply-to: Msg of 2 Sep 1987  22:25-EDT from Dan Carnese <CARNESE at SPAR-20.ARPA>
+
+
+    Actually, having the defining form export the symbol from its home
+    package is more problematic than exporting from the current package.
+    Consider a code fragment like:
+        (in-package 'a :use '(lisp b))
+        ...
+        (defun-exported b::foo ...)
+        foo
+
+    What package is the following "foo" in?  Obviously the DEFUN-EXPORTED
+    and the "foo" could be in the same form, so under some circumstances,
+    that "foo" couldn't possibly refer to B:FOO, yet if the compiler
+    happened to process the DEFUN-EXPORTED before the "foo" was read, then
+    it would be B:FOO. 
+
+    To say that these things are "just problems in the current language
+    definition" doesn't avoid the problem.  Adding new langauge features
+    is language design, and a language designer must consider how each
+    language feature will affect his ability to properly define the
+    language.  I am suggesting that this feature would significantly
+    complicate the language definition for what seems to me to be little
+    gain.
+
+      Rob
+
+Sorry, but I'm still not clear on how this extension makes the situation
+any more complicated.  What I understand you to be saying is that the
+semantics of your example would not be well-defined in the case where these
+are not top-level forms.  Of course, you're right.  But since any code
+involving the new constructs can be expanded into existing constructs
+(e.g., by replacing the defun-exported with a defun followed by an export),
+the proposal doesn't introduce any new kinds of problematic situations.
+Thus, it is difficult to argue that the language definition would be made
+more complicated by having such expansions predefined.
+
+With regard to the naming issue that Scott raised, the use of "-exported"
+as a suffix seems quite reasonable.  I'm happy to accede to a change that
+increases readability.
+-------
+
+*start*
+02045 00024 USh
+Return-Path: <@SAIL.STANFORD.EDU:edsel!bhopal!jonl@labrea.stanford.edu>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 04 SEP 87 10:35:09 PDT
+Received: from LABREA.STANFORD.EDU by SAIL.STANFORD.EDU with TCP; 4 Sep 87  10:30:27 PDT
+Received: by labrea.stanford.edu; Fri, 4 Sep 87 10:11:04 PDT
+Received: from bhopal.edsel.com by edsel.uucp (3.2/SMI-2.0)
+	id AA22223; Fri, 4 Sep 87 09:08:33 PDT
+Received: by bhopal.edsel.com (3.2/SMI-3.2)
+	id AA04816; Fri, 4 Sep 87 09:08:14 PDT
+Date: Fri, 4 Sep 87 09:08:14 PDT
+From: edsel!bhopal!jonl@labrea.stanford.edu (Jon L White)
+Message-Id: <8709041608.AA04816@bhopal.edsel.com>
+To: labrea!Ram%C.CS.CMU.EDU@labrea.stanford.edu, labrea!Fahlman%C.CS.CMU.EDU@labrea.stanford.edu
+Cc: labrea!CARNESE%SPAR-20.ARPA@labrea.stanford.edu, labrea!cl-cleanup%SAIL@labrea.stanford.edu
+In-Reply-To: navajo!Ram@C.CS.CMU.EDU's message of Thu, 3 Sep 1987  14:17 EDT <RAM.12331715786.BABYL@>
+Subject: [Dan Carnese <Carnese@SPAR-20.ARPA>: proposal]
+
+One of the good qualities I liked about Mesa (the Xerox answer to Pascal)
+was the way programmers were encouraged to write a "defs" file for every
+"module" -- basically, this file declares the exportable items, along with 
+their syntax (no code, however), and also mentions the importations (a bit 
+like CL's REQUIRE).  I don't know how much of a pain it was for programmers 
+to produce correct modules under this regimen, but it sure made it a heck 
+of a lot easier to read someone else's code.
+
+I, for one, in my regular work wind up reading a lot of other people's 
+code; and most of my code is eventually read by other people.  Hence I
+would prefer a direction for Common Lisp which facilitated the ability
+to read other people's code, even at the expense of some programming
+conveniences.  This means that having all the "7 extrememly randoms"
+at the beginning of a file (except for PROVIDE) is a much better
+solution than having them sprinkled around random other files in 
+random other modules.
+
+-- JonL --
+
+*start*
+01607 00024 USh
+Return-Path: <@SAIL.STANFORD.EDU:RAM@C.CS.CMU.EDU>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 03 SEP 87 11:22:10 PDT
+Received: from C.CS.CMU.EDU by SAIL.STANFORD.EDU with TCP; 3 Sep 87  11:17:57 PDT
+Received: ID <RAM@C.CS.CMU.EDU>; Thu 3 Sep 87 14:18:04-EDT
+Date: Thu, 3 Sep 87 14:17 EDT
+Message-ID: <RAM.12331715786.BABYL@>
+Sender: RAM@
+From: Ram@C.CS.CMU.EDU
+To: Dan Carnese <CARNESE@SPAR-20.ARPA>
+Cc: cl-cleanup@SAIL.STANFORD.EDU
+Subject: [Dan Carnese <Carnese@SPAR-20.ARPA>: proposal]
+In-reply-to: Msg of 2 Sep 1987  22:25-EDT from Dan Carnese <CARNESE at SPAR-20.ARPA>
+
+
+Actually, having the defining form export the symbol from its home
+package is more problematic than exporting from the current package.
+Consider a code fragment like:
+    (in-package 'a :use '(lisp b))
+    ...
+    (defun-exported b::foo ...)
+    foo
+
+What package is the following "foo" in?  Obviously the DEFUN-EXPORTED
+and the "foo" could be in the same form, so under some circumstances,
+that "foo" couldn't possibly refer to B:FOO, yet if the compiler
+happened to process the DEFUN-EXPORTED before the "foo" was read, then
+it would be B:FOO. 
+
+To say that these things are "just problems in the current language
+definition" doesn't avoid the problem.  Adding new langauge features
+is language design, and a language designer must consider how each
+language feature will affect his ability to properly define the
+language.  I am suggesting that this feature would significantly
+complicate the language definition for what seems to me to be little
+gain.
+
+  Rob
+
+*start*
+01065 00024 USh
+Return-Path: <@SAIL.STANFORD.EDU:Masinter.pa@Xerox.COM>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 22 SEP 87 13:05:10 PDT
+Received: from XEROX.COM by SAIL.STANFORD.EDU with TCP; 22 Sep 87  13:03:04 PDT
+Received: from Cabernet.ms by ArpaGateway.ms ; 22 SEP 87 13:03:35 PDT
+Date: 22 Sep 87 13:03 PDT
+From: Masinter.pa
+Subject: Re: [Dan Carnese <Carnese@SPAR-20.ARPA>: proposal]
+In-reply-to: Dan Carnese <CARNESE@SPAR-20.ARPA>'s message of Fri, 4 Sep
+ 87 10:15:49 PDT
+To: CARNESE@SPAR-20.ARPA
+cc: cl-cleanup@SAIL.STANFORD.EDU
+Message-ID: <870922-130335-12464@Xerox>
+
+
+I think the discussion on cl-cleanup is inconclusive enough that the
+next step on this proposal is to take it to the wider forum of
+common-lisp@sail.stanford.edu. I don't think we're going to make a lot
+more progress on it here. There are enough reservations about the
+soundness of the programming style it encourages that I think it
+requires a clearer mandate from the user community to justify a required
+language extension.
+
+Larry
+
+*start*
+03211 00024 USh
+Return-Path: <@SAIL.STANFORD.EDU:CARNESE@SPAR-20.ARPA>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 22 SEP 87 19:32:51 PDT
+Received: from SPAR-20.ARPA by SAIL.STANFORD.EDU with TCP; 22 Sep 87  19:28:59 PDT
+Date: Tue, 22 Sep 87 19:27:09 PDT
+From: Dan Carnese <CARNESE@SPAR-20.ARPA>
+Subject: Re: [Dan Carnese <Carnese@SPAR-20.ARPA>: proposal]
+To: Masinter.pa
+cc: cl-cleanup@SAIL.STANFORD.EDU
+In-Reply-To: <870922-130335-12464@Xerox>
+Message-ID: <12336785573.41.CARNESE@SPAR-20.ARPA>
+
+My fault for dropping the ball on this discussion.
+
+The two principal objections that have been made are:
+	1) [RAM] Some uses of the proposed construct would not have
+well-defined behavior under the current definition of Common Lisp.
+	2) [JonL] Readability concerns argue that package structuring
+should occur in a standard place.  This might be a special non-code file,
+such as Mesa's module definitions, or at the start of each code file.
+
+The response to 1) was:
+	3) The new construct simply maps to existing ones.  Thus, if you
+can define the correct behavior for existing constructs, the new one will
+behave properly as well.
+
+Although not explicitly stated, the response to 3) from Rob seems to be:
+	4) Allowing package-related operations to occur anywhere in a file
+is itself problematic and perhaps will be removed as part of a solution.
+Since the proposed constructs will result in such operations, the constructs
+should not be added to the language.
+
+Here's where I pick up the ball again.  Suppose the language is changed so
+that package operations are determinable without evaluating forms.  The
+obvious ways to do this are compatible with the new construct.
+	5a) The langauge could be changed so that a set of special forms
+evaluated at read time would perform the package operations.  This might
+involve changing existing functions (e.g., in-package and export) to have
+read-time semantics, or introducing new functions which have such
+semantics.  In either case, the proposed constructs would macro-expand into
+a read-time export followed by the standard definition.
+	5b) The langauge could be changed to require a standard header
+which would not consist of forms to be evaluated, i.e., the file attribute
+list approach.  Then the standard behavior for the proposed constructs
+while reading a file would be to verify that the symbol being defined has
+in fact been exported.  Of course it should also be possible to have the
+constructs export the symbol rather than signalling an error, based on the
+value of a global variable.
+
+Under either of these approaches, the use of the proposed constructs can
+allow the programming environment to help the user in the construction and
+maintenance of export lists.  Editor commands such as "create export
+declarations from exports of package", "compare export declarations with
+current exports for package", and "undefun and unexport symbol" could be
+defined.  Their availability would mean that the tedious task of keeping
+the export declarations up to date could be largely automated.
+
+The proposals involved objection 2) are similar to those described in 5b),
+so the same line of reasoning applies.
+-------
+
+*start*
+02106 00024 USf
+From: MASINTER.PA
+Date: 22-Sep-87 23:49:43 PDT
+Subject: export-coordination
+To: masinter
+
+I've liked the idea of changing the language so that package operations are determinable without evaluating forms. I think that it certainly would have some impact on your (more modest) original proposal. It seems to me to be necessary before it is possible to allow "correct" compilation.
+
+In your 5a) I don't think it is reasonable to change the existing functions, because many of them (e.g., export) are useful for run-time manipulation of the package system (analogous to get-setf-method and the like, useful for language extensions.) The alternative you propose,  about adding new "functions" which also have read-time semantics, is also distasteful. In what sense are the functions if they have read-time semantics?
+
+I'd prefer 5b), which adds a standard header to files not consisting of forms to be evaluated. However,  I don't think we can go much farther without a more concrete proposal for such forms; what are the forms?
+
+I wonder, as long as one is making package-manipulation a read-time operation, shouldn't EXPORT also be read time? E.g., rather than adding defun-exported, add a read macro which means to export the following symbol. Using #! for this would have:
+
+(defun #!export-me (x) ....)
+
+instead of
+
+(defun-exported export-me (x) ....)
+
+It would require no additional macros or special forms. Accessor symbols, boa-constructors, named parameter names, etc.  could as easily get exported as functions, macros and the like with a simple read-time construct.
+
+Your latest message is a definite shift in the proposed usage of the constructs, in that you would expect a file-header with an export list, and the only action of the local forms is to assert that the defined symbol is exported. 
+
+I don't think we can easily accept a global variable (a flg?) which makes such a major shift in acceptable programming style. That would make the same mistake of having a lexical property (correctness of program form) depend on a dynamic one (the value of a global variable.)
+
+*start*
+01785 00024 USh
+Date: 28 Sep 87 12:09 PDT
+From: Masinter.pa
+Subject: export-coordination
+To: Dan Carnese <CARNESE@SPAR-20.ARPA>
+cc: masinter
+
+I've liked the idea, mentioned in your message, of having the file package operations determinable without evaluating forms; for example, I think it is likely to be a requirement for "correct" compilation.
+
+Your suggestion (5a) I don't think it is reasonable to change the existing functions, because many of them (e.g., export) are useful for run-time manipulation of the package system (analogous to get-setf-method and the like, useful for language extensions.) The alternative you propose,  about adding new "functions" which also have read-time semantics, is also distasteful. In what sense are the functions if they have read-time semantics?
+
+I'd prefer 5b), which adds a standard header to files not consisting of forms to be evaluated. However,  I don't think we can go much farther without a more concrete proposal for such forms; what are the forms?
+
+I suggest you drop ("Of course it should also be possible to have the constructs export the symbol rather than signalling an error, based on the value of a global variable"), I  don't think anywone would accept a global variable (a flg?) which makes such a major shift in acceptable programming style. That would make the same mistake of having a lexical property (correctness of program form) depend on a dynamic one (the value of a global variable.)
+
+Let me repeat my original observation that this is certainly worthy of additional technical discussion, but that it is not worked out enough to be adopted as-is, and there is an apparent lack of enthusiasm among most cl-cleanup to help develop it further. That's why I suggested you take it to the wider audience.
+
+Larry

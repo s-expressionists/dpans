@@ -1,0 +1,114 @@
+*start*
+01382 00024 USa
+Return-Path: <enea!emil.UU.SE!martin@uunet.UU.NET>
+Received: from uunet.UU.NET by Xerox.COM ; 14 DEC 87 13:51:11 PST
+Received: from enea.UUCP by uunet.UU.NET (5.54/1.14) with UUCP 
+	id AA07623; Mon, 14 Dec 87 16:50:52 EST
+Received: by enea.se (5.57++/1.12)
+	id AA02752; Mon, 14 Dec 87 21:56:20 +0100 (MET)
+Received: from emil.UU.SE (emil) by kuling.UU.SE (4.40/SMI-3.0DEV3)
+	id AA02352; Mon, 14 Dec 87 16:12:35 -0100
+Received: by emil.UU.SE (1.1/SMI-3.0DEV3)
+	id AA26534; Mon, 14 Dec 87 16:11:42 -0100
+Date: Mon, 14 Dec 87 16:11:42 -0100
+From: martin@emil.uu.se (Per-Erik Martin)
+Message-Id: <8712141511.AA26534@emil.UU.SE>
+To: Masinter.pa
+Cc: quiroz@sally.utexas.edu
+In-Reply-To: Masinter.pa@xerox.com's message of 9 Dec 87 02:34 PST <871209-023431-1539@Xerox>
+Subject: Bug involving VECTOR-PUSH-EXTEND 
+
+
+"Unreasonable" default extensions that causes errors should be considered as 
+bugs and is not really a problem. But since other defaults may cause bad 
+performance and I don't like standards that say vague things like "reasonable"
+I think that the standard should say something about what you might expect from
+the default case of Vector-Push-Extend.
+(There are some "holes" in the standard, as per Steele, that I hope will be
+ filled in the future. For instance, the result of comparing (EQ, EQL,...)
+ objects created by DEFSTRUCT is not specified.)
+*start*
+01012 00024 US 
+Date: 14 Dec 87 14:11 PST
+From: Masinter.pa
+Subject: Re: Bug involving VECTOR-PUSH-EXTEND 
+In-reply-to: martin@emil.uu.se (Per-Erik Martin)'s message of Mon, 14 Dec 87 16:11:42 -0100
+To: martin@emil.uu.se
+cc: Masinter.pa, quiroz@sally.utexas.edu
+
+The ANSI X3J13 organization is attempting to come up with a proposed ANSI standard for Common Lisp. The "cleanup" committee (of which I am chairman) is attempting to resolve ambiguities, holes in the standard, etc.
+
+We're looking for specific holes and suggestions for specific wording of how they should be fixed.
+
+So... when you say "I think that the standard should say something about what you might expect from
+the default case of Vector-Push-Extend." ... what do you think the standard should say?
+
+Are you willing to write up a formal proposal for consideration by the standards body?
+
+When you say "For instance, the result of comparing (EQ, EQL,...)  objects created by DEFSTRUCT is not specified..." what should be specified? 
+
+  
+*start*
+02446 00024 US 
+Return-Path: <quiroz@sally.utexas.edu>
+Received: from ngp.utexas.edu by Xerox.COM ; 07 DEC 87 15:12:21 PST
+Received: by ngp.utexas.edu (5.51/5.51)
+	id AA16000; Mon, 7 Dec 87 17:10:56 CST
+Received: from sally.utexas.edu by rascal.ics.utexas.edu (3.2/4.22)
+	id AA08180; Mon, 7 Dec 87 17:05:37 CST
+Posted-Date: Mon, 07 Dec 87 18:03:34 -0500
+Received: by sally.utexas.edu (5.54/5.51)
+	id AA03362; Mon, 7 Dec 87 17:04:27 CST
+Received: by cayuga.cs.rochester.edu (5.52/h) id AA07770; Mon, 7 Dec 87 18:04:06 EST
+Received: from loopback by jabbah.cs.rochester.edu (3.2/h) id AA08535; Mon, 7 Dec 87 18:03:46 EST
+Message-Id: <8712072303.AA08535@jabbah.cs.rochester.edu>
+To: Jeff Dalton <jeff%aiva.edinburgh.ac.uk@nss.cs.ucl.ac.uk>
+Cc: kcl <@sally.UTEXAS.EDU:kcl@rascal.ics.utexas.edu>
+Subject: Re: Bug involving VECTOR-PUSH-EXTEND 
+In-Reply-To: Your message of Mon, 07 Dec 87 21:54:22 +0000.
+             <19895.8712072154@aiva.ed.ac.uk> 
+Date: Mon, 07 Dec 87 18:03:34 -0500
+From: quiroz@sally.utexas.edu
+
+Beg to differ (though only a little).  Apparently, KCL uses the
+current size of the vector as the default extension (must be in the
+report some place).  Of course, extending a vector of size zero by
+zero elements still causes trouble.  CLtL only says that, in the
+absence of a third argument "it defaults to a ``reasonable''
+implementation-dependent value".  Whether using the current size is
+``reasonable'' can be left to discussion.  See:
+
+      KCl (Kyoto Common Lisp)  June 3, 1987
+      ...
+
+      >(setq  v (make-array 0 :fill-pointer 0 :adjustable t))
+      #()
+
+      >(vector-push-extend 1 v)
+
+      Error: The index, 0, too large.
+      Error signalled by VECTOR-PUSH-EXTEND.
+
+      Broken at VECTOR-PUSH-EXTEND.  Type :H for Help.
+      >>:q
+
+      Top level.
+      >(vector-push-extend 1 v 10)
+      0
+
+
+I have had this problem before.  The way I handle it is through the
+fill-pointer.  Say
+    (make-array <random, non-0 initial size> :fill-pointer 0 :adjustable t)
+and the problem will go away.  (Allocating 1 element for an
+adjustable array is not so bad.) Alternatively, get used to
+supplying a third argument to vector-push-extend (a practice that
+gives you better control anyway).  Hope this helps.
+
+=Cesar
+--------
+Cesar Augusto  Quiroz Gonzalez
+
+Department of Computer Science     ...allegra!rochester!quiroz
+University of Rochester            or
+Rochester,  NY 14627               quiroz@cs.rochester.edu
