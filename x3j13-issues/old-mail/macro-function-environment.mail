@@ -1,0 +1,1252 @@
+*start*
+02313 00024 USf
+Date:  9 Jan 87 14:28 PST
+From: Masinter.pa
+Subject: Issue: GET-SETF-METHOD-ENVIRONMENT, Message 1
+To: Fahlman@C.CS.CMU.EDU, gls@ZARATHUSTRA.THINK.COM, masinter.pa, hpfclp!dcm@HPLABS.HP.COM, kmp@SCRC-STONY-BROOK.SYMBOLICS.COM, "edsel!jonl"@NAVAJO.STANFORD.EDU, moon@SCRC-STONY-BROOK.SYMBOLICS.COM, rpg@SAIL.STANFORD.EDU, Mathis@ADA20.ISI.EDU
+reply-to: Masinter.PA@Xerox.COM
+
+
+(Note: this is a sample of the format I had in mind.)
+
+Please reply if you
+a) agree with the analysis and vote for adopting the proposal
+b) disagree with the analysis; if so, please explain briefly
+c) have an alternative proposal
+
+Issue: (Steele, p. 106) If a macro that performs similar processing to SETF uses GET-SETF-METHOD, and that macro occurs within a MACROLET, the expansion will not see the MACROLET definition, e.g.
+
+(defmacro special-incf ... (get-setf-method ...) ...)
+
+then  
+
+(macrolet ((test (x) `(car ,x)))
+	(special-incf (test z)))
+
+would not "see" the test definition.
+
+Classification: This is a mistake in CLtL.
+
+Proposal GET-SETF-METHOD-ENVIRONMENT:ADD-ARG:
+
+Add an optional environment argument to GET-SETF-METHOD. If the argument is not supplied, you get the null lexical environment. 
+
+Allow DEFINE-SETF-METHOD to take an ENVIRONMENT argument.
+
+Note that macros defined with DEFINE-MODIFY-MACRO correctly pass the environment to GET-SETF-METHOD.
+
+Rationale:
+a) this codifies existing practice: many Common Lisp implementations already have adopted this change. 
+b) the cost of adopting this change is small but non-zero: some implementations must change their definitions.
+c) the cost of converting existing code is zero, since this is an upward compatible change. However, implementations which did not already take into account the lexical environment for SETF'd forms might start working differently if the internal implementation of SETF is changed.   
+d) this is an upward compatible change, so that the staging is simple.
+
+Other aesthetic critera:
+Adding environment arguments to get-setf-method complicates it and its callers. An alternative, removing MACROLET, would result in a simpler language. If the rest of the language were changed so that there were no differences between the interpretation of setfs in any lexical context, the environment argument would be extraneous.) 
+
+*start*
+00675 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:FAHLMAN@C.CS.CMU.EDU>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 11 JAN 87 19:39:33 PST
+Received: from C.CS.CMU.EDU by SAIL.STANFORD.EDU with TCP; 11 Jan 87  19:38:10 PST
+Received: ID <FAHLMAN@C.CS.CMU.EDU>; Sun 11 Jan 87 22:38:22-EST
+Date: Sun, 11 Jan 87 22:38 EST
+Message-ID: <FAHLMAN.12270213953.BABYL@C.CS.CMU.EDU>
+Sender: FAHLMAN@C.CS.CMU.EDU
+From: "Scott E. Fahlman" <Fahlman@C.CS.CMU.EDU>
+To: cl-cleanup@SAIL.STANFORD.EDU
+Subject: Issue: GET-SETF-METHOD-ENVIRONMENT, Message 1
+In-reply-to: Msg of 9 Jan 1987  17:28-EST from Masinter.pa at Xerox.COM
+
+
+I agree with the proposal and the analysis.
+
+-- Scott
+
+*start*
+00674 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:FAHLMAN@C.CS.CMU.EDU>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 11 JAN 87 19:40:00 PST
+Received: from C.CS.CMU.EDU by SAIL.STANFORD.EDU with TCP; 11 Jan 87  19:38:45 PST
+Received: ID <FAHLMAN@C.CS.CMU.EDU>; Sun 11 Jan 87 22:39:03-EST
+Date: Sun, 11 Jan 87 22:39 EST
+Message-ID: <FAHLMAN.12270214075.BABYL@C.CS.CMU.EDU>
+Sender: FAHLMAN@C.CS.CMU.EDU
+From: "Scott E. Fahlman" <Fahlman@C.CS.CMU.EDU>
+To: cl-cleanup@SAIL.STANFORD.EDU
+Subject: Issue: MACRO-FUNCTION-ENVIRONMENT, Message 1
+In-reply-to: Msg of 9 Jan 1987  20:43-EST from Masinter.pa at Xerox.COM
+
+
+I agree with the proposal and the analysis.
+
+-- Scott
+
+*start*
+02165 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 16 JAN 87 21:00:34 PST
+Received: from SCRC-STONY-BROOK.ARPA by SAIL.STANFORD.EDU with TCP; 16 Jan 87  20:59:10 PST
+Received: from EUPHRATES.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 45572; Fri 16-Jan-87 23:57:20 EST
+Date: Fri, 16 Jan 87 23:57 EST
+From: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: Issue: GET-SETF-METHOD-ENVIRONMENT, Message 1
+To: cl-cleanup@SAIL.STANFORD.EDU
+In-Reply-To: <FAHLMAN.12270857740.BABYL@C.CS.CMU.EDU>
+Message-ID: <870116235714.8.MOON@EUPHRATES.SCRC.Symbolics.COM>
+
+    Date: Wed, 14 Jan 1987  09:34 EST
+    From: "Scott E. Fahlman" <Fahlman@C.CS.CMU.EDU>
+
+    Date: Friday, 9 January 1987  17:28-EST
+    From: Masinter.pa at Xerox.COM
+
+I agree with this proposal, but with corrections noted below.
+How come nobody else but Fahlman has voted?
+
+Comment: Symbolics is already using an optional argument to
+GET-SETF-METHOD for something else, and it is a documented interface for
+us, however I've reviewed an analysis of this made some time ago and I
+think we can afford to make an incompatible change here.
+
+    Proposal GET-SETF-METHOD-ENVIRONMENT:ADD-ARG:
+
+    Add an optional environment argument to GET-SETF-METHOD. If the argument
+    is not supplied, you get the null lexical environment. 
+
+Add it to GET-SETF-METHOD-MULTIPLE-VALUE also.
+
+    Allow DEFINE-SETF-METHOD to take an ENVIRONMENT argument.
+
+You mean &ENVIRONMENT.  To be completely explicit, say that
+"&ENVIRONMENT variable" can appear in the lambda-list subform
+of a DEFINE-SETF-METHOD form and mention the analogy with DEFMACRO.
+
+    Note that macros defined with DEFINE-MODIFY-MACRO correctly pass the
+    environment to GET-SETF-METHOD.
+
+Agreed.
+
+Also add the clarification that MACROLET, FLET, and LABELS can shadow a
+SETF method; in other words, a SETF method applies only when the global
+binding of the name is lexically visible.  (This point originally
+brought up by Eric Benson 14 Dec 85).  Or should this be discussed
+among us as a separate issue? (I hope not!)
+
+*start*
+04204 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 16 JAN 87 21:45:31 PST
+Received: from SCRC-STONY-BROOK.ARPA by SAIL.STANFORD.EDU with TCP; 16 Jan 87  21:43:52 PST
+Received: from EUPHRATES.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 45582; Sat 17-Jan-87 00:42:27 EST
+Date: Sat, 17 Jan 87 00:42 EST
+From: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: Issue: MACRO-FUNCTION-ENVIRONMENT, Message 1
+To: cl-cleanup@SAIL.STANFORD.EDU
+In-Reply-To: <FAHLMAN.12270857798.BABYL@C.CS.CMU.EDU>
+Message-ID: <870117004223.0.MOON@EUPHRATES.SCRC.Symbolics.COM>
+
+    Date: Wed, 14 Jan 1987  09:35 EST
+    From: "Scott E. Fahlman" <Fahlman@C.CS.CMU.EDU>
+
+    Date: Friday, 9 January 1987  20:43-EST
+    From: Masinter.pa at Xerox.COM
+
+I approve of the general thrust of this, but it's incomplete.  I think it
+would be better to vote on a more complete proposal than to address each
+part separately.  Details below.
+
+    Issue: (Steele, p. 144)  The macro function associated with a given
+    symbol depends on the lexical context of that symbol, and can differ
+    inside a MACROLET (which introduces lexical macros), or inside a FLET or
+    LABELS (which shadow macros). However, there is no way to account for
+    this lexical context in macros which know their environment (using the
+    &ENVIRONMENT argument) and which do their own macro expansion.
+
+    Example:
+    (defmacro example (form &environment environment)
+       (let ((macro (macro-function (car form)))
+	  (when macro .... (funcall macro form) ...)
+
+Aside: this example is incorrect, because the function returned
+by macro-function requires two arguments (CLtL p.144).  Also as a point
+of esthetics it probably should use *macroexpand-hook*.
+
+    Normally, the macro-function definition reflects the interpretation of
+    the FORM argument to EXAMPLE. However, within a MACROLET it does not.
+
+    Classification: This is a mistake in CLtL.
+
+    Proposal MACRO-FUNCTION-ENVIRONMENT:ADD-ARG:
+
+    Add an optional environment argument to MACRO-FUNCTION. If the argument
+    is not supplied, you get the null lexical environment. Otherwise, the
+    environment argument is used to determine the macro definition.
+
+I agree with this, but for consistency I believe the same treatment should
+be given to SPECIAL-FORM-P, to SYMBOL-FUNCTION, and to SYMBOL-VALUE.
+
+It should be stated that SETF of MACRO-FUNCTION and SYMBOL-FUNCTION is
+not permitted when two arguments are specified, even if the value of
+the second argument turns out to be NIL.  (Maybe I'm wrong here and
+SETF should be allowed, but it should be stated that this does not
+change the lexical structure of the program, it only substitutes one
+binding for another existing binding in the same lexical contour,
+and furthermore cannot mutate a MACROLET into a FLET or vice versa.)
+
+I can't figure out whether CLtL intends to permit FLET/LABELS/MACROLET
+to shadow global definitions of symbols as special forms.  If it does
+not, adding an environment argument to SPECIAL-FORM-P would be inutile.
+CLtL p.57 says that anything described as a macro can be implemented as
+a special form as long as a macro expander is provided; this implies
+that if special forms cannot be shadowed, then macros cannot be shadowed
+either.  However, the discussion of this issue says that FLET and LABELS
+can shadow macros, and presumably this was intended to include global
+macros as well as local (MACROLET-defined) macros.  It's clear that the
+language is not very well-specified in this area.  It would help if there
+was a clearer distinction between a symbol that names an operator and the
+operator object that is the definition of that symbol; I think CLtL was
+a little too coy here.  (An operator is a function, a macro, or a
+"special form thing" (no name exists in CLtL for these; we call them
+"primitive special operators", since macros are "special operators"
+too.))
+
+If no one else volunteers, I would be willing to write a proposal to
+clarify this, based on what Symbolics' system does as a starting point.
+It might take me 2 or 3 weeks to find the time to do it.
+
+
+*start*
+01819 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:Masinter.pa@Xerox.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 19 JAN 87 16:53:15 PST
+Received: from XEROX.COM by SAIL.STANFORD.EDU with TCP; 19 Jan 87  16:50:23 PST
+Received: from Cabernet.ms by ArpaGateway.ms ; 19 JAN 87 16:42:05 PST
+Date: 19 Jan 87 16:45 PST
+From: Masinter.pa
+Subject: discussion: macro environments
+To: cl-cleanup@SAIL.STANFORD.EDU
+Message-ID: <870119-164205-1133@Xerox>
+
+I've not gotten any private messages on any of the topics; that is,
+there've been no replies other than what's gone to cl-cleanup.
+
+If we agree that several issues should be combined and considered as a
+whole, so much the better. 
+
+One reason for separating out GET-SETF-METHOD-ENVIRONMENT and
+MACRO-FUNCTION-ENVIRONMENT is that, while MACRO-FUNCTION currently works
+as specified (i.e., the language in CLtL clearly states that it only
+gets the *global* definition, while MACROEXPAND-1 and MACROEXPAND
+themselves take environments),  the specification for GET-SETF-METHOD is
+currently inconsistent, e.g., the example on p 107 is incorrect because
+it does not account for the environment of the SETF.
+
+To put it another way, the cost of not adding the feature is different
+for each of the proposals. 
+
+To put SYMBOL-FUNCTION and SYMBOL-VALUE into the same context is to
+confound the lexical environments used in the interpreter (as passed,
+e.g., by evalhook) and the lexical environments used by macro expansion
+(as passed, e.g., to the &environment arguments of macros.) While both
+of these (unspecified) pointers are "lexical environments", their use,
+origin, and presumably internal structure are potentially radically
+different. 
+
+I've more comments, but it will be late this week before I can send
+them, and I thought I should get these notes out sooner. 
+
+*start*
+01999 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:FAHLMAN@C.CS.CMU.EDU>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 11 JAN 87 19:38:05 PST
+Received: from C.CS.CMU.EDU by SAIL.STANFORD.EDU with TCP; 11 Jan 87  19:36:41 PST
+Received: ID <FAHLMAN@C.CS.CMU.EDU>; Sun 11 Jan 87 22:36:58-EST
+Date: Sun, 11 Jan 87 22:36 EST
+Message-ID: <FAHLMAN.12270213698.BABYL@C.CS.CMU.EDU>
+Sender: FAHLMAN@C.CS.CMU.EDU
+From: "Scott E. Fahlman" <Fahlman@C.CS.CMU.EDU>
+To: cl-cleanup@SAIL.STANFORD.EDU
+Subject: A comment on MACROLET...
+
+
+In the issues file, it is pointed out in several places that the
+"environment arg" issues would go away if we were to flush MACROLET.
+Every time I start wrestling with explicit environment passing, I get
+disgusted and start regretting that we ever let MACROLET in.  That is
+the source of these comments.
+
+Masinter has pointed out that if we allow FLET and LABELS to shadow
+macro definitions with function definitions, then various
+macro-expanding forms will need to get at the environment even if
+MACROLET goes away.  So flushing MACROLET is not a solution, and clearly
+there is no chance of flushing FLET and LABELS at this point.
+
+We could, I suppose, forbid FLET and LABELS to shadow existing macros,
+but that is even more of a crock than passing around environment
+arguments.  So unless someone can see a clever way out of this trap, I
+guess I must withdraw my view that flushing MACROLET would be a good way
+of eliminating explicit environment hackery.  It seems we must devote
+our attention to fixing up the environment stuff rather than getting rid
+of it.
+
+One clarification we might want to consider would be an explicit
+statement that FLET and LABELS can be used to shadow a MACRO (but not a
+special form?) with a function.  I bet a lot of implementations have
+overlooked this possibility.  I think that Spice Lisp did.
+
+The macro subcommittee might change all fo this beyond recognition, of
+course, but it's our job to patch up the existing langauge.
+
+-- Scott
+
+*start*
+12909 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:Masinter.pa@Xerox.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 07 APR 87 17:46:16 PDT
+Received: from XEROX.COM by SAIL.STANFORD.EDU with TCP; 7 Apr 87  17:41:13 PDT
+Received: from Cabernet.ms by ArpaGateway.ms ; 07 APR 87 17:42:10 PDT
+Date: 7 Apr 87 17:43 PDT
+From: Masinter.pa
+Subject: Issue: ENVIRONMENT-ARGUMENTS (Revision 1)
+To: cl-cleanup@SAIL.STANFORD.EDU
+Message-ID: <870407-174210-2710@Xerox>
+
+Status:  In discussion
+	Merged from issues GET-SETF-METHOD-ENVIRONMENT (of 9 Jan 87),
+	MACRO-FUNCTION-ENVIRONMENT. 
+	Needs a volunteer to work over the proposal further.
+	
+
+Issue:        ENVIRONMENT-ARGUMENTS
+References:   GET-SETF-METHOD (p106), MACROLET (p144)
+Category:     CHANGE
+Edit history: Revision 1 by KMP 02/26/87
+              Revision 2 by cleanup committee 15-Mar-87 14:45:18
+              Revision 3 by Masinter (normalize format) 15-Mar-87
+18:34:28
+
+Problem description:
+
+If a macro that performs similar processing to SETF uses
+GET-SETF-METHOD, and that macro occurs within a MACROLET, the expansion
+will not see the MACROLET definition, e.g. (defmacro special-incf ...
+(get-setf-method ...) ...)
+
+then  
+
+(macrolet ((test (x) `(car ,x)))
+	(special-incf (test z)))
+
+would not "see" the test definition.
+
+Similarly, the macro function associated with a given symbol depends on
+the lexical context of that symbol, and can differ inside a MACROLET
+(which introduces lexical macros), or inside a FLET or LABELS (which
+shadow macros). However, there is no way to account for this lexical
+context in macros which know their environment (using the &ENVIRONMENT
+argument) and which do their own macro expansion
+
+Example:
+ 
+    (defmacro example (form &environment environment)
+       (let ((macro (macro-function (car form)))
+	  (when macro .... (funcall *macroexpand-hook* macro form environment)
+...)
+
+Normally, the macro-function definition reflects the interpretation of
+the FORM argument to EXAMPLE. However, within a MACROLET it does not.
+
+
+Proposal (ENVIRONMENT-ARGUMENTS:ADD-ARGUMENTS):
+
+Add an optional environment argument to GET-SETF-METHOD and
+GET-SETF-METHOD-MULTIPLE-VALUE. If the argument is not supplied, you get
+the null lexical environment. 
+
+Allow DEFINE-SETF-METHOD to take an &ENVIRONMENT argument; i.e.,
+"&ENVIRONMENT variable" can appear in the lambda-list subform
+of a DEFINE-SETF-METHOD form analogous to its appearance in DEFMACRO.
+
+Note that macros defined with DEFINE-MODIFY-MACRO correctly pass the
+environment to GET-SETF-METHOD.
+
+Add an optional environment argument to MACRO-FUNCTION. If the argument
+is not supplied, you get the null lexical environment. Otherwise, the
+environment argument is used to determine the macro definition. SETF of
+MACRO-FUNCTION and SYMBOL-FUNCTION is not permitted when two arguments
+are specified, even if the value of the second argument turns out to be
+NIL.  
+
+Clarify that it is an error to use FLET/LABELS/MACROLET on any of the
+symbols defined in CLtL as designating special forms.
+
+The intent of these changes is to allow MACROLET, FLET, and LABELS to
+shadow a
+SETF method; in other words, a SETF method applies only when the global
+binding of the name is lexically visible.
+
+Rationale:
+
+The ommission of these facilities were an oversight in CL. Macro
+environments cannot work "correctly" without them.
+
+Current Practice:
+
+Some Common Lisp implementations already have adopted this change.
+Symbolics is already using an optional argument to GET-SETF-METHOD for
+something else, and it is a documented interface. However, their
+analysis is that it is not a serious incompatible change for their
+users.
+
+Adoption Cost:
+
+the cost of adopting this change is small but non-zero: some
+implementations must change their definitions
+
+Benefits:
+
+Users cannot portably write SETF of functions which have MACROLETs
+without this change.
+
+Conversion Cost:
+
+this is an upward compatible change. However, implementations which did
+not already take into account the lexical environment for SETF'd forms
+might start working differently if the internal implementation of SETF
+is changed.
+
+Aesthetics:
+
+Adding environment arguments to get-setf-method complicates it and its
+callers.
+
+Discussion:
+
+There was at some time a notion that this could be removed if macrolet
+was removed, but even without MACROLET, FLET needs to be able to shadow
+macro environments. 
+
+In a message from Moon:
+
+"I agree with this [adding an optional environment argument to
+MACRO-FUNCTION], but for consistency I believe the same treatment should
+be given to SPECIAL-FORM-P, to SYMBOL-FUNCTION, and to SYMBOL-VALUE."
+
+Masinter disagrees: it should "be an error" to shadow a special form
+using MACROLET, FLET, or LABELS. SYMBOL-FUNCTION and SYMBOL-VALUE are
+only associated with run-time values, while MACRO-FUNCTION is required
+for compile-time macros.
+
+
+For completeness, here are some of the original messages which were part
+of the discussion (should be condensed before distribution):
+
+Return-Path: <@SAIL.STANFORD.EDU:Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 16 JAN 87 21:45:31 PST
+Received: from SCRC-STONY-BROOK.ARPA by SAIL.STANFORD.EDU with TCP; 16
+Jan 87  21:43:52 PST
+Received: from EUPHRATES.SCRC.Symbolics.COM by
+STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 45582; Sat
+17-Jan-87 00:42:27 EST
+Date: Sat, 17 Jan 87 00:42 EST
+From: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: Issue: MACRO-FUNCTION-ENVIRONMENT, Message 1
+To: cl-cleanup@SAIL.STANFORD.EDU
+In-Reply-To: <FAHLMAN.12270857798.BABYL@C.CS.CMU.EDU>
+Message-ID: <870117004223.0.MOON@EUPHRATES.SCRC.Symbolics.COM>
+
+    Date: Wed, 14 Jan 1987  09:35 EST
+    From: "Scott E. Fahlman" <Fahlman@C.CS.CMU.EDU>
+
+    Date: Friday, 9 January 1987  20:43-EST
+    From: Masinter.pa at Xerox.COM
+
+I approve of the general thrust of this, but it's incomplete.  I think
+it
+would be better to vote on a more complete proposal than to address each
+part separately.  Details below.
+
+    Issue: (Steele, p. 144)  The macro function associated with a given
+    symbol depends on the lexical context of that symbol, and can differ
+    inside a MACROLET (which introduces lexical macros), or inside a
+FLET or
+    LABELS (which shadow macros). However, there is no way to account
+for
+    this lexical context in macros which know their environment (using
+the
+    &ENVIRONMENT argument) and which do their own macro expansion.
+
+    Example:
+    (defmacro example (form &environment environment)
+       (let ((macro (macro-function (car form)))
+	  (when macro .... (funcall macro form) ...)
+
+Aside: this example is incorrect, because the function returned
+by macro-function requires two arguments (CLtL p.144).  Also as a point
+of esthetics it probably should use *macroexpand-hook*.
+
+    Normally, the macro-function definition reflects the interpretation
+of
+    the FORM argument to EXAMPLE. However, within a MACROLET it does
+not.
+
+    Classification: This is a mistake in CLtL.
+
+    Proposal MACRO-FUNCTION-ENVIRONMENT:ADD-ARG:
+
+    Add an optional environment argument to MACRO-FUNCTION. If the
+argument
+    is not supplied, you get the null lexical environment. Otherwise,
+the
+    environment argument is used to determine the macro definition.
+
+I agree with this, but for consistency I believe the same treatment
+should
+be given to SPECIAL-FORM-P, to SYMBOL-FUNCTION, and to SYMBOL-VALUE.
+
+It should be stated that SETF of MACRO-FUNCTION and SYMBOL-FUNCTION is
+not permitted when two arguments are specified, even if the value of
+the second argument turns out to be NIL.  (Maybe I'm wrong here and
+SETF should be allowed, but it should be stated that this does not
+change the lexical structure of the program, it only substitutes one
+binding for another existing binding in the same lexical contour,
+and furthermore cannot mutate a MACROLET into a FLET or vice versa.)
+
+I can't figure out whether CLtL intends to permit FLET/LABELS/MACROLET
+to shadow global definitions of symbols as special forms.  If it does
+not, adding an environment argument to SPECIAL-FORM-P would be inutile.
+CLtL p.57 says that anything described as a macro can be implemented as
+a special form as long as a macro expander is provided; this implies
+that if special forms cannot be shadowed, then macros cannot be shadowed
+either.  However, the discussion of this issue says that FLET and LABELS
+can shadow macros, and presumably this was intended to include global
+macros as well as local (MACROLET-defined) macros.  It's clear that the
+language is not very well-specified in this area.  It would help if
+there
+was a clearer distinction between a symbol that names an operator and
+the
+operator object that is the definition of that symbol; I think CLtL was
+a little too coy here.  (An operator is a function, a macro, or a
+"special form thing" (no name exists in CLtL for these; we call them
+"primitive special operators", since macros are "special operators"
+too.))
+
+If no one else volunteers, I would be willing to write a proposal to
+clarify this, based on what Symbolics' system does as a starting point.
+It might take me 2 or 3 weeks to find the time to do it.
+
+
+
+- - - - - - - - - - - - - - -
+
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 19 JAN 87 16:53:15 PST
+Received: from XEROX.COM by SAIL.STANFORD.EDU with TCP; 19 Jan 87
+16:50:23 PST
+Received: from Cabernet.ms by ArpaGateway.ms ; 19 JAN 87 16:42:05 PST
+Date: 19 Jan 87 16:45 PST
+From: Masinter.pa
+Subject: discussion: macro environments
+To: cl-cleanup@SAIL.STANFORD.EDU
+Message-ID: <870119-164205-1133@Xerox>
+
+I've not gotten any private messages on any of the topics; that is,
+there've been no replies other than what's gone to cl-cleanup.
+
+If we agree that several issues should be combined and considered as a
+whole, so much the better. 
+
+One reason for separating out GET-SETF-METHOD-ENVIRONMENT and
+MACRO-FUNCTION-ENVIRONMENT is that, while MACRO-FUNCTION currently works
+as specified (i.e., the language in CLtL clearly states that it only
+gets the *global* definition, while MACROEXPAND-1 and MACROEXPAND
+themselves take environments),  the specification for GET-SETF-METHOD is
+currently inconsistent, e.g., the example on p 107 is incorrect because
+it does not account for the environment of the SETF.
+
+To put it another way, the cost of not adding the feature is different
+for each of the proposals. 
+
+To put SYMBOL-FUNCTION and SYMBOL-VALUE into the same context is to
+confound the lexical environments used in the interpreter (as passed,
+e.g., by evalhook) and the lexical environments used by macro expansion
+(as passed, e.g., to the &environment arguments of macros.) While both
+of these (unspecified) pointers are "lexical environments", their use,
+origin, and presumably internal structure are potentially radically
+different. 
+
+I've more comments, but it will be late this week before I can send
+them, and I thought I should get these notes out sooner. 
+
+- - - - - - - - - - - - - - - - - - - - - - - -
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 11 JAN 87 19:38:05 PST
+Received: from C.CS.CMU.EDU by SAIL.STANFORD.EDU with TCP; 11 Jan 87
+19:36:41 PST
+Received: ID <FAHLMAN@C.CS.CMU.EDU>; Sun 11 Jan 87 22:36:58-EST
+Date: Sun, 11 Jan 87 22:36 EST
+Message-ID: <FAHLMAN.12270213698.BABYL@C.CS.CMU.EDU>
+Sender: FAHLMAN@C.CS.CMU.EDU
+From: "Scott E. Fahlman" <Fahlman@C.CS.CMU.EDU>
+To: cl-cleanup@SAIL.STANFORD.EDU
+Subject: A comment on MACROLET...
+
+
+In the issues file, it is pointed out in several places that the
+"environment arg" issues would go away if we were to flush MACROLET.
+Every time I start wrestling with explicit environment passing, I get
+disgusted and start regretting that we ever let MACROLET in.  That is
+the source of these comments.
+
+Masinter has pointed out that if we allow FLET and LABELS to shadow
+macro definitions with function definitions, then various
+macro-expanding forms will need to get at the environment even if
+MACROLET goes away.  So flushing MACROLET is not a solution, and clearly
+there is no chance of flushing FLET and LABELS at this point.
+
+We could, I suppose, forbid FLET and LABELS to shadow existing macros,
+but that is even more of a crock than passing around environment
+arguments.  So unless someone can see a clever way out of this trap, I
+guess I must withdraw my view that flushing MACROLET would be a good way
+of eliminating explicit environment hackery.  It seems we must devote
+our attention to fixing up the environment stuff rather than getting rid
+of it.
+
+One clarification we might want to consider would be an explicit
+statement that FLET and LABELS can be used to shadow a MACRO (but not a
+special form?) with a function.  I bet a lot of implementations have
+overlooked this possibility.  I think that Spice Lisp did.
+
+The macro subcommittee might change all fo this beyond recognition, of
+course, but it's our job to patch up the existing langauge.
+
+-- Scott
+
+*start*
+02093 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:FAHLMAN@C.CS.CMU.EDU>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 18 APR 87 19:24:14 PDT
+Received: from C.CS.CMU.EDU by SAIL.STANFORD.EDU with TCP; 18 Apr 87  19:22:13 PDT
+Received: ID <FAHLMAN@C.CS.CMU.EDU>; Sat 18 Apr 87 22:23:05-EDT
+Date: Sat, 18 Apr 87 22:23 EDT
+Message-ID: <FAHLMAN.12295628211.BABYL@C.CS.CMU.EDU>
+Sender: FAHLMAN@C.CS.CMU.EDU
+From: "Scott E. Fahlman" <Fahlman@C.CS.CMU.EDU>
+To: cl-cleanup@SAIL.STANFORD.EDU
+Subject: Environment-Arguments
+
+
+Before I try to put the Environment-Arguments proposal into final form,
+there's an unresolved issue we need to clean up.
+
+In mail several months ago, Moon said that he agreed with adding an
+optional environment argument to MACRO-FUNCTION, but that for
+consistency we should also add such an argument to SPECIAL-FORM-P,
+SYMBOL-FUNCTION, and SYMBOL-VALUE.
+
+I think that this is wrong.  (Masinter apparently does too, but I'll
+speak for myself.)  
+
+This facility isn't designed for writing debuggers; it is meant to allow
+macro-expanding macros to operate properly.  Macros sometimes need to
+expand other macros at compile time so that they can do SETF-like
+things.  In accessing some otehr macro's definition, a macro should take
+cognizance of any MACROLET definitions and of lexical function
+definitions that might shadow a macro definition.  Therefore, they need
+to be able to call MACRO-FUNCTION with an environment arg.
+
+I don't think macros need to get at function definitions and values in
+the same way.  Function definitions do not have to be available at
+compile time, nor do values.  And special forms are immutable: they
+cannot be redefined, so presumably they cannot be shadowed either.
+(Larry proposes to make this explicit as part of this proposal; I would
+prefer to make it a separate proposal, but agree with the
+clarification.)
+
+So I don't believe that SPECIAL-FORM-P, SYMBOL-FUNCTION, or SYMBOL-VALUE
+need an environment arg after all.
+
+Dave, do you buy that analysis?  If so, I'll propoduce a proposal along
+the lines of what Larry sent out.
+
+-- Scott
+
+*start*
+03065 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:FAHLMAN@C.CS.CMU.EDU>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 21 APR 87 07:50:39 PDT
+Received: from C.CS.CMU.EDU by SAIL.STANFORD.EDU with TCP; 21 Apr 87  07:47:30 PDT
+Received: ID <FAHLMAN@C.CS.CMU.EDU>; Tue 21 Apr 87 10:48:28-EDT
+Date: Tue, 21 Apr 87 10:48 EDT
+Message-ID: <FAHLMAN.12296288180.BABYL@C.CS.CMU.EDU>
+Sender: FAHLMAN@C.CS.CMU.EDU
+From: "Scott E. Fahlman" <Fahlman@C.CS.CMU.EDU>
+To: cl-cleanup@SAIL.STANFORD.EDU
+Subject: Environment-Arguments
+
+
+        Macros sometimes need to
+        expand other macros at compile time so that they can do SETF-like
+        things...
+
+    I don't think the last sentence follows.  The argument that leads up to it
+    is an argument that MACROEXPAND and MACROEXPAND-1 need to take an environment
+    argument.  They already do.
+
+Right.  I was confused (as usual).  Let me take another crack at this.
+
+First, I think that the issues should be re-separated, as they were
+originally.  I don't think the part about adding an environment argument
+to GET-SETF-METHOD is controversial.  Also, the business about whether
+special forms and other such things can be shadowed should be broken out
+into a separate proposal that we can discuss on its own merits; we don't
+seem to share the same assumptions here.
+
+That leaves the old MACRO-FUNCTION-ENVIRONMENT proposal.  As Moon points
+out, what macros really need to do is call MACROEXPAND on forms (or
+parts of forms) that the user passes in; MACROEXPAND needs an
+environment arg in order to do this, and it has one already.
+
+The original MACRO-FUNCTION-ENVIRONMENT proposal contains the following
+example:
+
+(defmacro example (form &environment environment)
+   (let ((macro (macro-function (car form) <environment> ))
+      (when macro .... (funcall macro form) ...)
+
+where the <environment> arg to MACRO-FUNCTION is not currently legal but
+would be under the proposal.  SETF-like forms need to do something like
+the above code: check whether the form is a macro in the current lexical
+context and, if so, expand it.  Note, however, that instead of calling
+MACRO-FUNCTION and then maybe FUNCALL, you could just let MACROEXPAND do
+the whole job.  The original Clisp designers, in their infinite wisdom,
+decided that if you call MACROEXPAND on somehting not currently a macro,
+it just returns the argument with a second value of NIL (meaning "not a
+macro after all").
+
+So I no longer see any motivation at all for MACRO-FUNCTION-ENVIRONMENT,
+nor for adding an environment arg to SYMBOL-FUNCTION, etc.  There may
+well need to be some new machinery set up to deal with the aliasing
+problem -- macros that change their meaning when executed in certain
+lexical contexts -- but that is a big problem that is in the hands of
+another committee, and we should do nothing until we see a comprehensive
+proposal on how to handle macros elegantly in a lexical world.
+
+If nobody can come up with a coherent argument for
+MACRO-FUNCTION-ENVIRONMENT, I propose we drop this, approve the SETF
+part of the proposal, and move on.
+
+*start*
+04854 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 21 APR 87 09:22:45 PDT
+Received: from SCRC-STONY-BROOK.ARPA by SAIL.STANFORD.EDU with TCP; 21 Apr 87  09:19:59 PDT
+Received: from EUPHRATES.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 120130; Mon 20-Apr-87 18:13:24 EDT
+Date: Mon, 20 Apr 87 18:13 EDT
+From: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: Environment-Arguments
+To: cl-cleanup@SAIL.STANFORD.EDU
+In-Reply-To: <FAHLMAN.12295628211.BABYL@C.CS.CMU.EDU>
+References: <870407-174210-2710@Xerox>
+Supersedes: <870420140356.5.MOON@EUPHRATES.SCRC.Symbolics.COM>
+Message-ID: <870420181313.9.MOON@EUPHRATES.SCRC.Symbolics.COM>
+
+[This is a revised version of my previous missive, revised after
+reading the referenced message, which was From: Masinter.pa@Xerox.COM
+Subject: Issue: ENVIRONMENT-ARGUMENTS (Revision 1)]
+
+    Date: Sat, 18 Apr 1987  22:23 EDT
+    From: "Scott E. Fahlman" <Fahlman@C.CS.CMU.EDU>
+
+    In mail several months ago, Moon said that he agreed with adding an
+    optional environment argument to MACRO-FUNCTION, but that for
+    consistency we should also add such an argument to SPECIAL-FORM-P,
+    SYMBOL-FUNCTION, and SYMBOL-VALUE.
+
+    I think that this is wrong.  (Masinter apparently does too, but I'll
+    speak for myself.)  
+
+    This facility isn't designed for writing debuggers; it is meant to allow
+    macro-expanding macros to operate properly.  Macros sometimes need to
+    expand other macros at compile time so that they can do SETF-like
+    things.  In accessing some otehr macro's definition, a macro should take
+    cognizance of any MACROLET definitions and of lexical function
+    definitions that might shadow a macro definition.  Therefore, they need
+    to be able to call MACRO-FUNCTION with an environment arg.
+
+I don't think the last sentence follows.  The argument that leads up to it
+is an argument that MACROEXPAND and MACROEXPAND-1 need to take an environment
+argument.  They already do.  So the real reason for giving MACRO-FUNCTION
+an environment arg must be something else; I forget what the reason given
+a few months ago was, but I remember that I thought it applied equally well
+to those other operations.
+
+The reason for changing MACRO-FUNCTION given in the 2nd referenced
+message is for macros that do their own macroexpansion, calling the
+macro expander function directly instead of going through MACROEXPAND. 
+I think that that is a separate issue from fixing SETF so that it can
+pass the correct arguments to MACROEXPAND-1 for macros defined with
+MACROLET, and should be proposed/debated separately.
+
+    I don't think macros need to get at function definitions and values in
+    the same way.  Function definitions do not have to be available at
+    compile time, nor do values.  And special forms are immutable: they
+    cannot be redefined, so presumably they cannot be shadowed either.
+
+I see no such restriction (special forms cannot be shadowed) in CLtL.
+Adding such a restriction seems like a poor idea in view of the third
+paragraph on page 57.  In any case, it would be a poor idea to make
+MACRO-FUNCTION and SPECIAL-FORM-P behave inconsistently with respect to
+the lexical environment, because that could lead to a large body of user
+code with the restriction that special forms cannot be shadowed wired
+into its structure, and that in turn would make it difficult to lift
+such a restriction, either in the language definition or in individual
+implementations.  A little forethought now will save a peck of trouble
+later.
+
+    (Larry proposes to make this explicit as part of this proposal; I would
+    prefer to make it a separate proposal, but agree with the
+    clarification.)
+
+    So I don't believe that SPECIAL-FORM-P, SYMBOL-FUNCTION, or SYMBOL-VALUE
+    need an environment arg after all.
+
+    Dave, do you buy that analysis?  If so, I'll propoduce a proposal along
+    the lines of what Larry sent out.
+
+I don't buy the analysis at all for SPECIAL-FORM-P.  I feel less strongly
+about SYMBOL-FUNCTION and SYMBOL-VALUE, but I think your analysis is still
+wrong there, if only because of inline functions and constant "variables".
+I feel that MACRO-FUNCTION should be discussed together with SPECIAL-FORM-P,
+SYMBOL-FUNCTION, and SYMBOL-VALUE, and should be discussed separately from
+GET-SETF-METHOD, GET-SETF-METHOD-MULTIPLE-VALUE, and DEFINE-SETF-METHOD.
+
+I'm strongly opposed to burying
+  Clarify that it is an error to use FLET/LABELS/MACROLET on any of the
+  symbols defined in CLtL as designating special forms.
+in the middle of another proposal; it should be proposed and discussed
+on its own (lack of) merits.  The 2nfd referenced message incorporates
+a message from me explaining why I think this proposal is unworkable.
+
+*start*
+00954 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 21 APR 87 11:58:34 PDT
+Received: from SCRC-STONY-BROOK.ARPA by SAIL.STANFORD.EDU with TCP; 21 Apr 87  11:55:39 PDT
+Received: from EUPHRATES.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 120808; Tue 21-Apr-87 14:55:46 EDT
+Date: Tue, 21 Apr 87 14:55 EDT
+From: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: Environment-Arguments
+To: cl-cleanup@SAIL.STANFORD.EDU
+In-Reply-To: <FAHLMAN.12296288180.BABYL@C.CS.CMU.EDU>
+Message-ID: <870421145535.8.MOON@EUPHRATES.SCRC.Symbolics.COM>
+
+    Date: Tue, 21 Apr 1987  10:48 EDT
+    From: "Scott E. Fahlman" <Fahlman@C.CS.CMU.EDU>
+
+    If nobody can come up with a coherent argument for
+    MACRO-FUNCTION-ENVIRONMENT, I propose we drop this, approve the SETF
+    part of the proposal, and move on.
+
+That sounds good to me.
+
+*start*
+02999 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:Pavel.pa@Xerox.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 21 APR 87 14:52:44 PDT
+Received: from XEROX.COM by SAIL.STANFORD.EDU with TCP; 21 Apr 87  14:50:36 PDT
+Received: from Cabernet.ms by ArpaGateway.ms ; 21 APR 87 13:54:46 PDT
+Date: 21 Apr 87 13:54 PDT
+From: Pavel.pa
+Subject: [Gregor.pa: Re: ["Scott E. Fahlman" <Fahlman@C.CS.CMU.EDU>:
+ Environment-Arguments]]
+To: CL-Cleanup@SAIL.Stanford.Edu
+cc: Gregor.pa
+Message-ID: <870421-135446-2536@Xerox>
+
+I asked Gregor what he thought about not giving the environment argument
+to macro-function.  This is his response.
+
+	Pavel
+
+     ----- Begin Forwarded Messages -----
+
+Date: 21 Apr 87 13:18 PDT
+From: Gregor.pa
+Subject: Re: ["Scott E. Fahlman" <Fahlman@C.CS.CMU.EDU>:
+Environment-Arguments]
+In-reply-to: Pavel.pa's message of 21 Apr 87 12:12 PDT
+To: Pavel.pa
+cc: Gregor.pa
+
+Well I would have to see the macros committe stuff (whenever that gets
+done) to know for sure, but even macro-function-environment is less than
+you really need.  You also need to be able to build the env arg to
+macroexpand-1.  The screw case is a macro which is so hairy that it
+needs to be able to take an environment, and then macroexpand its body
+in an environment which is "slightly different" than that environment.
+The problem is that macroexpanding, in general, means yielding control
+over who gets to do the macroexpansion to some other code.  That other
+code might call macroexpand itself and so it must be able to provide a
+suitable second argument.
+
+
+Here is the canonical example:
+
+(defmacro my-hairy-macro (&body body &environment e)
+  (walk-form body e#'(lambda ...)))
+
+my hairy macro is a macro like with-slots which needs to walk its body,
+macroexpanding the whole thing and perhaps replacing parts of it.  Like
+many macros, it needs to take the environment argument in because it is
+going to have to call macroexpand on its body to work.
+
+But this macro passes its environment to the walker.  In order to do its
+job, the walker is going to have to be able to augment that environment
+structure and be able to pass it back to macroexpand.  The rest of the
+example is.
+
+(defmacro foo () ''loser)
+
+(my-hairy-macro
+  (macrolet ((foo () ''winner))
+    (my-hairy-macro
+       (foo))))
+
+When the walker "walks down into" the body of the macrolet, it needs to
+be able to make a new lexical environment which includes the previous
+lexical environment plus a (in this case new) definition for FOO.
+
+
+Perhaps a nice thing would be for the second argument to macroexpand to
+really be a function, this function (if supplied) is the actual
+macroexpansion function to call.  These functions would be lexical
+closures over what we now think of as the environment.  People could use
+standard lexical closure techniques for augmenting environments.  The
+combination language for 'building' environments would be Lisp, it would
+be a win for all the standard reasons.
+
+     ----- End Forwarded Messages -----
+
+*start*
+01422 00024 USh
+Return-Path: <@SAIL.STANFORD.EDU:Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 21 APR 87 17:01:11 PDT
+Received: from SCRC-STONY-BROOK.ARPA by SAIL.STANFORD.EDU with TCP; 21 Apr 87  16:59:02 PDT
+Received: from EUPHRATES.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 121221; Tue 21-Apr-87 19:59:11 EDT
+Date: Tue, 21 Apr 87 19:58 EDT
+From: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: [Gregor.pa: Re: ["Scott E. Fahlman" <Fahlman@C.CS.CMU.EDU>:
+         Environment-Arguments]]
+To: Pavel.pa
+cc: CL-Cleanup@SAIL.Stanford.Edu, Gregor.pa
+In-Reply-To: <870421-135446-2536@Xerox>
+Message-ID: <870421195859.2.MOON@EUPHRATES.SCRC.Symbolics.COM>
+Line-fold: No
+
+What I read from Gregor's comments (as well as our own similar experiences) is
+that merely adding an optional argument to macro-function is not enough.  To
+support the full generality of code walkers, it would be necessary to define
+standard operations for manipulating lexical environments, making them more
+"first class" than at present in Common Lisp, where they can be passed around
+but their structure is undefined.  I would hope that we could do this in an
+abstract way, so that lexical environments were not constrained to be
+implemented in one particular way.
+
+This sounds like a fine thing, but a little beyond the scope of the cleanup
+committee.
+
+*start*
+01403 00024 US 
+Return-Path: <@SAIL.Stanford.EDU:Masinter.pa@Xerox.COM>
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 23 OCT 87 17:27:34 PDT
+Received: from XEROX.COM by SAIL.STANFORD.EDU with TCP; 23 Oct 87  17:16:42 PDT
+Received: from Cabernet.ms by ArpaGateway.ms ; 23 OCT 87 17:17:25 PDT
+Date: 23 Oct 87 17:17 PDT
+From: Masinter.pa
+Subject: Environment-arguments, MACRO-FUNCTION-ENVIRONMENT
+In-reply-to: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>'s
+ message of Fri, 23 Oct 87 17:58 EDT
+To: Common-Lisp-Object-System@sail.stanford.edu
+cc: CL-Cleanup@Sail.stanford.edu
+Message-ID: <871023-171725-1686@Xerox>
+
+
+Moon (on CLOS list):
+"We need to note somewhere that SYMBOL-FUNCTION, FBOUNDP, and
+FMAKUNBOUND take an optional environment argument, just like
+ENSURE-GENERIC-FUNCTION, SYMBOL-CLASS, CBOUNDP, and CMAKUNBOUND.
+This is necessary to be able to find a generic function object,
+given its name, in the compile environment.  FMAKUNBOUND may
+be just for consistency, but FBOUNDP and SYMBOL-FUNCTION are to
+allow ENSURE-GENERIC-FUNCTION to work."
+
+
+Related issues were discussed at some length on CL-CLEANUP. If someone
+wants to write this up for cleanup, I have a file of the discussion
+(under GET-SETF-METHOD-ENVIRONMENT in Jan-87 and ENVIRONMENT-ARGUMENTS
+in April 87). 
+
+There seems to be a number of separable issues, but separating them is
+difficult. Volunteers appreciated.
+
+*start*
+00861 00024 US 
+Return-Path: <CL-Cleanup-mailer@SAIL.Stanford.EDU>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 21 MAR 88 17:45:12 PST
+Received: from labrea.Stanford.EDU by SAIL.Stanford.EDU with TCP; 21 Mar 88  17:43:04 PST
+Received: by labrea.Stanford.EDU; Mon, 21 Mar 88 17:43:30 PST
+Received: from kent-state.lucid.com by edsel id AA04493g; Mon, 21 Mar 88 17:41:27 PST
+Received: by kent-state id AA01518g; Mon, 21 Mar 88 17:41:12 PST
+Date: Mon, 21 Mar 88 17:41:12 PST
+From: Eric Benson <edsel!eb@labrea.Stanford.EDU>
+Message-Id: <8803220141.AA01518@kent-state.lucid.com>
+To: Pavel.pa
+Cc: CL-Cleanup@sail.stanford.edu
+In-Reply-To: Pavel.pa@Xerox.COM's message of Mon, 21 Mar 88 16:05:12 PST <880321-160628-1159@Xerox>
+Subject: Issue: MACRO-FUNCTION-ENVIRONMENT
+
+Lucid Common Lisp 3.0 implements this proposal.
+
+*start*
+00946 00024 US 
+Return-Path: <CL-Cleanup-mailer@SAIL.Stanford.EDU>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 21 MAR 88 17:50:46 PST
+Received: from Xerox.COM by SAIL.Stanford.EDU with TCP; 21 Mar 88  17:48:49 PST
+Received: from Salvador.ms by ArpaGateway.ms ; 21 MAR 88 17:40:35 PST
+Date: Mon, 21 Mar 88 17:40:32 PST
+From: Pavel.pa
+Subject: Re: Issue: MACRO-FUNCTION-ENVIRONMENT
+In-reply-to: "Your message of 21 Mar 88 20:09:00 EDT"
+To: cl-cleanup@sail.stanford.edu
+Message-ID: <880321-174035-1359@Xerox>
+
+Walter says: ``how about explicitly allowing NIL as the environment, indicating
+the null lexical environment?  This is just as in GET-SETF-METHOD-ENVIRONMENT''
+
+I thought of that, but didn't put it in because I couldn't find a reference to
+it being allowed.  I now have one, but did we ever also say that NIL could be
+passed as the second argument to MACROEXPAND and MACROEXPAND-1?
+
+	Pavel
+
+*start*
+00849 00024 US 
+Return-Path: <CL-Cleanup-mailer@SAIL.Stanford.EDU>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 23 MAR 88 11:04:50 PST
+Received: from STONY-BROOK.SCRC.Symbolics.COM (SCRC-STONY-BROOK.ARPA) by SAIL.Stanford.EDU with TCP; 23 Mar 88  11:01:46 PST
+Received: from EUPHRATES.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 368731; Wed 23-Mar-88 14:01:36 EST
+Date: Wed, 23 Mar 88 14:01 EST
+From: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: Issue: MACRO-FUNCTION-ENVIRONMENT
+To: Pavel.pa
+cc: CL-Cleanup@SAIL.STANFORD.EDU
+In-Reply-To: <880321-160628-1159@Xerox>
+Message-ID: <19880323190138.9.MOON@EUPHRATES.SCRC.Symbolics.COM>
+Line-fold: No
+
+I support this proposal, with the modification to allow NIL as a
+synonym for the global environment.
+
+*start*
+03051 00024 USf
+Return-Path: <CL-Cleanup-mailer@SAIL.Stanford.EDU>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 21 MAR 88 16:31:02 PST
+Received: from Xerox.COM by SAIL.Stanford.EDU with TCP; 21 Mar 88  16:28:28 PST
+Received: from Salvador.ms by ArpaGateway.ms ; 21 MAR 88 16:06:28 PST
+Date: Mon, 21 Mar 88 16:05:12 PST
+From: Pavel.pa
+Subject: Issue: MACRO-FUNCTION-ENVIRONMENT
+To: CL-Cleanup@SAIL.Stanford.Edu
+Message-ID: <880321-160628-1159@Xerox>
+
+Issue:         MACRO-FUNCTION-ENVIRONMENT
+
+References:    MACRO-FUNCTION, p. 144
+               MACROLET, pp. 113-4
+               &ENVIRONMENT, pp. 145-6
+               MACROEXPAND and MACROEXPAND-1, pp. 151-2
+
+Category:      ADDITION
+
+Edit history:  Pavel, March 21, 1988 (Version 1)
+
+Problem description:
+
+The &ENVIRONMENT argument to a macro-expansion function may only be used as the
+second argument to the functions MACROEXPAND and MACROEXPAND-1.  It is sometimes
+more convenient, however, to be able to work directly with the more primitive
+function MACRO-FUNCTION, on which MACROEXPAND and MACROEXPAND-1 are presumably
+based.  However, since MACRO-FUNCTION does not take an environment argument, it
+cannot be used in situations in which that environment must be taken into
+account.
+
+Proposal (MACRO-FUNCTION-ENVIRONMENT:YES): Add an optional second argument to
+MACRO-FUNCTION, that argument being an environment that was passed as the
+&ENVIRONMENT argument to some macro expansion function.  If the argument is not
+passed, then it defaults to the null environment.  MACRO-FUNCTION will now
+consider macro definitions from that environment in preference to ones in the
+global environment.  It is an error to supply the environment argument in a use
+of MACRO-FUNCTION as a SETF location specifier.
+
+Examples:
+
+(macrolet ((foo (&environment env)
+              (if (macro-function 'bar env)
+                 ''yes
+                 ''no)))
+   (list (foo)
+         (macrolet ((bar () :beep))
+            (foo))))
+
+=> (no yes)
+
+Rationale:
+
+Intuitively, the more primitive operation in macro expansion is MACRO-FUNCTION,
+not MACROEXPAND or MACROEXPAND-1, yet the environment argument can only be
+supplied to the latter functions and not to the former one.  By changing this
+state of affairs, the model of macro expansion becomes somewhat simpler.  Also,
+more flexible use of the facility is enabled.
+
+Current practice:
+
+Xerox Common Lisp already implements this proposal.  Symbolics Common Lisp,
+Lucid/Sun Common Lisp and Kyoto Common Lisp do not.
+
+Cost to Implementors:
+
+This is presumably a simple change to make, a small matter of moving the
+environment-searching code from MACROEXPAND-1 to MACRO-FUNCTION.
+
+Cost to Users:
+
+The change is upward-compatible and so poses no cost to users.
+
+Cost of non-adoption:
+
+One more (small) semantic wart on the language.
+
+Benefits:
+
+The function that users think of as being more primitive really is.
+
+Aesthetics:
+
+This slightly cleans up the language.
+
+Discussion:
+
+Pavel is strongly in favor of the proposal.
+
+
+*start*
+03539 00024 US 
+Date:  8 Jun 88 20:47 PDT
+From: Masinter.pa
+Subject: Issue: MACRO-FUNCTION-ENVIRONMENT
+To: x3J13@SAIL.Stanford.Edu
+cc: Masinter
+reply-to: CL-Cleanup@Sail.stanford.edu
+line-fold: NO
+
+
+Issue:         MACRO-FUNCTION-ENVIRONMENT
+
+References:    MACRO-FUNCTION, p. 144
+               MACROLET, pp. 113-4
+               &ENVIRONMENT, pp. 145-6
+               MACROEXPAND and MACROEXPAND-1, pp. 151-2
+
+Category:      ADDITION
+
+Edit history:  Version 1, Pavel, March 21, 1988
+		   Version 2, Masinter,  8-Jun-88, (as per cleanup discussion)
+
+Problem description:
+
+The &ENVIRONMENT argument to a macro-expansion function may only be used as the
+second argument to the functions MACROEXPAND and MACROEXPAND-1.  It is sometimes
+more convenient, however, to be able to work directly with the more primitive
+function MACRO-FUNCTION, on which MACROEXPAND and MACROEXPAND-1 are presumably
+based.  However, since MACRO-FUNCTION does not take an environment argument, it
+cannot be used in situations in which that environment must be taken into
+account.
+
+Proposal (MACRO-FUNCTION-ENVIRONMENT:YES):
+
+Add an optional second argument to MACRO-FUNCTION, that argument being an
+environment that was passed as the &ENVIRONMENT argument to some macro expansion
+function.  If the argument is not given, or the argument is NIL, the null
+environment is used.  MACRO-FUNCTION will now consider macro definitions from
+that environment in preference to ones in the global environment.  It is an error
+to supply the environment argument in a use of MACRO-FUNCTION as a SETF location
+specifier.
+
+Examples:
+
+(macrolet ((foo (&environment env)
+              (if (macro-function 'bar env)
+                 ''yes
+                 ''no)))
+   (list (foo)
+         (macrolet ((bar () :beep))
+            (foo))))
+
+=> (no yes)
+
+(setf (macro-function 'bar env) ...) is an error.
+
+Rationale:
+
+Intuitively, the more primitive operation in macro expansion is MACRO-FUNCTION,
+not MACROEXPAND or MACROEXPAND-1, yet the environment argument can only be
+supplied to the latter functions and not to the former one.  By changing this
+state of affairs, the model of macro expansion becomes somewhat simpler.  Also,
+more flexible use of the facility is enabled.
+
+Current practice:
+
+Xerox Common Lisp already implements this proposal.  Symbolics Common Lisp,
+and Kyoto Common Lisp do not. Lucid Common Lisp did not, but version 3.0 does.
+
+Cost to Implementors:
+
+This is presumably a simple change to make, a small matter of moving the
+environment-searching code from MACROEXPAND-1 to MACRO-FUNCTION.
+
+Cost to Users:
+
+The change is upward-compatible and so poses no cost to users.
+
+Cost of non-adoption:
+
+One more (small) semantic wart on the language.
+
+Benefits:
+
+The function that users think of as being more primitive really is.
+
+Aesthetics:
+
+This slightly cleans up the language.
+
+Discussion:
+
+This issue was discussed starting in January 1987, but got tangled in
+a web of other related proposals. In its current form, the only objections
+have been that some other proposal or committee might otherwise change
+macro handling, or that this proposal doesn't fix enough of the problems.
+
+  
+        TITAN 
+         TITAN 
+          
+TIMESROMAN 
+           ∏                            ö              
+              c             „       ,       "             ø       
+      	             i              ù              å              A              2       
+       F              (             '      D !z∫*start*07326 00024 US Return-Path: <CL-Cleanup-mailer@SAIL.Stanford.EDU>Redistributed: xerox-cl-cleanup^.paReceived: from SAIL.Stanford.EDU ([36.86.0.194]) by Xerox.COM ; 02 JAN 89 17:38:26 PSTReceived: from ECLA.USC.EDU by SAIL.Stanford.EDU with TCP; 2 Jan 89  17:36:40 PSTDate: Mon, 2 Jan 89 17:31:11 PSTFrom: Kim A. Barrett <IIM@ECLA.USC.EDU>Subject: Issue MACRO-FUNCTION-ENVIRONMENT, Version 1To: cl-cleanup@SAIL.STANFORD.EDUcc: iim@ECLA.USC.EDUMessage-ID: <12459458774.4.IIM@ECLA.USC.EDU>Ok, since a volunteer was needed, here goes.  I've also included a proposal forSUBTYPEP, since it has similar problems.  There may be other functions thatneed this same treatment.  CONSTANTP comes to mind, though I've decided to waiton that until some of the issues regarding DEFCONSTANT settle down.  AVARIABLE-SPECIAL-P predicate would also need this, though that could be handledright from the start, and can be written portably using the functionalinterface defined in SYNTACTIC-ENVIRONMENT-ACCESS (assuming it makes someprogress). kab-----Issue: 		MACRO-FUNCTION-ENVIRONMENTReferences:	Macros, CLtL p.143		CLOS Ch. 1 & 2		-- tbd --Category:	CHANGEEdit history:	02-Jan-89, Version 1, by kabRelated issues: COMPILE-FILE-HANDLING-OF-TOP-LEVEL-FORMS		SYNTACTIC-ENVIRONMENT-ACCESSStatus:		For Internal DiscussionProblem Description: CLtL is often read to imply that COMPILE-FILE should avoid modifying the behavior of the running system by changing definitions to correspond to those in the file being compiled.  Issue COMPILE-FILE-HANDLING-OF-TOP-LEVEL-FORMS makes this an explicit requirement, and specifies the kind of side-effects each of the standard defining forms is required to perform. Implementing this distinction between the compile-time and run-time environments requires some mechanism for distinguishing which environment is being dealt with.  MACRO-FUNCTION needs to be able to make this distinction in order to correctly determine what value to return. Because CLOS specifies that FIND-CLASS uses an &environment argument to make this distinction, integration of the type system and the class system requires that SUBTYPEP also accept an &environment argument, if for no other reason than to be able to pass it to FIND-CLASS. Some implementations may have already implemented some parts of these proposals, but user code which makes use of these changes is currently not portable. Proposal (MACRO-FUNCTION-ENVIRONMENT:NEW-ARGUMENT) Extend MACRO-FUNCTION to accept an optional second argument.  This argument should be either NIL, the &environment argument received by a macro expander function, or the environment argument received by an *evalhook* or *applyhook* function.  This argument is used to distinguish between compile-time and run-time environments.  This proposal explicitly does not modify MACRO-FUNCTION to examine the environment argument for local definitions.  MACRO-FUNCTION only returns a symbol's global macro definition (if present). SETF of MACRO-FUNCTION is changed such that it only sets the global macro definition in the specified environment.  Thus, if a compiler environment is specified then the macro definition of the running system is not modified.Proposal (SUBTYPEP-ENVIRONMENT:NEW-ARGUMENT) Extend SUBTYPEP to accept an optional third argument.  This argument should be either NIL, the &environment argument received by a macro expander function, or the environment argument received by an *evalhook* or *applyhook* function. This argument is used to distinguish between compile-time and run-time environments. Rationale: CLOS already specifies the use of &environment arguments for the purpose used here.  These proposals make use of that existing facility to fix some other functions which need the same capabilities.Test Case: -- tbd --Current Practice: Lucid's implementation of MACRO-FUNCTION has an optional second argument for the &environment.  Whether it only returns global expanders or also returns local (macrolet) is unknown to this author. IIM Common Lisp generally uses the &environment argument for distinguishing between compile-time and run-time environments, but for these two functions (whose arguments were already specified by CLtL) they implement the discrimination through the use of a special variable.Cost to Implementors: These proposals require the compiler environment be distinguishable, but that seems to already be required by CLOS.  Modifying the definitions of MACRO-FUNCTION and its SETF is probably trivial in most implementations. Probably the modifications for SUBTYPEP are also trivial.  The hard part may be ensuring that all calls are passing the environment argument, which in most cases will be a simple word-processing exercise, but in some cases might be more difficult because the environment has not been passed along to the point where it is needed. Cost to Users: Users must ensure that all calls are passing the proper environment argument, which entails the same difficulties as for implementors.Benefits: -- tbd --  ;I didn't want to write just "Fixes the stated problem."Aesthetics: -- tbd --  ;I didn't want to write just "Removes a problem from the language."Discussion: This is yet another case of a fairly widespread problem relating to the interaction between the compiler and the running system.  There seems to be general agreement that using a special variable to solve this class of problems is wrong, though several implementations currently use this technique.  The designers of CLOS apparently believe so, and have specified several of the functions in the CLOS interface as accepting an optional &environment argument in order to solve the problem of distinguishing between compile-time and run-time environments.  Some members of the compiler subcommittee also seem to be adopting the use of &environment arguments into their thinking about how top-level defining forms perform their special compile-time magic, though with some misgivings. The decision to not have MACRO-FUNCTION examine the environment argument for local definitions is based in part on the assumption that the issue SYNTACTIC-ENVIRONMENT-ACCESS (SEA) will make some progress.  MACRO-FUNCTION is generally used as a predicate or as a place for SETF (the return value is probably almost never used outside of the implementation of MACROEXPAND), and SEA proposes a mechanism for determining the presence of a local definition and for adding local macro definitions to an environment.  SUBTYPEP really needs this change regardless of CLOS, for the same reasons that MACRO-FUNCTION does.  The demands of CLOS simply make it more immediately obvious. The extension of allowing an environment argument from *evalhook* or *applyhook* functions seems reasonable, though it might be inferable from the acceptence of &environment arguments.  However, since CLtL specifically states that the &environment argument need not be a complete lexical environment, this could be arguable.  Rather than leaving such a question open for debate, this proposal makes explicit allowance for such values.  If it is agreed that this explicitness is necessary, then CLOS should ammended appropriately too.-------*start*02189 00024 US Return-Path: <CL-Cleanup-mailer@SAIL.Stanford.EDU>Redistributed: xerox-cl-cleanup^.paReceived: from SAIL.Stanford.EDU ([36.86.0.194]) by Xerox.COM ; 03 JAN 89 09:15:14 PSTReceived: from lucid.com by SAIL.Stanford.EDU with TCP; 3 Jan 89  08:12:08 PSTReceived: from blacksox ([192.9.201.39]) by heavens-gate.lucid.com id AA03092g; Tue, 3 Jan 89 08:08:25 PSTReceived: by blacksox id AA00254g; Tue, 3 Jan 89 08:10:38 pstDate: Tue, 3 Jan 89 08:10:38 pstFrom: Eric Benson <eb@lucid.com>Message-Id: <8901031610.AA00254@blacksox>To: IIM@ECLA.USC.EDUCc: cl-cleanup@SAIL.STANFORD.EDU, iim@ECLA.USC.EDUIn-Reply-To: Kim A. Barrett's message of Mon 2 Jan 89 17:31:11-PST <12459458774.4.IIM@ECLA.USC.EDU>Subject: Issue MACRO-FUNCTION-ENVIRONMENT, Version 1   Date: Mon 2 Jan 89 17:31:11-PST   From: Kim A. Barrett <IIM@ECLA.USC.EDU>   Proposal (MACRO-FUNCTION-ENVIRONMENT:NEW-ARGUMENT)    Extend MACRO-FUNCTION to accept an optional second argument.  This argument    should be either NIL, the &environment argument received by a macro expander    function, or the environment argument received by an *evalhook* or *applyhook*    function.  This argument is used to distinguish between compile-time and    run-time environments. MACRO-FUNCTION should not accept the environment argument received byan *EVALHOOK* or *APPLYHOOK* function.  (*APPLYHOOK* should not evenreceive an environment argument, was there ever a cleanup issueaddressing this?)  MACRO-FUNCTION is only concerned with what I havereferred to as "syntactic" environments.  *EVALHOOK* environments area different beast entirely, they don't belong in the same category.In fact, the status of EVALHOOK is tenuous at best.  How is itdone in a compiled-only implementation?    This proposal explicitly does not modify MACRO-FUNCTION to examine the    environment argument for local definitions.  MACRO-FUNCTION only returns    a symbol's global macro definition (if present).In that case, what does MACRO-FUNCTION return when there is a MACROLETdefinition visible?  It must return some non-NIL value.  It should bethe expansion function, to be consistent with the global case.*start*01287 00024 US Return-Path: <CL-Cleanup-mailer@SAIL.Stanford.EDU>Redistributed: xerox-cl-cleanup^.paReceived: from SAIL.Stanford.EDU ([36.86.0.194]) by Xerox.COM ; 03 JAN 89 09:15:24 PSTReceived: from lucid.com by SAIL.Stanford.EDU with TCP; 3 Jan 89  08:00:39 PSTReceived: from blacksox ([192.9.201.39]) by heavens-gate.lucid.com id AA03077g; Tue, 3 Jan 89 07:56:54 PSTReceived: by blacksox id AA00251g; Tue, 3 Jan 89 07:59:11 pstDate: Tue, 3 Jan 89 07:59:11 pstFrom: Eric Benson <eb@lucid.com>Message-Id: <8901031559.AA00251@blacksox>To: IIM@ECLA.USC.EDUCc: cl-cleanup@SAIL.STANFORD.EDU, iim@ECLA.USC.EDUIn-Reply-To: Kim A. Barrett's message of Mon 2 Jan 89 17:31:11-PST <12459458774.4.IIM@ECLA.USC.EDU>Subject: Issue MACRO-FUNCTION-ENVIRONMENT, Version 1   Date: Mon 2 Jan 89 17:31:11-PST   From: Kim A. Barrett <IIM@ECLA.USC.EDU>   Current Practice:    Lucid's implementation of MACRO-FUNCTION has an optional second argument for    the &environment.  Whether it only returns global expanders or also returns    local (macrolet) is unknown to this author.Yes, MACRO-FUNCTION in Lucid CL will return a MACROLET expander aswell as a DEFMACRO expander.  It also correctly handles the case of anFLET or LABELS overriding a DEFMACRO (by returning NIL).*start*02141 00024 USaReturn-Path: <CL-Cleanup-mailer@SAIL.Stanford.EDU>Redistributed: xerox-cl-cleanup^.paReceived: from SAIL.Stanford.EDU ([36.86.0.194]) by Xerox.COM ; 04 JAN 89 16:34:09 PSTReceived: from ECLA.USC.EDU by SAIL.Stanford.EDU with TCP; 4 Jan 89  16:32:59 PSTDate: Wed, 4 Jan 89 13:59:03 PSTFrom: Kim A. Barrett <IIM@ECLA.USC.EDU>Subject: Issue MACRO-FUNCTION-ENVIRONMENT, v1To: cl-cleanup@SAIL.STANFORD.EDUcc: iim@ECLA.USC.EDUMessage-ID: <12459944447.14.IIM@ECLA.USC.EDU>> Date: Tue, 3 Jan 89 08:10:38 pst> From: Eric Benson <eb@lucid.com>>> MACRO-FUNCTION should not accept the environment argument received by> an *EVALHOOK* or *APPLYHOOK* function.  (*APPLYHOOK* should not even> receive an environment argument, was there ever a cleanup issue> addressing this?)I want MACRO-FUNCTION to accept these so that MACROEXPAND (which does) cansimply pass such objects along to MACRO-FUNCTION.  My expectation is thatMACRO-FUNCTION (or the underlying mechanism it is based on) will look at thisthing and say "nope, not a compiler environment, lets go look in the currentfunction cell (or wherever the implementation puts macro expander functions)".Yes, if APPLYHOOK has been "cleaned up" then references to it should be removedfrom this proposal.> In that case, what does MACRO-FUNCTION return when there is a MACROLET> definition visible?  It must return some non-NIL value.  It should be> the expansion function, to be consistent with the global case.Right, it should be an expander function.  I don't have any really strongpreference for whether it actually "looks inside" the environment object to seeif there are any local definitions (macro or function).  I mostly proposed itwork that way so that it stayed compatible with CLtL's description, which onlytalks about global definitions.  Of course, CLtL doesn't have it taking anenvironment argument, so maybe I goofed here.  However, as I mentioned in thediscussion, MACRO-FUNCTION is primarily used as a predicate and a place forSETF.  Does anybody outside of MACROEXPAND actually use the returned expanderfunction? kab-------*start*00865 00024 US Return-Path: <CL-Cleanup-mailer@SAIL.Stanford.EDU>Redistributed: xerox-cl-cleanup^.paReceived: from SAIL.Stanford.EDU ([36.86.0.194]) by Xerox.COM ; 04 JAN 89 16:42:32 PSTReceived: from lucid.com by SAIL.Stanford.EDU with TCP; 4 Jan 89  16:41:25 PSTReceived: from blacksox ([192.9.201.39]) by heavens-gate.lucid.com id AA04915g; Wed, 4 Jan 89 16:37:33 PSTReceived: by blacksox id AA00536g; Wed, 4 Jan 89 16:39:53 pstDate: Wed, 4 Jan 89 16:39:53 pstFrom: Eric Benson <eb@lucid.com>Message-Id: <8901050039.AA00536@blacksox>To: IIM@ECLA.USC.EDUCc: cl-cleanup@SAIL.STANFORD.EDU, iim@ECLA.USC.EDUIn-Reply-To: Kim A. Barrett's message of Wed 4 Jan 89 13:59:03-PST <12459944447.14.IIM@ECLA.USC.EDU>Subject: Issue MACRO-FUNCTION-ENVIRONMENT, v1I don't think MACROEXPAND should be required to accept EVALHOOK-typeenvironments either.*start*07822 00024 US Return-Path: <CL-Cleanup-mailer@SAIL.Stanford.EDU>Redistributed: xerox-cl-cleanup^.paReceived: from SAIL.Stanford.EDU ([36.86.0.194]) by Xerox.COM ; 06 JAN 89 15:04:07 PSTReceived: from Xerox.COM by SAIL.Stanford.EDU with TCP; 6 Jan 89  15:00:19 PSTReceived: from Cabernet.ms by ArpaGateway.ms ; 05 JAN 89 19:56:54 PSTDate: 5 Jan 89 19:56 PSTFrom: masinter.paSubject: Re: Issue MACRO-FUNCTION-ENVIRONMENT, v1In-reply-to: Kim A. Barrett <IIM@ECLA.USC.EDU>'s message of Wed, 4 Jan 89 13:59:03 PSTTo: Kim A. Barrett <IIM@ECLA.USC.EDU>cc: cl-cleanup@SAIL.STANFORD.EDUMessage-ID: <890105-195654-180@Xerox>I'm sorry, I should have caught this sooner. The following two issues werepassed at previous meetings (GET-SETF-METHOD-ENVIRONMENT andMACRO-FUNCTION-ENVIRONMENT.)Issue:          GET-SETF-METHOD-ENVIRONMENTReferences:     GET-SETF-METHOD (CLtL p 187)Category:       ChangeEdit History:   Version 1 9-Jan-87, Version 1 by Masinter                 (no version) 7-Apr-87, merged with ENVIRONMENT-ARGUMENTS                Version 2 29-May-87, extracted again                 Version 3  5-Jun-87, by Masinter                Version 4  11-Jun-87, for release                Version 5  13-Jul-87, by Masinter                Problem Description:If a macro that performs similar processing to SETF uses GET-SETF-METHOD,and that macro occurs within a MACROLET, the expansion will not see theMACROLET definition, e.g., (defmacro special-incf ... (get-setf-method ...) ...)then   (macrolet ((test (x) `(car ,x)))         (special-incf (test z)))would not "see" the test definition.Proposal (GET-SETF-METHOD-ENVIRONMENT:ADD-ARG):Add an optional environment argument to GET-SETF-METHOD andGET-SETF-METHOD-MULTIPLE-VALUE. If the argument is not supplied, itdefaults to the null lexical environment. NIL can also be passed explicitlyto denote the null lexical environment.Allow &ENVIRONMENT variable to appear in the lambda-list subform of aDEFINE-SETF-METHOD form, as with a DEFMACRO.Note that macros defined with DEFINE-MODIFY-MACRO correctly pass theenvironment to GET-SETF-METHOD.Clarify that, within the scope of a MACROLET, FLET and LABELS, global SETFdefinitions of the name defined by the MACROLET, FLET or LABELS do notapply.  A SETF method applies only when the global function binding of thename is lexically visible.  All of the built in macros of Common Lisp(SETF, INCF, DECF, POP, ROTATEF, etc.) which modify location specificationsobey this convention.Test Case:;;; This macro is like POP (defmacro xpop (place &environment env)  (multiple-value-bind (dummies vals new setter getter)                       (get-setf-method place env)     `(let* (,@(mapcar #'list dummies vals) (,(car new) ,getter))        (prog1 (car ,(car new))               (setq ,(car new) (cdr ,(car new)))               ,setter)))))(defsetf frob (x) (value)     `(setf (car ,x) ,value));;; The following will modify (cdr z) and not (car z)(macrolet ((frob (x) `(cdr ,x)))     (xpop (frob z)));;; The following is an error; an error may be signaled at macro expansiontime(flet ((frob (x) (cdr x))     (xpop (frob z)))Rationale:This was an omission in the original definition of CLtL.Current Practice:Many Common Lisp implementations already have this extension, although somedo not. One implementation has extended GET-SETF-METHOD to take an optionalargument which is incompatible with this use.Cost to implementors:Some implementations will have to add this feature, although it is not amajor change.Cost to users:This is generally an upward compatible change. In implementations which didnot already take into account the lexical environment for SETF'd formsmight start working differently if the internal implementation of SETF ischanged. The likelihood of this affecting a user's program is very small.Benefits:This change improves portability and the ability to use MACROLET, FLET andLABELS in portable code which might also have SETF forms.Aesthetics:SETF methods cannot work correctly within lexically defined functionsymbols without this change. This change makes the language more consistentand correct. Discussion:The cleanup committee generally supports this change.A number of additional changes for rationally dealing with lexicalenvironments as first class objects, including a more general set ofaccessors and constructors for lexical environments is required for manylanguage extensions (e.g., a portable version of the proposed Common LispObject System) and should be addressed by a future proposal. For a while,the cleanup committee attempted to deal with these issues together, butdecided to separate them out into their component parts. This issue is thesimplest.- - - - - - - - - - - - - - - - - - - - - - - - - -Issue:         MACRO-FUNCTION-ENVIRONMENTReferences:    MACRO-FUNCTION, p. 144               MACROLET, pp. 113-4               &ENVIRONMENT, pp. 145-6               MACROEXPAND and MACROEXPAND-1, pp. 151-2Category:      ADDITIONEdit history:  Version 1, Pavel, March 21, 1988		   Version 2, Masinter,  8-Jun-88, (as per cleanup discussion)Problem description:The &ENVIRONMENT argument to a macro-expansion function may only be used asthesecond argument to the functions MACROEXPAND and MACROEXPAND-1.  It issometimesmore convenient, however, to be able to work directly with the moreprimitivefunction MACRO-FUNCTION, on which MACROEXPAND and MACROEXPAND-1 arepresumablybased.  However, since MACRO-FUNCTION does not take an environmentargument, itcannot be used in situations in which that environment must be taken intoaccount.Proposal (MACRO-FUNCTION-ENVIRONMENT:YES):Add an optional second argument to MACRO-FUNCTION, that argument being anenvironment that was passed as the &ENVIRONMENT argument to some macroexpansionfunction.  If the argument is not given, or the argument is NIL, the nullenvironment is used.  MACRO-FUNCTION will now consider macro definitionsfromthat environment in preference to ones in the global environment.  It is anerrorto supply the environment argument in a use of MACRO-FUNCTION as a SETFlocationspecifier.Examples:(macrolet ((foo (&environment env)              (if (macro-function 'bar env)                 ''yes                 ''no)))   (list (foo)         (macrolet ((bar () :beep))            (foo))))=> (no yes)(setf (macro-function 'bar env) ...) is an error.Rationale:Intuitively, the more primitive operation in macro expansion isMACRO-FUNCTION,not MACROEXPAND or MACROEXPAND-1, yet the environment argument can only besupplied to the latter functions and not to the former one.  By changingthisstate of affairs, the model of macro expansion becomes somewhat simpler.Also,more flexible use of the facility is enabled.Current practice:Xerox Common Lisp already implements this proposal.  Symbolics Common Lisp,and Kyoto Common Lisp do not. Lucid Common Lisp did not, but version 3.0does.Cost to Implementors:This is presumably a simple change to make, a small matter of moving theenvironment-searching code from MACROEXPAND-1 to MACRO-FUNCTION.Cost to Users:The change is upward-compatible and so poses no cost to users.Cost of non-adoption:One more (small) semantic wart on the language.Benefits:The function that users think of as being more primitive really is.Aesthetics:This slightly cleans up the language.Discussion:This issue was discussed starting in January 1987, but got tangled ina web of other related proposals. In its current form, the only objectionshave been that some other proposal or committee might otherwise changemacro handling, or that this proposal doesn't fix enough of the problems.  *start*01730 00024 US Return-Path: <CL-Cleanup-mailer@SAIL.Stanford.EDU>Redistributed: xerox-cl-cleanup^.paReceived: from SAIL.Stanford.EDU ([36.86.0.194]) by Xerox.COM ; 06 JAN 89 21:18:12 PSTReceived: from STONY-BROOK.SCRC.Symbolics.COM (SCRC-STONY-BROOK.ARPA) by SAIL.Stanford.EDU with TCP; 6 Jan 89  21:17:04 PSTReceived: from EUPHRATES.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 516885; Sat 7-Jan-89 00:15:53 ESTDate: Sat, 7 Jan 89 00:15 ESTFrom: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>Subject: Issue MACRO-FUNCTION-ENVIRONMENT, Version 1To: Kim A. Barrett <IIM@ECLA.USC.EDU>cc: cl-cleanup@SAIL.STANFORD.EDUIn-Reply-To: <12459458774.4.IIM@ECLA.USC.EDU>Message-ID: <19890107051524.6.MOON@EUPHRATES.SCRC.Symbolics.COM>    Date: Mon 2 Jan 89 17:31:11-PST    From: Kim A. Barrett <IIM@ECLA.USC.EDU>    Proposal (SUBTYPEP-ENVIRONMENT:NEW-ARGUMENT)     Extend SUBTYPEP to accept an optional third argument.  This argument should be     either NIL, the &environment argument received by a macro expander function,     or the environment argument received by an *evalhook* or *applyhook* function.     This argument is used to distinguish between compile-time and run-time     environments. I can't imagine why you would add an environment argument to SUBTYPEP,but not to TYPEP.  In any case, the CLOS plan for this was that anyone whoneeded to use a non-null environment would call FIND-CLASS explicitly,instead of relying on the implicit class inside TYPEP and SUBTYPEP.Since use of the compile-time environment for types should be quite rare,this was seen as much less of a burden than modifying existing functionsto take new optional arguments.*start*01621 00024 US Return-Path: <CL-Cleanup-mailer@SAIL.Stanford.EDU>Redistributed: xerox-cl-cleanup^.paReceived: from SAIL.Stanford.EDU ([36.86.0.194]) by Xerox.COM ; 08 JAN 89 17:36:21 PSTReceived: from STONY-BROOK.SCRC.Symbolics.COM (SCRC-STONY-BROOK.ARPA) by SAIL.Stanford.EDU with TCP; 8 Jan 89  17:35:35 PSTReceived: from EUPHRATES.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 517316; Sun 8-Jan-89 15:28:30 ESTDate: Sun, 8 Jan 89 15:28 ESTFrom: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>Subject: Issue MACRO-FUNCTION-ENVIRONMENT, Version 1To: Richard Mlynarik <Mly@AI.AI.MIT.EDU>cc: cl-cleanup@SAIL.STANFORD.EDUIn-Reply-To: <19890107172420.3.MLY@JACKIE-O.AI.MIT.EDU>Message-ID: <19890108202804.7.MOON@EUPHRATES.SCRC.Symbolics.COM>    Date: Sat, 7 Jan 89 12:24 EST    From: Richard Mlynarik <Mly@AI.AI.MIT.EDU>	Date: Sat, 7 Jan 89 00:15 EST	From: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>	[...]	Since use of the compile-time environment for types should be quite rare,	this was seen as much less of a burden than modifying existing functions	to take new optional arguments.    Not so.  Consider compiler optimisations of (MAKE-ARRAY # :ELEMENT-TYPE #)    When I last wrote a CL type system I needed a mess of parallel    COMPILER-SUBTYPEP and COMPILER-UPGRADE-ARRAY-ELEMEN-TYPE (and so forth)    functions.  Using compilation-environment technology would have been far    preferable.    I give MAKE-ARRAY optimisation merely as an example -- I feel `user'    code has the same sorts of needs.Hmm, you're probably right.

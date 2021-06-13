@@ -1,0 +1,988 @@
+*start*
+06893 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:Masinter.pa@Xerox.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 12 JUN 87 22:57:23 PDT
+Received: from XEROX.COM by SAIL.STANFORD.EDU with TCP; 12 Jun 87  22:55:47 PDT
+Received: from Cabernet.ms by ArpaGateway.ms ; 12 JUN 87 22:55:21 PDT
+Date: 12 Jun 87 22:55 PDT
+From: Masinter.pa
+Subject: Issue: EVAL-DEFEATS-LINKER
+To: cl-cleanup@Sail.stanford.edu
+cc: willc%tekchips.tek.com@RELAY.CS.NET
+Message-ID: <870612-225521-2539@Xerox>
+
+Date: 12 Jun 87 15:36:10 PDT (Fri)
+
+
+Issue:        EVAL-DEFEATS-LINKER
+References:   Functions (p32); FUNCTIONP (p76); APPLY (pp107-108);
+              FUNCALL (p108); #. (pp355-356); #, (p356)
+Category:     CHANGE
+Edit history: 12-Jun-87, Version 1 by Clinger
+
+Problem description:
+
+It appears to be impossible to write a selective linker for Common Lisp
+that is both reliable and effective.  The reason is that most programs
+must call APPLY, FUNCALL, or READ, which potentially call SYMBOL-FUNCTION
+or EVAL, which must be regarded as potential references to any standard
+or user-defined Common Lisp procedure.  At a minimum, therefore, the
+entire Common Lisp library gets linked into the deliverable application.
+
+Proposal (EVAL-DEFEATS-LINKER:FLUSH-GRATUITOUS-EVALS):
+
+Change the definition of the function type to exclude symbols and lists.
+Change the definition of FUNCTIONP to be false of symbols and lists.
+Change the definitions of APPLY and FUNCALL so it is an error to pass
+them a symbol or a list as their first argument.
+
+Functions such as MAPCAR that are defined by reference to the concept of
+function or by reference to APPLY and FUNCALL would be affected by these
+changes as well, but it would not be necessary to change their
+written specification.
+
+Remove the #. and #, dispatching macro characters from the standard reader
+syntax.  Require the interpreter, compiler, and interactive loader to use
+a reader syntax that has been extended by adding the #. and #, dispatching
+macro characters.
+
+Test Case:
+
+The executable file for the following program is comparable in size to
+a complete Common Lisp system.
+
+    (DEFUN MAIN ()
+      (PRINT (EVAL (READ))))
+
+A selective linker should, however, be able to link the following program
+into a relatively small executable file.
+
+    (DEFUN MAIN ()
+      (PRINT (APPLY (FOO) (READ))))
+
+    (DEFUN FOO ()
+      (LET ((BIAS (RANDOM 1000)))
+        #'(LAMBDA (&REST ARGS) (+ BIAS (APPLY #'+ ARGS)))))
+
+Currently selective linkers have difficulty with the preceding program
+because they must also make programs like the following work, where FOO
+"computes" an arbitrary function.  Under the proposal, the only ways
+to compute an arbitrary function would be through explicit use of EVAL
+or SYMBOL-FUNCTION et cetera.
+
+    (DEFUN MAIN ()
+      (PRINT (APPLY (FOO) (READ))))
+
+    (DEFUN FOO () (READ))
+
+Rationale:
+
+Selective linking is essential for most industrial applications.  Symbols
+and lambda expressions are regarded as functions for historical reasons
+only.  The description of the #, dispatching macro character on p356
+suggests that both #. and #, are intended for use in code, not in data
+to be read by an application program.
+
+Current practice:
+
+Hardly any implementations of Common Lisp attempt to remove unnecessary
+code from a deliverable application.  Those that do appear to ignore the
+problems posed by the third test case, and are therefore unreliable.
+That is, they are incorrect because they behave as though this proposal
+has been adopted when it has not.
+
+Adoption Cost:
+
+Implementations do not actually have to change APPLY and FUNCALL, since
+they would not have to signal an error when passed a symbol or list.
+Implementations that rely on #. and #, in non-code data would suffer
+a conversion cost, but it seems unlikely that any implementations do this.
+
+Cost of non-adoption:
+
+Selective linking will continue to be unavailable or unreliable.
+
+Benefits:
+
+The availability of reliable selective linkers will make Common Lisp suitable
+for a much braoder range of applications.
+
+Conversion Cost:
+
+Programs for which reliable selective linking is unimportant (that is,
+essentially all current Common Lisp programs) can be converted by
+redefining APPLY and FUNCALL and by defining the #. and #, dispatching
+character macros.  This will be referred to below as the trivial conversion.
+
+Programs for which reliable selective linking is important, if any exist,
+are presumably written in a style that needs no conversion.
+
+To convert an existing program into a style that can be linked selectively,
+it is necessary to examine all calls to APPLY, FUNCALL, MAPCAR, and other
+functions that take functions as arguments.  Where the argument expression
+is of the form (FUNCTION f), no conversion is necessary.  Where the first
+argument is of the form (QUOTE f), it should be changed to (FUNCTION f).
+Where the first argument is of neither of these two forms, human intervention
+will be necessary.  It seems likely that most calls will have first arguments
+of the form (FUNCTION f) or (QUOTE f), so this conversion can be automated
+substantially but not completely.
+
+As with all conversions, arguments to EVAL must be analyzed specially.
+Since uses of EVAL generally defeat selective linking, however, it is
+clear that programs that make extensive use of EVAL were not intended
+to be passed through a selective linker.  Hence the trivial conversion
+should suffice for such programs.
+
+If the program reads data from files, then it may be necessary to scan the
+files for occurrences of #. and #,.  If any occurrences are found, they
+will have to be removed.  It seems clear, however, that no program intended
+for selective linking will rely on #. and #, in data files.
+
+Esthetics:
+
+This proposal simplifies Common Lisp by removing weird special cases that
+contribute to the language's reputation for inefficiency.
+
+Discussion:
+
+This is a good example of the practical importance of aesthetics in language
+design.  The difficulties implementors face in writing a selective linker
+for Common Lisp are inherent in the current language definition.  It is
+better to fix the language than to postulate sufficiently clever linkers.
+
+While this proposal will make it possible to construct selective linkers,
+it will not make it trivial.  In many implementations, for example, the
+data structure for each symbol contains among other things a pointer to
+the symbol's home package, a value cell, and a function cell.  In such an
+implementation each symbol may represent a potential reference to the value
+cell of any symbol accessible from its home package.  Implementations that
+care about selective linking may have to break such links.
+
+Scheme proves that it is possible to design a Lisp that can be linked
+selectively.  Reliable selective linkers have been written for T and for
+MacScheme, and possibly for other implementations as well.
+
+
+
+
+*start*
+07049 00024 US 
+Return-Path: <@RELAY.CS.NET:willc@tekchips.tek.com>
+Received: from RELAY.CS.NET by Xerox.COM ; 12 JUN 87 18:03:21 PDT
+Received: from relay2.cs.net by RELAY.CS.NET id ab06003; 12 Jun 87 20:53 EDT
+Received: from tektronix.tek.com by RELAY.CS.NET id ak24532; 12 Jun 87 20:47 EDT
+Received: by tektronix.TEK.COM (5.51/6.23)
+	id AA24853; Fri, 12 Jun 87 15:33:47 PDT
+Received: by tekchips.TEK.COM (5.51/6.22)
+	id AA27582; Fri, 12 Jun 87 15:36:11 PDT
+Message-Id: <8706122236.AA27582@tekchips.TEK.COM>
+To: Masinter.pa
+Cc: rpg@su-ai.arpa
+Subject: EVAL-DEFEATS-LINKER:FLUSH-GRATUITOUS-EVALS proposal
+Date: 12 Jun 87 15:36:10 PDT (Fri)
+From: willc%tekchips.tek.com@RELAY.CS.NET
+
+Issue:        EVAL-DEFEATS-LINKER
+References:   Functions (p32); FUNCTIONP (p76); APPLY (pp107-108);
+              FUNCALL (p108); #. (pp355-356); #, (p356)
+Category:     CHANGE
+Edit history: 12-Jun-87, Version 1 by Clinger
+
+Problem description:
+
+It appears to be impossible to write a selective linker for Common Lisp
+that is both reliable and effective.  The reason is that most programs
+must call APPLY, FUNCALL, or READ, which potentially call SYMBOL-FUNCTION
+or EVAL, which must be regarded as potential references to any standard
+or user-defined Common Lisp procedure.  At a minimum, therefore, the
+entire Common Lisp library gets linked into the deliverable application.
+
+Proposal (EVAL-DEFEATS-LINKER:FLUSH-GRATUITOUS-EVALS):
+
+Change the definition of the function type to exclude symbols and lists.
+Change the definition of FUNCTIONP to be false of symbols and lists.
+Change the definitions of APPLY and FUNCALL so it is an error to pass
+them a symbol or a list as their first argument.
+
+Functions such as MAPCAR that are defined by reference to the concept of
+function or by reference to APPLY and FUNCALL would be affected by these
+changes as well, but it would not be necessary to change their
+written specification.
+
+Remove the #. and #, dispatching macro characters from the standard reader
+syntax.  Require the interpreter, compiler, and interactive loader to use
+a reader syntax that has been extended by adding the #. and #, dispatching
+macro characters.
+
+Test Case:
+
+The executable file for the following program is comparable in size to
+a complete Common Lisp system.
+
+    (DEFUN MAIN ()
+      (PRINT (EVAL (READ))))
+
+A selective linker should, however, be able to link the following program
+into a relatively small executable file.
+
+    (DEFUN MAIN ()
+      (PRINT (APPLY (FOO) (READ))))
+
+    (DEFUN FOO ()
+      (LET ((BIAS (RANDOM 1000)))
+        #'(LAMBDA (&REST ARGS) (+ BIAS (APPLY #'+ ARGS)))))
+
+Currently selective linkers have difficulty with the preceding program
+because they must also make programs like the following work, where FOO
+"computes" an arbitrary function.  Under the proposal, the only ways
+to compute an arbitrary function would be through explicit use of EVAL
+or SYMBOL-FUNCTION et cetera.
+
+    (DEFUN MAIN ()
+      (PRINT (APPLY (FOO) (READ))))
+
+    (DEFUN FOO () (READ))
+
+Rationale:
+
+Selective linking is essential for most industrial applications.  Symbols
+and lambda expressions are regarded as functions for historical reasons
+only.  The description of the #, dispatching macro character on p356
+suggests that both #. and #, are intended for use in code, not in data
+to be read by an application program.
+
+Current practice:
+
+Hardly any implementations of Common Lisp attempt to remove unnecessary
+code from a deliverable application.  Those that do appear to ignore the
+problems posed by the third test case, and are therefore unreliable.
+That is, they are incorrect because they behave as though this proposal
+has been adopted when it has not.
+
+Adoption Cost:
+
+Implementations do not actually have to change APPLY and FUNCALL, since
+they would not have to signal an error when passed a symbol or list.
+Implementations that rely on #. and #, in non-code data would suffer
+a conversion cost, but it seems unlikely that any implementations do this.
+
+Cost of non-adoption:
+
+Selective linking will continue to be unavailable or unreliable.
+
+Benefits:
+
+The availability of reliable selective linkers will make Common Lisp suitable
+for a much braoder range of applications.
+
+Conversion Cost:
+
+Programs for which reliable selective linking is unimportant (that is,
+essentially all current Common Lisp programs) can be converted by
+redefining APPLY and FUNCALL and by defining the #. and #, dispatching
+character macros.  This will be referred to below as the trivial conversion.
+
+Programs for which reliable selective linking is important, if any exist,
+are presumably written in a style that needs no conversion.
+
+To convert an existing program into a style that can be linked selectively,
+it is necessary to examine all calls to APPLY, FUNCALL, MAPCAR, and other
+functions that take functions as arguments.  Where the argument expression
+is of the form (FUNCTION f), no conversion is necessary.  Where the first
+argument is of the form (QUOTE f), it should be changed to (FUNCTION f).
+Where the first argument is of neither of these two forms, human intervention
+will be necessary.  It seems likely that most calls will have first arguments
+of the form (FUNCTION f) or (QUOTE f), so this conversion can be automated
+substantially but not completely.
+
+As with all conversions, arguments to EVAL must be analyzed specially.
+Since uses of EVAL generally defeat selective linking, however, it is
+clear that programs that make extensive use of EVAL were not intended
+to be passed through a selective linker.  Hence the trivial conversion
+should suffice for such programs.
+
+If the program reads data from files, then it may be necessary to scan the
+files for occurrences of #. and #,.  If any occurrences are found, they
+will have to be removed.  It seems clear, however, that no program intended
+for selective linking will rely on #. and #, in data files.
+
+Esthetics:
+
+This proposal simplifies Common Lisp by removing weird special cases that
+contribute to the language's reputation for inefficiency.
+
+Discussion:
+
+This is a good example of the practical importance of aesthetics in language
+design.  The difficulties implementors face in writing a selective linker
+for Common Lisp are inherent in the current language definition.  It is
+better to fix the language than to postulate sufficiently clever linkers.
+
+While this proposal will make it possible to construct selective linkers,
+it will not make it trivial.  In many implementations, for example, the
+data structure for each symbol contains among other things a pointer to
+the symbol's home package, a value cell, and a function cell.  In such an
+implementation each symbol may represent a potential reference to the value
+cell of any symbol accessible from its home package.  Implementations that
+care about selective linking may have to break such links.
+
+Scheme proves that it is possible to design a Lisp that can be linked
+selectively.  Reliable selective linkers have been written for T and for
+MacScheme, and possibly for other implementations as well.
+*start*
+05120 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 15 JUN 87 20:44:26 PDT
+Received: from SCRC-STONY-BROOK.ARPA by SAIL.STANFORD.EDU with TCP; 15 Jun 87  20:42:36 PDT
+Received: from EUPHRATES.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 173727; Mon 15-Jun-87 23:41:49 EDT
+Date: Mon, 15 Jun 87 23:41 EDT
+From: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: Issue: EVAL-DEFEATS-LINKER
+To: Masinter.pa, willc%tekchips.tek.com@RELAY.CS.NET
+cc: cl-cleanup@Sail.stanford.edu
+In-Reply-To: <870612-225521-2539@Xerox>
+Message-ID: <870615234142.0.MOON@EUPHRATES.SCRC.Symbolics.COM>
+Line-fold: No
+
+    Date: 12 Jun 87 22:55 PDT
+    From: Masinter.pa@Xerox.COM
+
+    Proposal (EVAL-DEFEATS-LINKER:FLUSH-GRATUITOUS-EVALS):
+
+I don't think this is a good choice of name, because only the third paragraph
+of the proposal has anything to do with EVAL.  EVAL-DEFEATS-LINKER:CLOSED-SYSTEM
+would be a better name, and EVAL-DEFEATS-LINKER:REMOVE-FUNCTION-COERCION would
+be even better if the readtable part is dropped as I suggest below.  This is
+nit-picking, of course.
+
+    Change the definition of the function type to exclude symbols and lists.
+    Change the definition of FUNCTIONP to be false of symbols and lists.
+
+The above two lines are redundant with the FUNCTION-TYPE proposal.  I guess
+that means that this proposal has FUNCTION-TYPE as a prerecquisite.
+
+    Change the definitions of APPLY and FUNCALL so it is an error to pass
+    them a symbol or a list as their first argument.
+
+    Functions such as MAPCAR that are defined by reference to the concept of
+    function or by reference to APPLY and FUNCALL would be affected by these
+    changes as well, but it would not be necessary to change their
+    written specification.
+
+This is the first cogent argument I have seen for why APPLY and FUNCALL should
+not coerce names of functions to functions.  I'm glad to see the discussion
+getting real.
+
+One way to address the conflict between compatibility with existing
+programs and the proposed automated subsetting of Common Lisp by observing
+what features are manifestly used by a given program, would be to note the
+use of the phrase "is an error".  This allows all existing implementations
+to agree on an extension to Common Lisp to support coercion of function
+names to functions, i.e. to agree to continue to do what they do now, while
+not requiring future implementations to support that.  Programs that exploit
+that feature would no longer be portable in law, but would remain portable
+in practice, which seems like a desirable state of affairs.
+
+These existing implementations could also agree on a switch that disables
+the extension, to facilitate portability to implementations that lack the
+extension.  I have to caution, however, that implementing such switches as
+dynamic variables generally does not work in implementations where the
+operating system is written in Lisp; we have some distasteful experience
+with that in the areas of case-sensitivity in string comparison and
+NIL-sensitivity in CAR and CDR.  Implementing the switch in a lexical way,
+for instance by providing a package containing alternate versions of
+FUNCALL, APPLY, and every CL function that calls FUNCALL or APPLY, would
+avoid this problem.  There may be other techniques that are more
+appropriate than switches.  Unfortunately reliance on coercion from
+function names to functions is not, in general, detectable at compile time.
+If it was detectable at compile time, this whole linker issue would not
+have arisen.
+
+    Remove the #. and #, dispatching macro characters from the standard reader
+    syntax.  Require the interpreter, compiler, and interactive loader to use
+    a reader syntax that has been extended by adding the #. and #, dispatching
+    macro characters.
+
+I see no reason to include this third part in the proposal.  Common Lisp already
+provides ways to make customized readtables, and applications that want to run
+in stripped-down Lisps can use those mechanisms to make readtables that don't
+contain #. and #, and can inform their linker that they are using those mechanisms.
+The proposal should mention the existence of the #. loophole, of course.
+Isn't #S a bit of a loophole, also, although not quite as bad?
+
+I have thought of one additional loophole; perhaps the best way to describe it
+is with an example.
+
+(defvar *funcall-loophole*)
+(deftype funcall ()
+  `(satisfies ,*funcall-loophole*))
+(defun funcall-the-old-way (symbol argument)
+  (let ((*funcall-loophole* symbol))
+    (typep argument 'funcall)))
+(funcall-the-old-way '1+ 5) => 6
+
+Perhaps a linker can be written to detect the presence of DEFTYPEs complex
+enough that they could be this loophole.  I could have written this without
+using any special variables, and without using DEFTYPE; I just put those in
+to make it look more complicated and thus harder to detect at compile time.
+The key point here is that the SATISFIES type-specifier is defined to call
+SYMBOL-FUNCTION.  I don't think we want to change that.
+
+*start*
+03660 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:FAHLMAN@C.CS.CMU.EDU>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 16 JUN 87 20:41:52 PDT
+Received: from C.CS.CMU.EDU by SAIL.STANFORD.EDU with TCP; 16 Jun 87  20:40:08 PDT
+Received: ID <FAHLMAN@C.CS.CMU.EDU>; Tue 16 Jun 87 23:39:12-EDT
+Date: Tue, 16 Jun 87 23:39 EDT
+Message-ID: <FAHLMAN.12311108567.BABYL@C.CS.CMU.EDU>
+Sender: FAHLMAN@C.CS.CMU.EDU
+From: "Scott E. Fahlman" <Fahlman@C.CS.CMU.EDU>
+To: cl-cleanup@SAIL.STANFORD.EDU
+Cc: willc%tekchips.tek.com@RELAY.CS.NET
+Subject: Issue: EVAL-DEFEATS-LINKER
+In-reply-to: Msg of 13 Jun 1987  01:55-EDT from Masinter.pa at Xerox.COM
+
+
+This proposal seems very odd to me.
+
+It is certainly desirable for a Common Lisp implementation to have some
+way to create a core image for application delivery that contains only
+as much code as that application needs, and not all the rest of Common
+Lisp and the associated development environment.  I have argued that
+this approach to application delivery is much better than trying to
+create some small delivery-oriented subset of Common Lisp: it is better
+to keep those functions that you actually use and jettison the rest than
+to try to guess in advance what subset would be appropriate for a whole
+class of appliction.
+
+A normal garbage collection will keep alive all of the functions that
+are actually needed by a given application program, either directly or
+indirectly.  Unfortunately, it will also keep alive every other function
+that is globally named by a symbol, even if that symbol is not mentioned
+in the application code.  Such functions are still "accessible" if there
+is a read/eval present, since the user could ask for them by name, so
+the garbage collector is not allowed to eliminate them.
+
+We could get rid of these named functions if, by examining all the
+application code, we could prove any of the following:
+
+1. The symbol is not mentioned in the application and there is no way to
+smuggle it into the system at runtime via calls to read, intern, etc.
+
+2. The function is not called anywhere, and the symbol, though it may be
+present, is not converted into a function anywhere.  Clinger's proposal
+is to make this proof easier by eliminating a large class of implict
+symbol-to-function conversions.
+
+3. The function, though it may be present, is not called and is nowhere
+passed to EVAL, APPLY, or FUNCALL.
+
+That's one approach to eliminating the unneeded parts of Common Lisp.  A
+different approach is is to simply ask the user to declare that the
+application does not contain a full Common Lisp interpreter, if that is
+his intent.  For example, an implementation might provide a facility
+called COMPRESS-FOR-DELIVERY that retains a user-specified set of root
+functions and everything that they call (transitively), but that flushes
+all other functions that are normally found in a Common Lisp.
+
+If such an application happens to have an EVAL lurking within, and if
+the the user somehow passes (Y-OR-N-P "Foo") to it, he might find that
+Y-OR-N-P is simply undefined.  Sorry, but this is a desk calculator, not
+a full Common Lisp interpreter.
+
+It seems to me that the latter approach is by far the more interesting
+and useful one.  It also seems to me that this is an environment issue
+and not something that this committee needs to worry about.  I see no
+significant portability issue here.  In the compressed system, EVAL
+doesn't mean quite what it did before, but nobody is claiming that this
+desk calculator is a legal common lisp.  Exactly what COMPRESS retains
+will depend on the internal details of each implementation, so there is
+no point in trying to standardize this.
+
+-- Scott
+
+*start*
+02834 00024 USh
+Return-Path: <@SAIL.STANFORD.EDU:edsel!bhopal!jonl@navajo.stanford.edu>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 17 JUN 87 19:44:04 PDT
+Received: from NAVAJO.STANFORD.EDU by SAIL.STANFORD.EDU with TCP; 17 Jun 87  19:41:40 PDT
+Received: by navajo.stanford.edu; Wed, 17 Jun 87 19:39:01 PDT
+Received: from bhopal.edsel.uucp by edsel.uucp (3.2/SMI-2.0)
+	id AA00489; Wed, 17 Jun 87 19:21:41 PDT
+Received: by bhopal.edsel.uucp (3.2/SMI-3.2)
+	id AA03068; Wed, 17 Jun 87 19:23:56 PDT
+Date: Wed, 17 Jun 87 19:23:56 PDT
+From: edsel!bhopal!jonl@navajo.stanford.edu (Jon L White)
+Message-Id: <8706180223.AA03068@bhopal.edsel.uucp>
+To: navajo!Fahlman%C.CS.CMU.EDU@navajo.stanford.edu
+Cc: navajo!cl-cleanup%SAIL.STANFORD.EDU@navajo.stanford.edu, navajo!willc%tekchips.tek.com%RELAY.CS.NET@navajo.stanford.edu
+In-Reply-To: "Scott E. Fahlman"'s message of Tue, 16 Jun 1987  23:39 EDT <FAHLMAN.12311108567.BABYL@C.CS.CMU.EDU>
+Subject: Issue: EVAL-DEFEATS-LINKER
+
+I think I'll  have to agree generally with your analysis of this problem.
+At Lucid, we have spent a good deal of time working on a tool similar to 
+what you called COMPRESS-FOR-DELIVERY, and the results are not uniformly 
+heartwarming.  Primarly, the mass of data involved in keeping track of all 
+the constraints is a quagmire [that perhaps needs an expert system for 
+solution?]; so it is not at all as simple a task as it seems at first.
+
+Re: We could get rid of these named functions if, by examining all the
+    application code, we could prove any of the following: ... [and]
+    Clinger's proposal is to make this proof easier by eliminating a 
+    large class of implict symbol-to-function conversions.
+
+I'm just as skeptical as you are about the usefulness of making a 
+controversial change in CL semantics just in order to remove one small 
+aspect of the many hurdles in front of the impossible proof.  Many of 
+the alleged dangers of the symbol-to-function mapping are in fact 
+compile-time "harmless"; e.g. (mapc 'list l1 l2) should cause no one 
+any more concern than (mapc #'list l1 l2), so why restrict it?  Also I 
+like to write code like
+     (dolist (fn '(a b c d e f))	
+	;; Install the "boot level" versions of these basic functions
+	(setf (symbol-function fn)
+	      (symbol-function (append-symbols 'boot- fn))))
+Rather than throw out the baby with the bathwater, I'd much rather have a 
+declaration that said something like "This instance of symbol-function is 
+restricted to the set of symbols {a b c d e f boot-a boot-b ... boot-f}".
+
+Somehow, if the "proof" were ever made to be successful, I fear that the 
+resultant language would be so much more like Pascal, and so little like 
+the classic Lisps that the AI world grew up on, that X3J13 might just as 
+well admit defeat and join the FortranADAPascalCModula crowd.
+
+
+-- JonL --
+
+*start*
+05338 00024 USh
+Return-Path: <@SAIL.STANFORD.EDU,@RELAY.CS.NET:willc@tekchips.tek.com>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 19 JUN 87 14:30:46 PDT
+Received: from RELAY.CS.NET by SAIL.STANFORD.EDU with TCP; 19 Jun 87  14:29:06 PDT
+Received: from relay2.cs.net by RELAY.CS.NET id ac22243; 19 Jun 87 16:05 EDT
+Received: from tektronix.tek.com by RELAY.CS.NET id aq09203; 19 Jun 87 15:56 EDT
+Received: by tektronix.TEK.COM (5.51/6.23)
+	id AA22564; Fri, 19 Jun 87 12:11:47 PDT
+Received: by tekchips.TEK.COM (5.51/6.22)
+	id AA01863; Fri, 19 Jun 87 12:14:18 PDT
+Message-Id: <8706191914.AA01863@tekchips.TEK.COM>
+To: cl-cleanup@SAIL.STANFORD.EDU
+Cc: Fahlman@C.CS.CMU.EDU, willc%tekchips.tek.com@RELAY.CS.NET
+Subject: Re: Issue: EVAL-DEFEATS-LINKER
+In-Reply-To: Your message of Tue, 16 Jun 1987  23:39 EDT.
+	     <FAHLMAN.12311108567.BABYL@C.CS.CMU.EDU>
+Date: 19 Jun 87 12:14:16 PDT (Fri)
+From: willc%tekchips.tek.com@RELAY.CS.NET
+
+This is my response to a message from Scott Fahlman.
+
+> This proposal seems very odd to me.
+
+Cultural differences account for this:
+
+    I think ordinary programs (which don't call EVAL or any of its subspecies) 
+    should be linked selectively with no special effort.  This is what people
+    do every day with other programming languages, including Scheme.  I
+    couldn't care less about programs that explicitly call EVAL or its
+    subspecies, because Real Programmers don't call EVAL.
+
+    Scott wants programs that call EVAL or its subspecies, which he and
+    his culture consider to be normal programs, to be linked selectively.
+    This requires the user to name all the functions that might be involved
+    in a call to EVAL.  He couldn't care less about programs that don't call
+    EVAL or its subspecies, because Real Programmers call EVAL.
+
+> A normal garbage collection will keep alive all of the functions that
+> are actually needed by a given application program, either directly or
+> indirectly.  Unfortunately, it will also keep alive every other function
+> that is globally named by a symbol, even if that symbol is not mentioned
+> in the application code.  Such functions are still "accessible" if there
+> is a read/eval present, since the user could ask for them by name, so
+> the garbage collector is not allowed to eliminate them.
+
+The second sentence is correct only if EVAL or one of its subspecies is called
+explicitly, the language is poorly designed, or the implementation is not
+structured for selective linking.  I don't think programs that call EVAL
+are worth worrying about, and I'm trying to patch the language design so
+future implementatations can be designed for selective linking.  Note that
+READ without EVAL would cause no problems for selective linking in a well-
+designed implementation if it weren't for the language problems I have
+identified.
+
+> That's one approach to eliminating the unneeded parts of Common Lisp.  A
+> different approach is is to simply ask the user to declare that the
+> application does not contain a full Common Lisp interpreter, if that is
+> his intent.  For example, an implementation might provide a facility
+> called COMPRESS-FOR-DELIVERY that retains a user-specified set of root
+> functions and everything that they call (transitively), but that flushes
+> all other functions that are normally found in a Common Lisp.
+> 
+> If such an application happens to have an EVAL lurking within, and if
+> the the user somehow passes (Y-OR-N-P "Foo") to it, he might find that
+> Y-OR-N-P is simply undefined.  Sorry, but this is a desk calculator, not
+> a full Common Lisp interpreter.
+> 
+> It seems to me that the latter approach is by far the more interesting
+> and useful one.  It also seems to me that this is an environment issue
+> and not something that this committee needs to worry about.  I see no
+> significant portability issue here.  In the compressed system, EVAL
+> doesn't mean quite what it did before, but nobody is claiming that this
+> desk calculator is a legal common lisp.  Exactly what COMPRESS retains
+> will depend on the internal details of each implementation, so there is
+> no point in trying to standardize this.
+> 
+> -- Scott
+
+My summary of this is that Scott is proposing that the semantics of EVAL
+be left unspecified, and that it is ok to do this because EVAL is part of
+the programming environment, not part of the language.  His proposal
+wouldn't work unless we did the same for EVAL's subspecies like
+SYMBOL-VALUE and SYMBOL-FUNCTION, so I have to assume he wants their
+semantics to be left unspecified as well.
+
+Considered by itself, this change in the status of EVAL and its subspecies
+would be catastrophic, because essential functions like FUNCALL and APPLY
+are defined in terms of EVAL or its subspecies.  If we change FUNCALL and
+APPLY as I propose, and go further to fix everything else that depends on
+EVAL and its subspecies, then I would be very sympathetic to the idea of
+dropping EVAL, SYMBOL-VALUE, and SYMBOL-FUNCTION and their ilk from the
+supported language.  I doubt that Scott really wants to go that far.
+
+================================================================
+
+I am sympathetic to David Moon's suggestion that #. and #, could be
+left out of the proposal, since programs that want to be linked
+selectively can just define #. and #, to be something innocuous.
+
+-- Will
+
+*start*
+02781 00024 USa
+Return-Path: <@SAIL.STANFORD.EDU:FAHLMAN@C.CS.CMU.EDU>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 19 JUN 87 17:39:19 PDT
+Received: from C.CS.CMU.EDU by SAIL.STANFORD.EDU with TCP; 19 Jun 87  17:37:08 PDT
+Received: ID <FAHLMAN@C.CS.CMU.EDU>; Fri 19 Jun 87 20:36:06-EDT
+Date: Fri, 19 Jun 87 20:36 EDT
+Message-ID: <FAHLMAN.12311861665.BABYL@C.CS.CMU.EDU>
+Sender: FAHLMAN@C.CS.CMU.EDU
+From: "Scott E. Fahlman" <Fahlman@C.CS.CMU.EDU>
+To: willc%tekchips.tek.com@RELAY.CS.NET
+Cc: cl-cleanup@SAIL.STANFORD.EDU
+Subject: Issue: EVAL-DEFEATS-LINKER
+
+
+    > This proposal seems very odd to me.
+
+    Cultural differences account for this:
+
+Yeah, I guess so.  I actually don't object to your proposal.  I've got
+no objection to your kind of "selective linking with no special effort"
+if a system wants to supply it.  I think that a system geared for
+application delivery wants to have the kind of user-specified
+compression I described in the previous note, but if some compression
+can happen automatically, so much the better.  If the price for this is
+flushing the coercion in APPLY and FUNCALL, that just gives me another
+reason to favor FUNCTION-TYPE:STRICT-REDEFINITION, which I support for
+other reasons anyway.  Like Moon, I dislike the change to #. and #, ,
+but I guess that's not a big issue here.
+
+    My summary of this is that Scott is proposing that the semantics of EVAL
+    be left unspecified, and that it is ok to do this because EVAL is part of
+    the programming environment, not part of the language.  His proposal
+    wouldn't work unless we did the same for EVAL's subspecies like
+    SYMBOL-VALUE and SYMBOL-FUNCTION, so I have to assume he wants their
+    semantics to be left unspecified as well.
+
+    Considered by itself, this change in the status of EVAL and its subspecies
+    would be catastrophic, because essential functions like FUNCALL and APPLY
+    are defined in terms of EVAL or its subspecies.
+
+Well, not really.  It's another matter of culture, I guess, but I think
+of this as leaving the semantics of EVAL alone; EVAL still treats a
+symbol defined as a function just as before.  What changes is the set of
+symbols that happen to have functional definitions at runtime.  Think of
+it as coding in a Common Lisp subset, but you don't choose the subset
+until the program is done and you examine what functions you actually used.
+
+I suppose that flushing something like ATANH at compression time could
+be viewed as changing the semantics of EVAL, and I suppose you could say
+that this is disastrous because EVAL is used to define other things, but
+I don't really see this as a useful way to look at the world.  If you
+take this view, doesn't it also change EVAL (in a disastrous way) when
+you define some new function?
+
+-- Scott
+
+*start*
+02646 00024 USa
+Return-Path: <@MC.LCS.MIT.EDU,@RELAY.CS.NET:willc@tekchips.tek.com>
+Redistributed: XeroxScheme^.x
+Received: from MC.LCS.MIT.EDU by Xerox.COM ; 14 AUG 87 00:36:57 PDT
+Received: from RELAY.CS.NET (TCP 1201000005) by MC.LCS.MIT.EDU 14 Aug 87 03:01:08 EDT
+Received: from relay2.cs.net by RELAY.CS.NET id aa04851; 14 Aug 87 2:59 EDT
+Received: from tektronix.tek.com by RELAY.CS.NET id au15182; 14 Aug 87 2:49 EDT
+Received: by tektronix.TEK.COM (5.51/6.24)
+	id AA08274; Thu, 13 Aug 87 16:57:04 PDT
+Received: by tekchips.TEK.COM (5.51/6.24)
+	id AA07301; Thu, 13 Aug 87 16:55:13 PDT
+Message-Id: <8708132355.AA07301@tekchips.TEK.COM>
+To: scheme@mc.lcs.mit.edu
+Subject: selective linking in Lisp
+From: willc%tekchips.tek.com@RELAY.CS.NET
+Date: 13 Aug 87 16:55:11 PDT (Thu)
+Sender: willc%tekchips.tek.com@RELAY.CS.NET
+
+[my attempt to reply directly to jrl@zermatt failed; he posted his
+question here, so I'll reply here]
+
+    This is an intriguing statement. Can you amplify on this. Is it the use
+    of symbols both as first class objects and as names that causes the
+    problems or is it something else?
+
+Depends on what you mean by that.  You can't do reliable selective linking
+on a program that calls EVAL (or its kin such as SYMBOL-VALUE,
+SYMBOL-FUNCTION, etc) unless the linker can determine the arguments
+that are passed to EVAL, which is impossible in general.  The reason EVAL
+defeats selective linking is that the argument to EVAL, being a computed
+quantity, potentially refers to just about any procedure or variable.
+This is true in all Lisps, including Scheme.
+
+The problem with Lisps other than Scheme is that all sorts of standard
+procedures are specified in such a way that they potentially call EVAL
+(or SYMBOL-VALUE or SYMBOL-FUNCTION), so even if you scrupulously avoid
+calling EVAL yourself you still lose because you call FUNCALL or APPLY
+or something else that calls EVAL (or SYMBOL-VALUE or SYMBOL-FUNCTION).
+
+I raised this with the Common Lisp cleanup subcommittee and at the last
+X3J13 meeting, and was astounded to learn that the Common Lisp vendors
+generally feel that selective linking isn't worth thinking about.  They
+may be right, in the sense that it would take a fairly drastic overhaul
+of Common Lisp to make it possible to write reliable selective linkers.
+I expect most vendors will eventually write unreliable selective linkers
+that ignore the problems posed by EVAL and its kin, or else they will
+rely on the programmer to declare all variables that might be needed by
+a call to EVAL.  This might well be good enough for government work.
+
+Peace, Will Clinger
+Tektronix Computer Research Lab
+
+*start*
+01604 00024 US 
+Date: 17 Aug 87 19:13 PDT
+From: Masinter.pa
+Subject: Re: selective linking in Lisp
+In-reply-to: willc%tekchips.tek.com@RELAY.CS.NET's message of 17 Aug 87 11:36:21 PDT (Mon)
+To: willc%tekchips.tek.com@RELAY.CS.NET
+cc: masinter.pa, adams%tekchips.tek.com@RELAY.CS.NET
+
+Will,
+
+I still hope that some resolution of this and similar issues can be made in Common Lisp. Your message made it sound like the door was closed, and I want to do what I can to keep it open. That was the purpose of my reply. It does none of us any good to characterize X3J13 as hopelessly closed minded.
+
+Selective linking  by itself is not a strong reason to "fix" the semantics of FUNCALL and APPLY, because by itself it does not fix the problem for most CL applications.
+
+The truth is that there are other reasons for wanting to change FUNCALL and APPLY than merely the single issue of selective linking (global optimization & program analysis, for example), and that we need to elucidate and explain those justifications more clearly.
+
+Resolving the semantic differences between Scheme and Common Lisp is one of the highest priorities for "Common Lisp cleanup". We've been asked to to examine the costs and benefits of every change to Common Lisp, and to make sure that any incompatibilities introduced bring benefits which are worth the cost. That doesn't mean that all incompatibilities will be rejected. 
+
+I was disappointed by your message, because I took it to mean that you were no longer interested in working with the Common Lisp group on resolving this issue, and I thought it was a shame.
+
+
+
+
+
+
+*start*
+04791 00024 US 
+Return-Path: <@RELAY.CS.NET:willc@tekchips.tek.com>
+Received: from RELAY.CS.NET by Xerox.COM ; 17 AUG 87 15:58:09 PDT
+Received: from relay2.cs.net by RELAY.CS.NET id ab00480; 17 Aug 87 18:55 EDT
+Received: from tektronix.tek.com by RELAY.CS.NET id am07020; 17 Aug 87 18:46 EDT
+Received: by tektronix.TEK.COM (5.51/6.24)
+	id AA09164; Mon, 17 Aug 87 11:37:36 PDT
+Received: by tekchips.TEK.COM (5.51/6.24)
+	id AA05338; Mon, 17 Aug 87 11:36:23 PDT
+Message-Id: <8708171836.AA05338@tekchips.TEK.COM>
+To: masinter.pa
+Subject: Re: selective linking in Lisp
+In-Reply-To: Your message of 16 Aug 87 02:37 PDT.
+	     <870816-023748-4773@Xerox>
+Cc: willc%tekchips.tek.com@RELAY.CS.NET, adams%tekchips.tek.com@RELAY.CS.NET
+Date: 17 Aug 87 11:36:21 PDT (Mon)
+From: willc%tekchips.tek.com@RELAY.CS.NET
+
+In the context of my original message, jrl's question, and my reply,
+I believe the phrase "selective linking" had a clear meaning: the
+kind of selective linking that is possible in Scheme.  I could have
+quoted more context, I guess.  And I am guilty of a slight exaggeration
+by saying that Common Lisp vendors feel that kind of selective linking
+isn't worth thinking about:  Most have thought about it enough to realize
+they can't do it, and are looking at alternatives.
+
+You're right about the electronic mail discussion, which by my count
+consisted of four messages: a message from David Moon, a message from
+Scott Fahlman, my response to Scott, and Scott's response to my response.
+Four messages, of which I wrote two, is too small a sample to generalize
+from.  Scott's position, though not David's, was described accurately in
+my message to the Scheme mailing list:  The user should have to declare
+what is needed (or equivalently, what is not needed) by EVAL'ed expressions.
+
+My characterization of the response accurately characterizes the discussion
+at the Cambridge meeting of X3J13.  One gentleman near the front of the room
+on the right side of the speaker as he/she faces the audience (and who I
+believe works for Symbolics, making his remarks less interesting) said
+almost in so many words that trying to fix the FUNCALL and APPLY problem
+in order to make selective linking work was pointless because there were
+so many other things in Common Lisp that make selective linking impossible.
+You could not be aware of the several private conversations I had with
+people on this topic following the public discussion, in which that view
+was elaborated and Scott's idea of having the programmer declare the
+procedures and variables that might be called from EVAL'ed code was put
+forth as the most reasonable way to go.
+
+Indeed, I believe many people in the Common Lisp community think about
+selective linking differently than I do.  The differences are interesting
+and are worth discussing.  Ah, but where?
+
+I think it was entirely appropriate for me to commend the Scheme community
+for doing a good job with the language design so that selective linking is
+possible, and to point out that Scheme is the first Lisp to have been so
+well designed.  The Scheme mailing list is absolutely the right forum for
+me to say that---think of it as the analog of Pat Winston's blurb on the
+back of CLtL.
+
+Someone then asked a technical question:  Exactly what causes the problem
+in other dialects of Lisp?  They posted the question to the Scheme mailing
+list.  I composed a technical reply, adding a rather subjective paragraph
+to explain what the Common Lisp community thinks about this issue, and sent
+it directly.  As so happens in this computer age of fast and reliable
+electronic mail, the message failed to reach its destination.  I then had
+to decide whether the message was of sufficiently general interest to
+warrant posting to the Scheme mailing list.  I decided that it was,
+particularly since the question was posted there in the first place, and
+sent it.  Perhaps I should have made the paragraph about Common Lisp less
+subjective before posting to such a public forum, but I suspect that the
+readers of that mailing list who enjoyed the subjectivity greatly outnumber
+those offended  by it.
+
+An appeal to democracy such as I have just made would be invalid if we
+were discussing a technical matter, but we're not.  We're discussing
+the appropriateness of a posting to a mailing group.  The rights of
+a minority are quite well protected in such a setting, since the minority
+can easily post its views and, if its arguments are convincing, change
+people's minds.
+
+A separate question is whether it was wise for me to have posted the
+message, given that the readership includes members of the Common Lisp
+community whose friendship I desire.  Here I think the answer is no,
+as evidenced by your message.  So I conclude that my posting was
+appropriate but unwise.
+
+peace, Will
+*start*
+02769 00024 US 
+Return-Path: <@RELAY.CS.NET:willc@tekchips.tek.com>
+Received: from RELAY.CS.NET by Xerox.COM ; 19 AUG 87 16:16:31 PDT
+Received: from relay2.cs.net by RELAY.CS.NET id ah10581; 19 Aug 87 18:57 EDT
+Received: from tektronix.tek.com by RELAY.CS.NET id am20158; 19 Aug 87 18:44 EDT
+Received: by tektronix.TEK.COM (5.51/6.24)
+	id AA07668; Wed, 19 Aug 87 13:14:49 PDT
+Received: by tekchips.TEK.COM (5.51/6.24)
+	id AA22703; Wed, 19 Aug 87 13:13:36 PDT
+Message-Id: <8708192013.AA22703@tekchips.TEK.COM>
+To: Masinter.pa
+Cc: willc%tekchips.tek.com@RELAY.CS.NET, adams%tekchips.tek.com@RELAY.CS.NET
+Subject: Re: selective linking in Lisp
+In-Reply-To: Your message of 17 Aug 87 19:13 PDT.
+	     <870817-191545-1523@Xerox>
+Date: 19 Aug 87 13:13:34 PDT (Wed)
+From: willc%tekchips.tek.com@RELAY.CS.NET
+
+I very much appreciate what you are doing to keep the door open for change
+in Common Lisp.  Having had a chance to reread my posting when replying to
+you, I really am sorry about its tone.  It reflects, unfortunately, my
+perception of the situation.  I am still interested in working with you
+and the rest of X3J13 on this issue, but I believe I have stated the
+technical issues about as well as I can to both the cleanup committee
+and to X3J13 as a whole, and I think it will only waste the committee's
+time if I repeat myself.
+
+Though you say that selective linking by itself is not a reason to change
+the semantics of FUNCALL and APPLY because these changes by themselves
+will not fix the problem for most CL applications, we need to consider
+that if CL has any real future at all then we ought to be worrying more
+about the code that hasn't yet been written than about the code we
+already have.  People haven't had any incentive to think about selective
+linking when they write CL programs, because it has been impossible.  If
+we make it possible, then people will begin to write code that takes
+advantage of it.
+
+And of course, there are obstacles to selective linking besides FUNCALL
+and APPLY, but they're the main culprits.  The only other problems I know
+about are #. and #, and the problem that Moon mentioned.
+
+As you point out, selective linking is only one of the many things you'd
+like to be able to do that require the kind of global program analysis
+that is currently impossible in Common Lisp.  Selective linking is at
+the same time one of the simplest and most important, which is why I
+believe the discussions in Cambridge bode ill for the prospect of
+meaningful change.
+
+I am coming around to Scott Fahlman's position, that we should pretty
+much leave Common Lisp as it is, cleaning up only the trivial things,
+and move on to a new language.  Scott and I would disagree about what
+that new language should be like, of course.
+
+peace, Will
+*start*
+00947 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:Masinter.pa@Xerox.COM>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 22 SEP 87 13:08:37 PDT
+Received: from XEROX.COM by SAIL.STANFORD.EDU with TCP; 22 Sep 87  13:06:31 PDT
+Received: from Cabernet.ms by ArpaGateway.ms ; 22 SEP 87 13:06:49 PDT
+Date: 22 Sep 87 13:06 PDT
+From: Masinter.pa
+Subject: Re: Issue: EVAL-DEFEATS-LINKER
+In-reply-to: various messages in june
+To: cl-cleanup@SAIL.STANFORD.EDU
+cc: willc%tekchips.tek.com@RELAY.CS.NET
+Message-ID: <870922-130649-12470@Xerox>
+
+
+I think procedurally the proper mechanism for dealing with this issue is
+to split it; since the heart of the matter is covered in FUNCTION-TYPE,
+we should pursue FUNCTION-TYPE, and deal with the other parts of the
+proposal (remove #. from standard read table, etc.) separately. 
+
+Please cc: willc on messages regarding FUNCTION-TYPE, as he is not a
+member of CL-CLEANUP.
+
+
+*start*
+01105 00024 US 
+Return-Path: <@RELAY.CS.NET:willc@tekchips.tek.com>
+Received: from RELAY.CS.NET by Xerox.COM ; 13 OCT 87 19:33:19 PDT
+Received: from relay2.cs.net by RELAY.CS.NET id ab02715; 13 Oct 87 21:10 EDT
+Received: from tektronix.tek.com by RELAY.CS.NET id by28970; 13 Oct 87 21:03 EDT
+Received: by tektronix.TEK.COM (5.51/6.24)
+	id AA25623; Tue, 13 Oct 87 15:58:09 PDT
+Received: by tekchips.TEK.COM (5.51/6.24)
+	id AA26131; Tue, 13 Oct 87 15:57:23 PDT
+Message-Id: <8710132257.AA26131@tekchips.TEK.COM>
+To: Masinter.pa
+Subject: Re: Issue: EVAL-DEFEATS-LINKER
+In-Reply-To: Your message of 22 Sep 87 13:06 PDT.
+	     <870922-130649-12470@Xerox>
+Date: 13 Oct 87 15:57:19 PDT (Tue)
+From: willc%tekchips.tek.com@RELAY.CS.NET
+
+    I think procedurally the proper mechanism for dealing with this issue is
+    to split it; since the heart of the matter is covered in FUNCTION-TYPE,
+    we should pursue FUNCTION-TYPE, and deal with the other parts of the
+    proposal (remove #. from standard read table, etc.) separately. 
+
+I entirely agree.  Thanks for taking the initiative on this.
+
+Peace, Will

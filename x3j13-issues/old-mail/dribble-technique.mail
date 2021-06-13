@@ -1,0 +1,292 @@
+*start*
+03222 00024 USm
+Return-Path: <CL-Cleanup-mailer@SAIL.Stanford.EDU>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 06 DEC 87 18:21:36 PST
+Received: from SCRC-STONY-BROOK.ARPA by SAIL.STANFORD.EDU with TCP; 6 Dec 87  14:24:29 PST
+Received: from RIO-DE-JANEIRO.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 296206; Sun 6-Dec-87 17:14:51 EST
+Date: Sun, 6 Dec 87 17:13 EST
+From: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: Issue: DRIBBLE-TECHNIQUE (Version 1)
+To: CL-Cleanup@SAIL.STANFORD.EDU
+cc: KMP@STONY-BROOK.SCRC.Symbolics.COM
+Message-ID: <871206171357.6.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+
+Issue:        DRIBBLE-TECHNIQUE
+References:   DRIBBLE (p443)
+Category:     CLARIFICATION
+Edit history: 06-Dec-87, Version 1 by Pitman
+Status:	      For Internal Discussion
+
+Problem Description:
+
+  The intent and effect of DRIBBLE is not very clearly specified.
+
+Proposal (DRIBBLE-TECHNIQUE:MAKE-EXPLICITLY-VAGUE):
+
+  Clarify that DRIBBLE is intended primarily for interactive debugging
+  and that its effect cannot be relied upon from programs.
+
+Test Case:
+
+ #1: (PROGN (DRIBBLE "temp")
+	    (PRINT 'FOO)
+            (DRIBBLE))
+
+ #2: (DRIBBLE "temp")
+     (PROGN (PRINT 'FOO)
+            (DRIBBLE)
+	    (PRINC 'BAR))	 
+
+Rationale:
+
+  Users of DRIBBLE have been surprised about how differently DRIBBLE
+  behaves in different implementations. This makes the status quo
+  much more explicit and will lead to less surprise.
+
+Current Practice:
+
+  Some implementations implement DRIBBLE as a function which simply
+  assigns streams such as *STANDARD-OUTPUT* to broadcast streams
+  (or the approximate equivalent thereof).  Even within this camp,
+  there is not widespread agreement about which streams are affected.
+  However, typically test case #1 will capture the output of (PRINT 'FOO)
+  in the file "temp" and will execute (PRINT 'BAR) but not capture its
+  output.
+
+  Some implementations (eg, Symbolics) push to a recursive command
+  loop when DRIBBLE is called with an argument, and return from that
+  command loop when DRIBBLE is called with no argument. In these
+  implementations, test case #1 will enter a recursive command loop
+  upon the first call to DRIBBLE and will not execute the (PRINT 'FOO)
+  until (DRIBBLE) is done interactively. When the second (DRIBBLE)
+  in test case #1 is executed, DRIBBLE will complain that output is
+  not currently being recorded. In test case #2, the output of 
+  (PRINT 'FOO) will be captured, but the form (PRINT 'BAR) will never
+  be executed because (DRIBBLE) does not return normally (it throws).
+
+Adoption Cost:
+
+  None. This is just a clarification.
+
+Benefits:
+
+  Users will be aware that they cannot rely on DRIBBLE in portable code.
+
+Conversion Cost:
+
+  Effectively none.  Anyone who currently uses DRIBBLE in code that is
+  believed to be portable is kidding himself. If such code works in some
+  implementations, it can continue to work.
+
+Aesthetics:
+
+  Since this is a clarification, there is no significant change to
+  the aesthetics.
+
+Discussion:
+
+  Pitman wrote this proposal as a straw man so that CL-Cleanup would have
+  the issue on the books for explicit discussion.
+
+*start*
+02999 00024 USh
+Originator: Common-Lisp-mailer%SAIL.Stanford:EDU:Xerox
+Date:  4 Dec 87 17:27
+From: barmar%Think:COM:Xerox
+Subject: Symbolics DRIBBLE compatibility?
+To: common-lisp%sail.stanford:EDU:Xerox
+cc: customer-reports%symbolics:COM:Xerox
+
+GVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGV
+From: Barry Margolin <barmar@Think.COM>
+Subject: Symbolics DRIBBLE compatibility?
+To: common-lisp@sail.stanford.edu
+Cc: customer-reports@symbolics.com
+Return-Path: <Common-Lisp-mailer@SAIL.Stanford.EDU>
+Redistributed: Xerox-Common-Lisp^.x
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 04 DEC 87 17:27:29 PST
+Received: from THINK.COM by SAIL.STANFORD.EDU with TCP; 4 Dec 87  15:05:24 PST
+Return-Path: <@occam.think.com:barmar@Think.COM>
+Received: from sauron.think.com by Think.COM; Fri, 4 Dec 87 17:42:22 EST
+Received: from OCCAM.THINK.COM by sauron.think.com; Fri, 4 Dec 87 17:42:18 EST
+Original-Date: Fri, 4 Dec 87 17:43 EST
+Message-Id: <871204174325.0.BARMAR@OCCAM.THINK.COM>
+GVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGV
+
+I am wondering about the compatibility of Symbolics's implementation of
+DRIBBLE with CLtL.  According to the Symbolics documentation (page 680
+of Volume 2A of the Encyclopedia Symbolicorum), they believe that they
+are compatible.
+
+The way the Symbolics (DRIBBLE pathname) works is that it binds
+*STANDRD-INPUT, *STANDARD-OUTPUT*, etc. to the dribble stream and then
+calls the Lisp read-eval-print loop.  It also sets up a catch-tag.
+(DRIBBLE) throws to the tag, and appropriate unwind-protects close the
+dribble stream.
+
+What does this mean as far as compatibility is concerned?  Consider the
+following form:
+
+(progn (dribble "filename")
+       (print 'foo)
+       (dribble))
+
+From reading CLtL one would assume that this would print put FOO into
+the file.  On a Symbolics system the first DRIBBLE starts recording I/O
+and then goes to a new r-e-p loop; the PRINT doesn't get executed until
+the user does (dribble), and then the second DRIBBLE complains that
+output isn't being recorded.
+
+Or how about typing:
+
+(dribble "filename)
+(progn (print 'foo)
+       (dribble)
+       (print 'bar))
+
+The second PRINT will never get executed, because the (dribble) throws
+out of the PROGN.
+
+Finally, you could really get screwed if you start dribbling, do
+something that gets you into the debugger, and decide to stop dribbling;
+you will lose your debugger session.  This doesn't actually happen
+because Symbolics disables dribbling when you go into the debugger or
+when you get a new r-e-p loop with the Suspend key, so (dribble) just
+says that output isn't being recorded and does nothing else.  (The fact
+that debugger and break loop I/O isn't dribbled is another point of
+contention I have.)
+
+CLtL doesn't say a whole lot about DRIBBLE.  In particular, it doesn't
+say what the return value is, but that doesn't mean that it is allowed
+for (dribble) not to return, does it?  What do other Common Lispers
+think?
+
+                                                barmar
+
+
+*start*
+01379 00024 US 
+Return-Path: <CL-Cleanup-mailer@SAIL.Stanford.EDU>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 07 DEC 87 23:16:55 PST
+Received: from C.CS.CMU.EDU by SAIL.STANFORD.EDU with TCP; 7 Dec 87  23:15:06 PST
+Received: ID <FAHLMAN@C.CS.CMU.EDU>; Tue 8 Dec 87 01:45:15-EST
+Date: Sun, 6 Dec 87 22:57 EST
+Message-ID: <FAHLMAN.12356462749.BABYL@C.CS.CMU.EDU>
+Sender: FAHLMAN@C.CS.CMU.EDU
+From: "Scott E. Fahlman" <Fahlman@C.CS.CMU.EDU>
+To: Kent M Pitman <KMP@SCRC-STONY-BROOK.ARPA>
+Cc: CL-Cleanup@SAIL.STANFORD.EDU
+Subject: Issue: DRIBBLE-TECHNIQUE (Version 1)
+In-reply-to: Msg of 6 Dec 1987  17:13-EST from Kent M Pitman <KMP at STONY-BROOK.SCRC.Symbolics.COM>
+
+
+I support DRIBBLE-TECHNIQUE:MAKE-EXPLICITLY-VAGUE.
+
+I'm not sure exactly what KMP means by stating that this proposal is a
+straw man, but I like it.  I think that it was a mistake to put dribble
+into the manual, and that we should just tell users that it differs from
+system to system.  I don't think that there's any hope of getting a
+standard that makes sense on editor-top-level systems, dumb
+Read-Eval-Print systems, and all the flavors in between, so we should
+just punt on this.
+
+The only advantage of mentioning DRIBBLE in the standard at all is that
+users know what name to look up in any given system to get this general
+sort of functionality.
+
+-- Scott
+
+*start*
+00654 00024 US 
+Return-Path: <CL-Cleanup-mailer@SAIL.Stanford.EDU>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 08 DEC 87 09:40:07 PST
+Received: from XEROX.COM by SAIL.STANFORD.EDU with TCP; 8 Dec 87  09:38:58 PST
+Received: from Cabernet.ms by ArpaGateway.ms ; 08 DEC 87 09:39:02 PST
+Date: 8 Dec 87 09:38 PST
+From: Daniels.pa
+Subject: Re: Issue: DRIBBLE-TECHNIQUE (Version 1)
+In-reply-to: "Scott E. Fahlman" <Fahlman@C.CS.CMU.EDU>'s message of Sun, 6 Dec
+ 87 22:57 EST
+To: CL-Cleanup@SAIL.STANFORD.EDU
+Message-ID: <871208-093902-4884@Xerox>
+
+I agree that DRIBBLE should be explicitly vague.
+
+		-- Andy. --
+
+*start*
+03354 00024 US 
+Date: 14 Feb 88 11:55 PST
+From: Masinter.pa
+Subject: Issue: DRIBBLE-TECHNIQUE (Version 2)
+To: X3J13@Sail.stanford.edu
+cc: Masinter
+reply-to: CL-CLEANUP@Sail.Stanford.EDU
+
+This issue has not been distributed before. (In fact, this version had not been distributed to the cleanup committee.) There was no discussion on the issue, however.
+
+Issue:        DRIBBLE-TECHNIQUE
+References:   DRIBBLE (p443)
+Category:     CLARIFICATION
+Edit history: 06-Dec-87, Version 1 by Pitman
+              14-Feb-88, Version 2 by Masinter
+
+Problem Description:
+
+The intent and effect of DRIBBLE is not very clearly specified. Users have complained that DRIBBLE behaves quite differently in different implementations.
+
+Proposal (DRIBBLE-TECHNIQUE:MAKE-EXPLICITLY-VAGUE):
+
+Clarify that DRIBBLE is intended primarily for interactive debugging and that its effect cannot be relied upon from programs.
+
+Test Case:
+
+ #1: (PROGN (DRIBBLE "temp")
+	    (PRINT 'FOO)
+            (DRIBBLE))
+
+ #2: (DRIBBLE "temp")
+     (PROGN (PRINT 'FOO)
+            (DRIBBLE)
+	    (PRINC 'BAR))	 
+
+Rationale:
+
+Users of DRIBBLE have been surprised about how differently DRIBBLE behaves in different implementations. This makes the status quo much more explicit and will lead to less surprise.
+
+Current Practice:
+
+Some implementations implement DRIBBLE as a function which simply assigns streams such as *STANDARD-OUTPUT* to broadcast streams (or the approximate equivalent thereof).  Even within this camp, there is not widespread agreement about which streams are affected. However, typically test case #1 will capture the output of (PRINT 'FOO) in the file "temp" and will execute (PRINT 'BAR) but not capture its output.
+
+Some implementations (eg, Symbolics) push to a recursive command loop when DRIBBLE is called with an argument, and return from that command loop when DRIBBLE is called with no argument. In these implementations, test case #1 will enter a recursive command loop upon the first call to DRIBBLE and will not execute the (PRINT 'FOO) until (DRIBBLE) is done interactively. When the second (DRIBBLE) in test case #1 is executed, DRIBBLE will complain that output is not currently being recorded. In test case #2, the output of (PRINT 'FOO) will be captured, but the form (PRINT 'BAR) will never be executed because (DRIBBLE) does not return normally (it throws).
+
+Cost to implementors:
+
+None. This is just a clarification.
+
+Cost to users:
+
+Anyone who currently uses DRIBBLE in code that is believed to be portable is kidding himself. If such code works in some implementations, it can continue to work.
+
+Benefits:
+
+Users will be aware that they cannot rely on DRIBBLE in portable code.
+
+Aesthetics:
+
+No apparent effect.
+
+Discussion:
+
+DRIBBLE, like other environment features, is a standard interface to a non-standard feature. As such, there is some question as to its place in the ANSI standard. However, if DRIBBLE remains in the standard, its behavior is made explicitly vague by this proposal.
+
+        TITAN 
+         
+TIMESROMAN 
+          TITAN 
+           Z       Q       ®                                                        O              ù       4       Ä              £              ∏             0              &              •       
+       I                           
+      ù z∫

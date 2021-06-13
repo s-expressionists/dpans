@@ -1,0 +1,362 @@
+*start*
+03523 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:Pavel.pa@Xerox.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 10 JUN 87 12:13:44 PDT
+Received: from XEROX.COM by SAIL.STANFORD.EDU with TCP; 10 Jun 87  12:12:27 PDT
+Received: from Cabernet.ms by ArpaGateway.ms ; 10 JUN 87 12:09:45 PDT
+Date: Wed, 10 Jun 87 12:09:40 PDT
+From: Pavel.pa
+Subject: Issue: FORMAT-COMMA-INTERVAL
+To: CL-Cleanup@SAIL.Stanford.Edu
+Message-ID: <870610-120945-2854@Xerox>
+
+Issue: FORMAT-COMMA-INTERVAL
+References:  FORMAT integer printing (p. 388-9)
+Category:   ADDITION
+Edit history: Version 1, Pavel, June 10, 1987
+
+Problem description:  There are times when users would like to print out
+numbers with some punctuation between groups of digits.  The "commachar"
+argument to the ~D, ~B, ~O, ~X, and ~R FORMAT directives was introduced
+to fill that need.  Unfortunately, the interval at which the commachar
+should be printed is always every three digits.  This constraint is
+annoying when a different interval would be more appropriate.
+
+Proposal (FORMAT-COMMA-INTERVAL:YES): Add a fourth argument to the ~D,
+~B, ~X, and ~O FORMAT directives, and a fifth argument to the ~R
+directive, to be called the "comma-interval".  This value must be an
+integer and defaults to 3.  When the : modifier is given to any of these
+directives, the "commachar" is printed between groups of
+"comma-interval" digits.
+
+Test Cases: Under the proposal, the following forms return the indicated
+values:
+	(format nil "~,,' ,4:B" 13) => "1101"
+	(format nil "~,,' ,4:B" 17) => "1 0001"
+	(format nil "~19,0,' ,4:B" 3333) => "0000 1101 0000 0101"
+	(format nil "~3,,,' ,2:R" 17) => "1 22"
+	(format nil "~,,'|,2:D" #xFFFF) => "6|55|35"
+
+Rationale: The current specification of FORMAT gives the user control
+over almost all of the facets of printing integers.  Only the wired-in
+constant for the comma-interval remains, even though there are uses for
+varying that number.  For example, in many contexts, it would be
+convenient to be able to print out numbers in binary with a space
+between each group of four bits.  FORMAT does not currently allow
+specification of the commachar printing interval so users needing this
+functionality must write it themselves, duplicating much of the logic in
+every implementation's integer printing code.  Other uses, requiring
+other intervals, can be imagined.  For example, using a "commachar" of
+#\Newline and a "comma-interval" of, say, 72, very large bignums could
+be printed in such a way as to ensure line-breaks at appropriate places.
+
+Current practice: No released implementations currently support this
+feature.
+
+Adoption Cost: The change in the implementation of FORMAT is reasonably
+minor and,  in most cases, highly localized.  Usually, the change is as
+simple as taking an extra parameter and using it instead of a wired-in
+value of 3.
+
+Cost of non-adoption: Users desiring this functionality will have to
+write it themselves, duplicating much of the logic involved in printing
+integers at all.
+
+Benefits: The last inflexibility in integer printing is eliminated with
+a net increase in user-visible functionality.
+
+Conversion Cost: Since the proposal involves the addition of an argument
+to certain directives, the change would be entirely upward-compatible.
+No user code would need to be converted.
+
+Esthetics: By parameterizing the final piece of wired-in behavior from
+integer printing, this small part of the workings of FORMAT would be
+perceived as having been cleaned up.
+
+Discussion: Pavel supports this proposal.
+
+*start*
+00874 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:FAHLMAN@C.CS.CMU.EDU>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 10 JUN 87 16:51:31 PDT
+Received: from C.CS.CMU.EDU by SAIL.STANFORD.EDU with TCP; 10 Jun 87  16:49:51 PDT
+Received: ID <FAHLMAN@C.CS.CMU.EDU>; Wed 10 Jun 87 19:49:05-EDT
+Date: Wed, 10 Jun 87 19:49 EDT
+Message-ID: <FAHLMAN.12309493814.BABYL@C.CS.CMU.EDU>
+Sender: FAHLMAN@C.CS.CMU.EDU
+From: "Scott E. Fahlman" <Fahlman@C.CS.CMU.EDU>
+To: Pavel.pa
+Cc: CL-Cleanup@SAIL.STANFORD.EDU
+Subject: Issue: FORMAT-COMMA-INTERVAL
+In-reply-to: Msg of 10 Jun 1987  15:09-EDT from Pavel.pa at Xerox.COM
+
+
+Looks good to me too.
+
+One could quibble about the repeated claim that this is "the last"
+inflexibility wired into number printing.  I think this is an
+overstatement, but not worth a revision, since it is not an important
+part of the justification.
+
+-- Scott
+
+*start*
+01044 00024 USa
+Return-Path: <@SAIL.STANFORD.EDU:Pavel.pa@Xerox.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 10 JUN 87 19:08:03 PDT
+Received: from XEROX.COM by SAIL.STANFORD.EDU with TCP; 10 Jun 87  19:06:46 PDT
+Received: from Cabernet.ms by ArpaGateway.ms ; 10 JUN 87 18:03:54 PDT
+Date: Wed, 10 Jun 87 18:03:40 PDT
+From: Pavel.pa
+Subject: Re: Issue: FORMAT-COMMA-INTERVAL
+In-reply-to: <FAHLMAN.12309493814.BABYL@C.CS.CMU.EDU>
+To: "Scott E. Fahlman" <Fahlman@C.CS.CMU.EDU>
+Cc: CL-Cleanup@SAIL.STANFORD.EDU
+Message-ID: <870610-180354-1245@Xerox>
+
+  Date: Wed, 10 Jun 87 19:49 EDT
+  From: "Scott E. Fahlman" <Fahlman@C.CS.CMU.EDU>
+
+  One could quibble about the repeated claim that this is "the last"
+  inflexibility wired into number printing.  I think this is an
+  overstatement, but not worth a revision, since it is not an important
+  part of the justification.
+
+Yeah, I felt a little funny about putting it in there, but I guess my
+theatric side got the better of me.  I agree that it's not really worth
+a revision.
+
+	Pavel
+
+*start*
+00689 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:Masinter.pa@Xerox.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 11 JUN 87 16:25:39 PDT
+Received: from XEROX.COM by SAIL.STANFORD.EDU with TCP; 11 Jun 87  16:21:42 PDT
+Received: from Cabernet.ms by ArpaGateway.ms ; 11 JUN 87 13:44:03 PDT
+Date: 11 Jun 87 13:42 PDT
+From: Masinter.pa
+Subject: Re: Issue: FORMAT-COMMA-INTERVAL
+In-reply-to: Pavel.pa's message of Wed, 10 Jun 87 18:03:40 PDT
+To: CL-Cleanup@SAIL.STANFORD.EDU
+Message-ID: <870611-134403-1660@Xerox>
+
+If there are no objections, I propose releasing FORMAT-COMMA-INTERVAL to
+X3J13, changing "the last" to "one of the last".   I'll hold off on this
+one until Monday.
+
+
+*start*
+00715 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:Moon@ELEPHANT-BUTTE.SCRC.Symbolics.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 10 JUN 87 13:59:02 PDT
+Received: from ELEPHANT-BUTTE.SCRC.SYMBOLICS.COM by SAIL.STANFORD.EDU with TCP; 10 Jun 87  13:57:30 PDT
+Received: from EUPHRATES.SCRC.Symbolics.COM by ELEPHANT-BUTTE.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 183720; Wed 10-Jun-87 16:39:46 EDT
+Date: Wed, 10 Jun 87 16:39 EDT
+From: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: Issue: FORMAT-COMMA-INTERVAL
+To: CL-Cleanup@SAIL.Stanford.Edu
+In-Reply-To: <870610-120945-2854@Xerox>
+Message-ID: <870610163929.3.MOON@EUPHRATES.SCRC.Symbolics.COM>
+
+This proposal sounds good to me.
+
+*start*
+03768 00024 USm
+Date:  9 Nov 87 15:28 PST
+Sender: Masinter.pa
+From: Masinter.pa
+Subject: Issue: FORMAT-COMMA-INTERVAL
+To: MASINTER
+
+
+
+
+Issue:        FORMAT-COMMA-INTERVAL
+References:   FORMAT integer printing (p. 388-9)
+Category:     ADDITION
+Edit history: Version 1, Pavel, June 10, 1987
+              Version 2, Masinter, 15-Jun-87
+
+Problem description:  
+
+There are times when users would like to print out numbers with some punctuation between groups of digits.  The "commachar" argument to the ~D, ~B, ~O, ~X, and ~R FORMAT directives was introduced to fill that need.  Unfortunately, the interval at which the commachar should be printed is always every three digits.  This constraint is annoying when a different interval would be more appropriate.
+
+Proposal (FORMAT-COMMA-INTERVAL:YES):
+
+Add a fourth argument to the ~D, ~B, ~X, and ~O FORMAT directives, and a fifth argument to the ~R directive, to be called the "comma-interval".  This value must be an integer and defaults to 3.  When the : modifier is given to any of these directives, the "commachar" is printed between groups of "comma-interval" digits.
+
+Test Cases:
+
+Under the proposal, the following forms return the indicated values:
+	(format nil "~,,' ,4:B" 13) => "1101"
+	(format nil "~,,' ,4:B" 17) => "1 0001"
+	(format nil "~19,0,' ,4:B" 3333) => "0000 1101 0000 0101"
+	(format nil "~3,,,' ,2:R" 17) => "1 22"
+	(format nil "~,,'|,2:D" #xFFFF) => "6|55|35"
+
+Rationale: 
+
+The current specification of FORMAT gives the user control over almost all of the facets of printing integers.  Only the wired-in constant for the comma-interval remains, even though there are uses for varying that number.  For example, in many contexts, it would be convenient to be able to print out numbers in binary with a space between each group of four bits.  FORMAT does not currently allow specification of the commachar printing interval so users needing this functionality must write it themselves, duplicating much of the logic in every implementation's integer printing code.  Other uses, requiring other intervals, can be imagined.  For example, using a "commachar" of #\Newline and a "comma-interval" of, say, 72, very large bignums could be printed in such a way as to ensure line-breaks at appropriate places.
+
+Current practice:
+
+No released implementations currently support this feature.
+
+Adoption Cost: 
+
+The change in the implementation of FORMAT is reasonably minor and, in most cases, highly localized.  Usually, the change is as simple as taking an extra parameter and using it instead of a wired-in value of 3.
+
+Cost of non-adoption: 
+
+Users desiring this functionality will have to write it themselves, duplicating much of the logic involved in printing integers at all.
+
+Benefits: 
+
+One of the few remaining inflexibilities in integer printing is eliminated with a net increase in user-visible functionality.
+
+Conversion Cost:
+
+Since the proposal involves the addition of an argument to certain directives, the change would be entirely upward-compatible. No user code would need to be converted.
+
+Esthetics: 
+
+By parameterizing one of the final pieces of wired-in behavior from integer printing, this small part of the workings of FORMAT would be perceived as having been cleaned up.
+
+Discussion: 
+
+Several members of the cleanup committee endorsed this proposal. However, no objections were raised.
+
+        TITAN           TITAN          
+TIMESROMAN 
+          
+TIMESROMAN 
+           x                            #                            N             ê       &      D             )             >              >              ÷              ä       
+       Å              ™              ±       
+       f             
+  z∫*start*
+03803 00024 US 
+Date: 14 Feb 88 12:04 PST
+From: Masinter.pa
+Subject: Issue: FORMAT-COMMA-INTERVAL (Version 2)
+To: X3J13@Sail.stanford.edu
+cc: Masinter
+reply-to: CL-CLEANUP@Sail.Stanford.EDU
+
+This issue is new.
+
+
+Issue:        FORMAT-COMMA-INTERVAL
+References:   FORMAT integer printing (p. 388-9)
+Category:     ADDITION
+Edit history: Version 1, Pavel, 10-Jun-87
+              Version 2, Masinter, 15-Jun-87
+
+Problem description:  
+
+There are times when users would like to print out numbers with some punctuation between groups of digits.  The "commachar" argument to the ~D, ~B, ~O, ~X, and ~R FORMAT directives was introduced to fill that need.  Unfortunately, the interval at which the commachar should be printed is always every three digits.  This constraint is annoying when a different interval would be more appropriate.
+
+Proposal (FORMAT-COMMA-INTERVAL:YES):
+
+Add a fourth argument to the ~D, ~B, ~X, and ~O FORMAT directives, and a fifth argument to the ~R directive, to be called the "comma-interval".  This value must be an integer and defaults to 3.  When the : modifier is given to any of these directives, the "commachar" is printed between groups of "comma-interval" digits.
+
+Test Cases:
+
+Under the proposal, the following forms return the indicated values:
+	(format nil "~,,' ,4:B" 13) => "1101"
+	(format nil "~,,' ,4:B" 17) => "1 0001"
+	(format nil "~19,0,' ,4:B" 3333) => "0000 1101 0000 0101"
+	(format nil "~3,,,' ,2:R" 17) => "1 22"
+	(format nil "~,,'|,2:D" #xFFFF) => "6|55|35"
+
+Rationale: 
+
+The current specification of FORMAT gives the user control over almost all of the facets of printing integers.  Only the wired-in constant for the comma-interval remains, even though there are uses for varying that number.  For example, in many contexts, it would be convenient to be able to print out numbers in binary with a space between each group of four bits.  FORMAT does not currently allow specification of the commachar printing interval so users needing this functionality must write it themselves, duplicating much of the logic in every implementation's integer printing code.  Other uses, requiring other intervals, can be imagined.  For example, using a "commachar" of #\Newline and a "comma-interval" of, say, 72, very large bignums could be printed in such a way as to ensure line-breaks at appropriate places.
+
+Current practice:
+
+No released implementations currently support this feature.
+
+Cost to implementors: 
+
+The change in the implementation of FORMAT is reasonably minor and, in most cases, highly localized.  Usually, the change is as simple as taking an extra parameter and using it instead of a wired-in value of 3.
+
+Cost to users:
+
+Since the proposal involves the addition of an argument to certain directives, the change would be entirely upward-compatible. No user code would need to be converted.
+
+Cost of non-adoption: 
+
+Users desiring this functionality will have to write it themselves, duplicating much of the logic involved in printing integers at all.
+
+Benefits: 
+
+One of the few remaining inflexibilities in integer printing is eliminated with a net increase in user-visible functionality.
+
+Esthetics: 
+
+By parameterizing one of the final pieces of wired-in behavior from integer printing, this small part of the workings of FORMAT would be perceived as having been cleaned up.
+
+Discussion: 
+
+Several members of the cleanup committee endorsed this proposal. No objections were raised.
+        TITAN 
+          TITAN 
+         
+TIMESROMAN 
+           ≈                            #                            J             ê       &      D             )             >              >              ÷              ™              ä       
+       Å              ±       
+       ]      
+^ z∫*start*
+00970 00024 US 
+Return-Path: <CL-Cleanup-mailer@SAIL.Stanford.EDU>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 16 FEB 88 11:42:04 PST
+Received: from Xerox.COM by SAIL.Stanford.EDU with TCP; 16 Feb 88  11:39:05 PST
+Received: from Salvador.ms by ArpaGateway.ms ; 16 FEB 88 11:33:51 PST
+Date: Tue, 16 Feb 88 11:33:48 PST
+From: Pavel.pa
+Subject: Re: Issue: FORMAT-COMMA-INTERVAL (Version 2)
+In-reply-to: <880215-171422-2360@Xerox>
+To: CL-CLEANUP@Sail.Stanford.EDU
+Message-ID: <880216-113351-3592@Xerox>
+
+Grumble.  Yeah, I guess Andy's right and the example is bogus.  The only way I
+can see to get what I wanted is to specify that the padding gets commas inserted
+into it if and only if the padchar is a digit in the output base.  This is
+highly gross, however, so I guess I won't push it.  I guess we should just
+remove the offending example.  Sigh.  That example was one of the better uses
+for the facility, too...
+
+	Pavel
+
+*start*
+01431 00024 US 
+Return-Path: <CL-Cleanup-mailer@SAIL.Stanford.EDU>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 15 FEB 88 17:16:01 PST
+Received: from Xerox.COM by SAIL.Stanford.EDU with TCP; 15 Feb 88  17:13:42 PST
+Received: from Cabernet.ms by ArpaGateway.ms ; 15 FEB 88 17:14:22 PST
+Date: 15 Feb 88 17:14 PST
+From: Daniels.pa
+Subject: Re: Issue: FORMAT-COMMA-INTERVAL (Version 2)
+In-reply-to: Masinter.pa's message of 14 Feb 88 12:04 PST
+To: CL-CLEANUP@Sail.Stanford.EDU
+Message-ID: <880215-171422-2360@Xerox>
+
+First of all, there is a typo in one of the test cases. (format nil "~19,0,'
+,4:B" 3333) should be (format nil "~19,'0,' ,4:B" 3333), i.e., the pad character
+should be quoted.
+
+This example is somewhat problematic. Just what is the interaction of "insert
+comma characters" and "pad the output with padchar?" If padding is to be added
+after the commas are inserted, then the result should be "000001101 0000 0101"
+instead of "0000 1101 0000 0101". To produce the latter result, either commas
+must be inserted after padding, or somehow both done simultaneously. In this
+case does the padding get commas or not? The above example says yes, but this
+seems like the wrong answer for the "default" case of (format nil "~20:D"
+1234567890) => "    1,234,567,890" (not " ,  1,234,567,890"!) Does this need a
+separate clarification, ir is the example simply wrong?
+
+		-- Andy. --
+

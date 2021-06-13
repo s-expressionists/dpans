@@ -1,0 +1,1775 @@
+BABYL OPTIONS:
+Version: 5
+Labels:
+Note:   This is the header of an rmail file.
+Note:   If you are seeing it in rmail,
+Note:    it means the file has no messages in it.
+
+0,,
+*** EOOH ***
+Return-Path: <@SAIL.STANFORD.EDU:KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Redistributed: Xerox-Common-Lisp^.x
+Received: from SAIL.STANFORD.EDU (SU-AI.ARPA) by Xerox.COM ; 19 DEC 86 12:59:09 PST
+Received: from SCRC-STONY-BROOK.ARPA by SAIL.STANFORD.EDU with TCP; 19 Dec 86  12:22:04 PST
+Received: from RIO-DE-JANEIRO.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 28330; Fri 19-Dec-86 15:20:50 EST
+Date: Fri, 19 Dec 86 15:19 EST
+From: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: FOLLOW-SYNONYM-STREAM
+To: Common-Lisp@SAIL.STANFORD.EDU
+Message-ID: <861219151955.2.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+
+From time to time, I find myself doing:
+
+ (LET ((*TERMINAL-IO* *STANDARD-OUTPUT*))
+   ...)
+
+in a multi-window system in order to temporarily change my interaction to the
+same window as output has been redirected to. On the Lisp Machine (and probably
+on many or most other implementations), *STANDARD-OUTPUT* can sometimes (often)
+contain a synonym-stream for *TERMINAL-IO* and the result of the operation
+above is to send output to a stream which is a (circular) synonym for itself.
+The kind of lossage this results in is fairly severe because *DEBUG-IO* is often
+a synonym for *TERMINAL-IO* and if that is in turn a synonym for *TERMINAL-IO*,
+then the debugger cannot run.
+
+A couple of things would make this problem more tractable:
+
+ SYNONYM-STREAM-P object				[Function]
+
+ This accepts any kind of argument. If the argument is not a synonym
+ stream, then NIL is returned. If the argument is a synonym stream,
+ then the symbol for which the object is a synonym is returned.
+
+ FOLLOW-SYNONYM-STREAM stream				[Function]
+
+ This accepts a stream and returns the result of following that stream
+ through any number of synonym stream indirections (including zero).
+
+While I'm on page 329, I think we should also have the following functions
+(or functionalities) which I have needed at other times:
+
+ BROADCAST-STREAM-P object				[Function]
+ CONCATENATED-STREAM-P stream				[Function]
+ TWO-WAY-STREAM-P					[Function]
+ ...
+
+ This accepts any kind of argument. It returns T if the argument is a
+ {concatenated/broadcast/two-way/...} stream and NIL if the argument is
+ any other kind of stream.
+
+ EXPAND-BROADCAST-STREAM broadcast-stream		[Function]
+ EXPAND-CONCATENATED-STREAM concatenated-stream		[Function]
+ EXPAND-TWO-WAY-STREAM two-way-stream			[Function]
+ ...
+
+ This accepts a {broadcast/concatenated/two-way/...} stream and returns 
+ a list of the streams which were used to compose it (in an order 
+ compatible with the order of arguments to the creation function).
+ Note: Implementations are allowed, but not required, to return the
+ same list every time. The result list should not be destructively modified.
+
+
+0,,
+*** EOOH ***
+Originator: @SAIL.STANFORD.EDU,@RELAY.CS.NET:DON@atc.bendix.com%Xerox:COM:Xerox
+Date: 23 Sep 87 20:49
+From: "DON%atc.bendix.com%RELAY.CS.NET":GV:Xerox
+Subject: Synonym streams
+To: common-lisp%SAIL.STANFORD:EDU:Xerox
+
+Return-Path: <@SAIL.STANFORD.EDU,@RELAY.CS.NET:DON@atc.bendix.com>
+Redistributed: Xerox-Common-Lisp^.x
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 23 SEP 87 20:49:16 PDT
+Received: from RELAY.CS.NET by SAIL.STANFORD.EDU with TCP; 23 Sep 87  20:13:25 PDT
+Received: from relay2.cs.net by RELAY.CS.NET id ac22322; 23 Sep 87 23:19 EDT
+Received: from atc.bendix.com by RELAY.CS.NET id ac07602; 23 Sep 87 23:09 EDT
+Original-Date: Wed, 23 Sep 87 15:34 EDT
+X-VMS-To: IN%"common-lisp@sail.stanford.edu"
+
+Is a synonym-stream a stream?  Can a stream be a synonym of a synonym-stream?
+
+On the LMI, I tried
+
+(defvar *describe-output* (make-synonym-stream '*standard-output*))
+
+Because *standard-output* is by default a synonym of *terminal-io*, *describe-
+output* became a synonym for a synonym.  When I tried printing to
+*describe-stream*, the system hung.  It did not hang if I used *terminal-io*
+in place of *standard-output*.
+
+LMI's technical support agreed that in spirit it should work; however, CLtL
+is ambiguous or at least not complete.
+
+The problem, of course, is that if a synonym-stream is a stream but cannot
+be the synonym for another stream, then there must be some function for
+testing whether a stream is a synonym or a real stream. (synonym-stream-p).
+
+Do other systems support using *standard-output* as a synonym?
+
+Don Mitchell	  		Don@atc.bendix.com
+Bendix Aero. Tech. Ctr.		Don%atc.bendix.com@relay.cs.net
+9140 Old Annapolis Rd.		(301)964-4156
+Columbia, MD 21045
+
+
+
+0,,
+*** EOOH ***
+Originator: @SAIL.STANFORD.EDU:Masinter.pa%Xerox:COM:Xerox
+Date: 24 Sep 87 12:49
+From: Masinter:PA:Xerox
+Subject: STREAM-CLASS-ACCESS
+In-Reply-to: "DON%atc.bendix.com%RELAY.CS.NET":GV:Xerox's message of 23 Sep 87 20:49
+To: "DON%atc.bendix.com%RELAY.CS.NET":GV:Xerox
+cc: common-lisp%sail.stanford:EDU:Xerox
+
+Return-Path: <@SAIL.STANFORD.EDU:Masinter.pa@Xerox.COM>
+Redistributed: Xerox-Common-Lisp^.x
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 24 SEP 87 12:49:12 PDT
+Received: from XEROX.COM by SAIL.STANFORD.EDU with TCP; 24 Sep 87  12:10:16 PDT
+Received: from Cabernet.ms by ArpaGateway.ms ; 24 SEP 87 12:08:39 PDT
+Original-Date: 24 Sep 87 12:08 PDT
+Message-ID: <870924-120839-15432@Xerox>
+
+I can't find any responses to this mail.  I wonder if some of the stream
+options might be easier to access if STREAM were a class under CLOS.  
+
+
+Date: Fri, 19 Dec 86 15:19 EST
+From: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: FOLLOW-SYNONYM-STREAM
+To: Common-Lisp@SAIL.STANFORD.EDU
+Message-ID: <861219151955.2.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+
+From time to time, I find myself doing:
+
+ (LET ((*TERMINAL-IO* *STANDARD-OUTPUT*))
+   ...)
+
+in a multi-window system in order to temporarily change my interaction
+to the
+same window as output has been redirected to. On the Lisp Machine (and
+probably
+on many or most other implementations), *STANDARD-OUTPUT* can sometimes
+(often)
+contain a synonym-stream for *TERMINAL-IO* and the result of the
+operation
+above is to send output to a stream which is a (circular) synonym for
+itself.
+The kind of lossage this results in is fairly severe because *DEBUG-IO*
+is often
+a synonym for *TERMINAL-IO* and if that is in turn a synonym for
+*TERMINAL-IO*,
+then the debugger cannot run.
+
+A couple of things would make this problem more tractable:
+
+ SYNONYM-STREAM-P object				[Function]
+
+ This accepts any kind of argument. If the argument is not a synonym
+ stream, then NIL is returned. If the argument is a synonym stream,
+ then the symbol for which the object is a synonym is returned.
+
+ FOLLOW-SYNONYM-STREAM stream				[Function]
+
+ This accepts a stream and returns the result of following that stream
+ through any number of synonym stream indirections (including zero).
+
+While I'm on page 329, I think we should also have the following
+functions
+(or functionalities) which I have needed at other times:
+
+ BROADCAST-STREAM-P object				[Function]
+ CONCATENATED-STREAM-P stream				[Function]
+ TWO-WAY-STREAM-P					[Function]
+ ...
+
+ This accepts any kind of argument. It returns T if the argument is a
+ {concatenated/broadcast/two-way/...} stream and NIL if the argument is
+ any other kind of stream.
+
+ EXPAND-BROADCAST-STREAM broadcast-stream		[Function]
+ EXPAND-CONCATENATED-STREAM concatenated-stream		[Function]
+ EXPAND-TWO-WAY-STREAM two-way-stream			[Function]
+ ...
+
+ This accepts a {broadcast/concatenated/two-way/...} stream and returns 
+ a list of the streams which were used to compose it (in an order 
+ compatible with the order of arguments to the creation function).
+ Note: Implementations are allowed, but not required, to return the
+ same list every time. The result list should not be destructively
+modified.
+
+
+     ----- End Forwarded Messages -----
+
+
+
+0,,
+*** EOOH ***
+Originator: @SAIL.STANFORD.EDU:RWK%YUKON.SCRC.Symbolics:COM:Xerox
+Date: 24 Sep 87 17:25
+From: RWK%YUKON.SCRC.Symbolics:COM:Xerox
+Subject: Synonym streams
+In-Reply-to: The message of 23 Sep 87 15:34 EDT from DON%atc.bendix.com@RELAY.CS.NET
+To: "DON%atc.bendix.com%RELAY.CS.NET":GV:Xerox
+cc: common-lisp%SAIL.STANFORD:EDU:Xerox
+
+GVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGV
+From: Robert W. Kerns <RWK@YUKON.SCRC.Symbolics.COM>
+Subject: Synonym streams
+To: DON%atc.bendix.com@RELAY.CS.NET
+cc: common-lisp@SAIL.STANFORD.EDU
+In-Reply-To: The message of 23 Sep 87 15:34 EDT from DON%atc.bendix.com@RELAY.CS.NET
+Return-Path: <@SAIL.STANFORD.EDU:RWK@YUKON.SCRC.Symbolics.COM>
+Redistributed: Xerox-Common-Lisp^.x
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 24 SEP 87 17:25:17 PDT
+Received: from SCRC-YUKON.ARPA by SAIL.STANFORD.EDU with TCP; 24 Sep 87  16:31:31 PDT
+Received: from WHITE-BIRD.SCRC.Symbolics.COM by YUKON.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 266632; Thu 24-Sep-87 19:08:50 EDT
+Original-Date: Thu, 24 Sep 87 19:09 EDT
+Message-ID: <870924190915.8.RWK@WHITE-BIRD.SCRC.Symbolics.COM>
+GVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGV
+
+    Date: Wed, 23 Sep 87 15:34 EDT
+    From: DON%atc.bendix.com@RELAY.CS.NET
+
+    Is a synonym-stream a stream?  Can a stream be a synonym of a synonym-stream?
+
+    On the LMI, I tried
+
+    (defvar *describe-output* (make-synonym-stream '*standard-output*))
+
+    Because *standard-output* is by default a synonym of *terminal-io*, *describe-
+    output* became a synonym for a synonym.  When I tried printing to
+    *describe-stream*, the system hung.  It did not hang if I used *terminal-io*
+    in place of *standard-output*.
+
+    LMI's technical support agreed that in spirit it should work; however, CLtL
+    is ambiguous or at least not complete.
+
+    The problem, of course, is that if a synonym-stream is a stream but cannot
+    be the synonym for another stream, then there must be some function for
+    testing whether a stream is a synonym or a real stream. (synonym-stream-p).
+
+    Do other systems support using *standard-output* as a synonym?
+
+It works in Symbolics Common Lisp.  CLtL appears to be completely
+unambiguous to my eyes.  Yes, it doesn't explicitly state the
+logical consequences, but "any operations on the new stream will
+be performed on the stream that is then the value of the dynamic variable
+named by the @I(symbol)" seems clear enough.
+
+I'm not arguing that there's no need to elucidate further in the next
+manual, but that's an editorial issue that I won't take up on this list.
+
+
+
+0,,
+*** EOOH ***
+Return-Path: <kempf%hplabsz@hplabs.HP.COM>
+Received: from hplabs.HP.COM (hplabs.hpl.hp.com) by Xerox.COM ; 27 SEP 87 14:23:14 PDT
+Received: from hplabsz.hpl.hp.com by hplms2; Sun, 27 Sep 87 14:22:26 pdt
+Return-Path: <kempf@hplabsz>
+Received: from hplabsz by hplabsz; Sun, 27 Sep 87 15:23:24 pdt
+To: Masinter.pa
+Cc: common-lisp@sail.stanford.edu
+Subject: Re: STREAM-CLASS-ACCESS 
+X-Mailer: mh6.5
+In-Reply-To: Your message of 24 Sep 87 12:08:00 -0700.
+             <870924-120839-15432@Xerox> 
+Date: Sun, 27 Sep 87 15:23:22 MST
+Message-Id: <11726.559776202@hplabsz>
+From: kempf%hplabsz@hplabs.HP.COM
+
+> I can't find any responses to this mail.  I wonder if some of the stream
+> options might be easier to access if STREAM were a class under CLOS.  
+
+I would agree with this. It would certainly make writing an extensible
+window system, perhaps based on CommonWindows, easier.
+
+		Jim Kempf	kempf@hplabs.hp.com
+
+
+0,,
+*** EOOH ***
+Return-Path: <@SAIL.Stanford.EDU:Masinter.pa@Xerox.COM>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 09 OCT 87 14:59:27 PDT
+Received: from XEROX.COM by SAIL.STANFORD.EDU with TCP; 9 Oct 87  14:56:52 PDT
+Received: from Cabernet.ms by ArpaGateway.ms ; 09 OCT 87 14:57:30 PDT
+Date: 9 Oct 87 14:57 PDT
+From: Masinter.pa
+Subject: Issue: STREAM-CLASS-ACCESS
+To: cl-cleanup@Sail.stanford.edu
+Message-ID: <871009-145730-1702@Xerox>
+
+(This issue was called FOLLOW-SYNONYM-STREAM in the original message by
+KMP).
+
+I vaguely remember this being discussed before but cannot find the mail.
+I would prefer an extension for accessing the constructed streams that
+treated them as if they were constructed by DEFSTRUCT or DEFCLASS, viz:
+
+ As if: (defstruct (synonym-stream (:constructor (make-synonym-stream
+(symbol))) symbol)
+ => (make-synonym-stream symbol) as in CLtL
+       (synonym-stream-p object)
+       (synonym-stream-symbol synonym-stream)
+
+
+
+As if: (defstruct (broadcast-stream (:constructor (make-broadcast-stream
+(&rest streams))) streams)
+=> (make-broadcast-stream &rest streams) is in CLtL
+       (broadcast-stream-p object)
+       (broadcast-stream-streams broadcast-stream)
+
+As if: (defstruct  (two-way-stream (:constructor (make-two-way-stream
+(input-stream output-stream))
+     => (make-two-way-stream input-stream output-stream) 
+          (two-way-stream-p object)
+         (two-way-stream-input-stream two-way-stream)
+         (two-way-stream-output-stream two-way-stream)
+
+(The reason that I think I remember previous mail is that I remember a
+discussion of whether it should be input-stream output-stream or just
+input and output to shorten the names two-way-stream-input and
+two-way-stream-output.)
+
+(defun follow-synonym-stream (stream)
+   (if (synonym-stream-p stream)
+    (follow-synonym-stream (symbol-value (synonym-stream-symbol
+stream)))
+    stream))
+
+
+0,,
+*** EOOH ***
+Date:  7 Dec 87 13:05 PST
+From: Masinter.pa
+Subject: Re: standard stream windows
+In-reply-to: Mike McMahon <MMcM@STONY-BROOK.SCRC.Symbolics.COM>'s message of Sat, 5 Dec 87 16:14 EST
+To: MMcM@STONY-BROOK.SCRC.Symbolics.COM
+cc: Kimbrough%dsg.csc.ti.com@RELAY.CS.NET, Masinter
+
+Lets suppose users wanted to define their own kind of streams, either as part of a window system or as part of something else. What methods would they have to implement on that stream in order for it to be valid? What methods are available for specialization?
+
+READ-BYTE for binary input streams
+READ-CHAR for character input streams
+WRITE-BYTE for binary output streams
+WRITE-CHAR for character output streams
+
+Are these sufficient for READ, PRINT? For LOAD? 
+
+PATHNAME? READ-BYTES-INTO-BUFFER? 
+
+
+
+0,,
+*** EOOH ***
+Return-Path: <MMcM@STONY-BROOK.SCRC.Symbolics.COM>
+Received: from STONY-BROOK.SCRC.Symbolics.COM (SCRC-STONY-BROOK.ARPA) by Xerox.COM ; 03 JAN 88 13:33:49 PST
+Received: from OWL.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 313804; Sun 3-Jan-88 16:33:55 EST
+Date: Sun, 3 Jan 88 16:33 EST
+From: Mike McMahon <MMcM@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: Re: standard stream windows
+To: Masinter.pa
+cc: Kimbrough%dsg.csc.ti.com@RELAY.CS.NET
+In-Reply-To: <871207-134810-3361@Xerox>
+Message-ID: <19880103213317.3.MMCM@OWL.SCRC.Symbolics.COM>
+
+Given the complex eof handling options to read-byte and read-char, it
+isn't clear that these should exactly match the generic functions to be
+defined by a stream instance.  It might perhaps be better for those to
+always signal eof errors or return NIL.
+
+The 3600 system isn't the best basis for judging these sorts of things,
+since compatibility does not allow any change to how it was chosen to
+work in 1979.  But, here are the primitive operations therein:
+ input: :listen, :tyi, :untyi
+ output: :tyo
+
+Additionally, we provide a flavor upon which you can build streams by
+defining methods to deal with byte/character buffers.  From this, the
+above required methods are defined efficiently in the obvious way.  This
+flavor is used for the basis for all of our peripheral device and
+network streams.
+ input: :next-input-buffer, :discard-input-buffer
+ output: :new-output-buffer, :send-output-buffer, :discard-output-buffer
+
+We of course do not make the proper distinction between character and
+binary streams; so, :tyi serves for read-char and read-byte and :tyo for
+write-char and write-byte.  Our lisp reader at least requires :untyi
+(unread-char) for proper operation for input like "ATOM(LIST)".
+
+There is no system default :listen (listen) that can work.  If you
+always return T, then you'll never block even if there's no input and a
+program can use up the whole machine.  If you always return NIL, you
+never see any input.  Hence, it's required.  Note, also that our :listen
+differs subtley in its semantics from a strict interpretation of what's
+in CLtL.  Ours says that if there is input, :listen must return T, and
+if :listen returns T, then a series of :tyi-no-hang's must cause it to
+become NIL.  This is not the same as listen returns T iff there is
+input.  It allows returning T spuriously, provided it's ephemeral.  This
+makes it much more like a sequence interrupt in standard operating
+system theory.  The advantage of this definition are clear for
+encapsulating streams.  Suppose you have a multi-byte translation
+scheme.  You may have a buffer waiting with only a password in it, or
+with only part of a single user item.  Our scheme allows returning T
+when a buffer is available, even though :tyi-no-hang might return NIL if
+the following buffer with the rest of the multi-byte sequence did not
+arrive in time.  A strict equivalence requires that :listen do the
+partial buffer translation to see whether a full character is available.
+This might be inconvenient inside the scheduler, for instance, since it artificially
+boosts the processing priority.
+
+I get the feeling that the exact semantics of the minimal common lisp
+stream functions are far from well thought out.  I'd like to see them
+get cleaned up as part of the effort to integrate streams with CLOS.
+But, I'll be perfectly frank and say that I don't hold out a great deal
+of hope for this, given the ever increasing number of people with a less
+than complete understanding of the issues.
+
+
+0,,
+*** EOOH ***
+Date:  7 Jan 88 00:13 PST
+From: Masinter.pa
+Subject: Re: standard stream windows
+In-reply-to: Mike McMahon <MMcM@STONY-BROOK.SCRC.Symbolics.COM>'s message of Sun, 3 Jan 88 16:33 EST
+To: MMcM@STONY-BROOK.SCRC.Symbolics.COM
+cc: Masinter.pa, Kimbrough%dsg.csc.ti.com@RELAY.CS.NET
+
+The main problem with making read-char and read-byte the generic functions is that the stream is optional.
+
+Its also likely that with the signal system that we would want EOF to merely signal a condition. I like the names, however. How about:
+
+(stream-read-char <stream>)
+(stream-write-char <stream> <char>)
+(stream-read-byte <stream>)
+(stream-write-byte <stream> <byte>)
+(stream-wait-for-input <stream>)
+
+
+What are the arguments for next-input-buffer, :discard-input-buffer
+ :new-output-buffer, :send-output-buffer, :discard-output-buffer?
+
+Who manages the buffer, i.e., does the stream have to allocate buffers, or do you pass it one? What's a buffer? Etc.
+
+
+
+0,,
+*** EOOH ***
+Return-Path: <MMcM@STONY-BROOK.SCRC.Symbolics.COM>
+Received: from STONY-BROOK.SCRC.Symbolics.COM (SCRC-STONY-BROOK.ARPA) by Xerox.COM ; 09 JAN 88 14:04:57 PST
+Received: from OWL.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 318326; Sat 9-Jan-88 16:24:27 EST
+Date: Sat, 9 Jan 88 16:24 EST
+From: Mike McMahon <MMcM@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: Re: standard stream windows
+To: Masinter.pa
+cc: Kimbrough%dsg.csc.ti.com@RELAY.CS.NET
+In-Reply-To: <880107-001500-6491@Xerox>
+Message-ID: <19880109212427.9.MMCM@OWL.SCRC.Symbolics.COM>
+
+    Date: 7 Jan 88 00:13 PST
+    From: Masinter.pa@Xerox.COM
+
+    The main problem with making read-char and read-byte the generic functions is
+    that the stream is optional.
+
+    Its also likely that with the signal system that we would want EOF to merely
+    signal a condition.
+
+Assuming that signalling a condition is cheap or that eof is infrequent.
+
+			I like the names, however. How about:
+
+    (stream-read-char <stream>)
+    (stream-write-char <stream> <char>)
+    (stream-read-byte <stream>)
+    (stream-write-byte <stream> <byte>)
+    (stream-wait-for-input <stream>)
+
+Not unreasonable.
+
+    What are the arguments for next-input-buffer, :discard-input-buffer
+     :new-output-buffer, :send-output-buffer, :discard-output-buffer?
+
+    Who manages the buffer, i.e., does the stream have to allocate buffers, or do
+    you pass it one? What's a buffer? Etc.
+
+A buffer is an array, whose element type is presumably compatible with
+that of the stream.  The allocation/deallocation or reuse of buffers is
+entirely up to the stream itself.  For instance, it might be a network
+packet, a wired disk array, or a round-robin serial buffer.  Or it might
+just be a single regular array within the stream which gets filled and refilled.
+
+:NEXT-INPUT-BUFFER (&OPTIONAL NO-HANG-P) => (ARRAY START END)
+ Returns buffer with input received within the given bounds.
+ Returns NIL if nothing waiting and no-hang-p non-NIL.
+:DISCARD-INPUT-BUFFER (ARRAY)
+ Advance to next buffer.  :next-input-buffer will never be called again
+without an intervening :discard-input-buffer; the array will always be the
+same as the one returned by the application.  The purpose of the argument
+is to give the stream the option of not remembering it.
+
+:NEW-OUTPUT-BUFFER () => (ARRAY START END)
+ Returns buffer that can be filled without output within the given bounds.
+:SEND-OUTPUT-BUFFER (ARRAY END)
+ Says how far it was filled and requests queueing for device output.
+:DISCARD-OUTPUT-BUFFER (ARRAY)
+ Returns buffer from generic filling to stream's pool.  Anything written into
+the array is ignored.
+ Array is always same as that returned by :new-output-buffer.
+:new-output-buffer will never be called without an intervening
+:send-output-buffer or :discard-output-buffer.
+
+
+0,,
+*** EOOH ***
+Return-Path: <CL-Cleanup-mailer@SAIL.Stanford.EDU>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 22 MAR 88 10:28:09 PST
+Received: from Xerox.COM by SAIL.Stanford.EDU with TCP; 22 Mar 88  10:25:01 PST
+Received: from Cabernet.ms by ArpaGateway.ms ; 22 MAR 88 10:15:47 PST
+Date: 22 Mar 88 10:15 PST
+From: Masinter.pa
+Subject: Re: stream-access background information
+In-reply-to: "AITG::VANROGGEN" <vanroggen%aitg.decnet@hudson.dec.com>'s message
+ of 22 Mar 88 12:44:00 EDT
+To: vanroggen%aitg.decnet@hudson.dec.com
+cc: cl-cleanup@sail.stanford.edu
+Message-ID: <880322-101547-1877@Xerox>
+
+Of the ones in your list, DRIBBLE-STREAM, FILE-STREAM, TERMINAL-STREAM are the
+ones that seem questionable. We've managed to evicerate DRIBBLE; we've had
+trouble in the past defining what a "file" is (one that can be coerced to a
+pathname?), and TERMINAL-STREAM is true of *TERMINAL-IO* sometimes? What is a
+"terminal"?
+
+On LISTEN2, how do you define "end-of-file"?
+
+On OPEN-STREAM-P, how do you define "open"? 
+
+
+
+0,,
+*** EOOH ***
+Return-Path: <CL-Cleanup-mailer@SAIL.Stanford.EDU>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 22 MAR 88 13:26:33 PST
+Received: from hudson.dec.com by SAIL.Stanford.EDU with TCP; 22 Mar 88  13:24:10 PST
+Date: 22 Mar 88 16:17:00 EDT
+From: "AITG::VANROGGEN" <vanroggen%aitg.decnet@hudson.dec.com>
+Subject: RE: stream-access background information
+To: "cl-cleanup" <cl-cleanup@sail.stanford.edu>
+cc: vanroggen@hudson.dec.com 
+Reply-To: "AITG::VANROGGEN" <vanroggen%aitg.decnet@hudson.dec.com>
+
+I just presented the types and functions we've publicized; it doesn't
+mean they all have to be part of Common Lisp.  I'd be quite happy if
+they weren't part of any cleanup proposal; but I did want to make sure
+that if people did want certain functionality, that the names agree
+with what we chose (unless there's a good reason to the contrary).
+
+I believe "end-of-file" for LISTEN2 is defined the same way as for
+other input functions which deal with "end-of-file".
+
+The need for OPEN-STREAM-P is because there's no way in Common Lisp
+to tell if it's OK to do I/O to a stream; i.e., there's no way to tell
+if a stream has been CLOSEd already.  If your question was would
+(open-stream-p (make-string-output-stream)) be true, then yes, for
+any stream that hadn't been CLOSEd.
+
+Which reminds me of another issue I don't recall having seen recently.
+What does CLOSE do on compound streams?  I believe we close that stream
+and don't do anything with the component streams.
+
+			---Walter
+------
+
+
+0,,
+*** EOOH ***
+Return-Path: <CL-Cleanup-mailer@SAIL.Stanford.EDU>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 17 JUN 88 17:53:30 PDT
+Received: from hudson.dec.com by SAIL.Stanford.EDU with TCP; 17 Jun 88  17:53:54 PDT
+Date: 17 Jun 88 20:34:00 EDT
+From: "AITG::VANROGGEN" <vanroggen%aitg.decnet@hudson.dec.com>
+Subject: Issue: STREAM-ACCESS (version 1)
+To: "cl-cleanup" <cl-cleanup@sail.stanford.edu>
+cc: vanroggen@hudson.dec.com 
+Reply-To: "AITG::VANROGGEN" <vanroggen%aitg.decnet@hudson.dec.com>
+
+Issue:		STREAM-ACCESS
+References:	streams (Chapter 21 of CLtL)
+Category:	ADDITION
+Edit History:	17-Jun-88, version 1 by Walter van Roggen
+
+Problem Description:
+
+  There are many components of streams which are specified upon creation
+  but are not accessible afterwards.  Furthermore there is no way in
+  Common Lisp to determine the type of a stream to see if it has particular
+  components, or even if it is OPEN.
+
+Proposal: (STREAM-ACCESS:PROVIDE)
+
+  Add the following types and functions to the language:
+
+  Stream Data Types and Predicates:
+
+    BROADCAST-STREAM		[Type]
+    BROADCAST-STREAM-P object	[Function]
+
+      The predicate is true if the object is of type BROADCAST-STREAM
+      and is false otherwise.  MAKE-BROADCAST-STREAM returns a stream
+      of type BROADCAST-STREAM.
+
+    CONCATENATED-STREAM		[Type]
+    CONCATENATED-STREAM-P object [Function]
+
+      The predicate is true if the object is of type CONCATENATED-STREAM
+      and is false otherwise.  MAKE-CONCATENATED-STREAM returns a stream
+      of type CONCATENATED-STREAM.
+
+    ECHO-STREAM			[Type]
+    ECHO-STREAM-P object	[Function]
+
+      The predicate is true if the object is of type ECHO-STREAM
+      and is false otherwise.  MAKE-ECHO-STREAM returns a stream
+      of type ECHO-STREAM.
+
+    FILE-STREAM			[Type]
+    FILE-STREAM-P object	[Function]
+
+      The predicate is true if the object is of type FILE-STREAM
+      and is false otherwise.  OPEN returns a stream
+      of type FILE-STREAM.
+
+    STRING-STREAM		[Type]
+    STRING-STREAM-P object	[Function]
+
+      The predicate is true if the object is of type STRING-STREAM
+      and is false otherwise.  MAKE-STRING-INPUT-STREAM and
+      MAKE-STRING-OUTPUT-STREAM return a stream of type STRING-STREAM.
+
+    SYNONYM-STREAM		[Type]
+    SYNONYM-STREAM-P object	[Function]
+
+      The predicate is true if the object is of type SYNONYM-STREAM
+      and is false otherwise.  MAKE-SYNONYM-STREAM returns a stream
+      of type SYNONYM-STREAM.
+
+    TWO-WAY-STREAM		[Type]
+    TWO-WAY-STREAM-P object	[Function]
+
+      The predicate is true if the object is of type TWO-WAY-STREAM
+      and is false otherwise.  MAKE-TWO-WAY-STREAM returns a stream
+      of type TWO-WAY-STREAM.
+
+
+  Stream Informational Functions:
+
+    BROADCAST-STREAM-STREAMS broadcast-stream       ==> list of streams
+
+      This function returns a list of output streams that constitute
+      all the streams the broadcast stream is broadcasting to.  It is
+      an error if the argument is not of type BROADCAST-STREAM.
+
+    CONCATENATED-STREAM-STREAMS concatenated-stream ==> list of streams
+
+      This function returns a list of input streams that constitute
+      the ordered set of streams the concatenated stream still has to
+      to read from, starting with the current one it is reading from.
+      The list may be () if no more streams remain to be read.
+      It is an error if the argument is not of type CONCATENATED-STREAM.
+
+    ECHO-STREAM-INPUT-STREAM echo-stream            ==> input-stream
+    ECHO-STREAM-OUTPUT-STREAM echo-stream           ==> output-stream
+
+      These functions return the corresponding component stream.  It is
+      an error if the argument is not of type ECHO-STREAM.
+
+    SYNONYM-STREAM-SYMBOL synonym-stream            ==> symbol
+
+      This function returns the symbol whose SYMBOL-VALUE the
+      synonym stream is using.  It is
+      an error if the argument is not of type SYNONYM-STREAM.
+
+    TWO-WAY-STREAM-INPUT-STREAM two-way-stream      ==> input-stream
+    TWO-WAY-STREAM-OUTPUT-STREAM two-way-stream     ==> output-stream
+
+      These functions return the corresponding component stream.  It is
+      an error if the argument is not of type TWO-WAY-STREAM.
+
+  Predicate:
+
+    OPEN-STREAM-P stream
+
+      Returns T if a stream is open, NIL if it is closed.  It is an error
+      if the argument is not a stream.
+
+Current Practice:
+
+  VAX LISP implements the proposal.
+
+Cost to Implementors:
+
+  Most of these should be trivial to implement, since the information
+  must be present for nearly all types.
+
+Cost to Users:
+
+  None.  This is an upward-compatible extension.
+
+Cost of Non-Adoption:
+
+  The benefits would not be available in a portable fashion.
+
+Benefits:
+
+  Programs would be able to access useful information otherwise hidden.
+
+Discussion:
+
+  This issue has come up frequently, particularly dealing with SYNONYM-STREAMs.
+------
+
+
+0,,
+*** EOOH ***
+Return-Path: <CL-Cleanup-mailer@SAIL.Stanford.EDU>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 22 JUN 88 12:56:00 PDT
+Received: from STONY-BROOK.SCRC.Symbolics.COM (SCRC-STONY-BROOK.ARPA) by SAIL.Stanford.EDU with TCP; 22 Jun 88  12:54:25 PDT
+Received: from RIO-DE-JANEIRO.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 423341; Wed 22-Jun-88 15:54:01 EDT
+Date: Wed, 22 Jun 88 15:53 EDT
+From: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: Issue: STREAM-CLASS-ACCESS (version 1)
+To: vanroggen%aitg.decnet@Hudson.DEC.COM
+cc: CL-Cleanup@SAIL.Stanford.EDU
+In-Reply-To: The message of 17 Jun 88 20:34 EDT from "AITG::VANROGGEN" <vanroggen%aitg.decnet@hudson.dec.com>
+Message-ID: <880622155347.1.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+
+I have this issue filed as STREAM-CLASS-ACCESS. You called it just
+STREAM-ACCESS. It would be nice if we could stick to just one name so
+that I and others who try to keep this stuff usefully archived don't get
+the archive split uselessly into two pieces.
+
+The editorial committee should see to it that it's clear that these
+types have to do with `structure' rather than `intent' of the resulting
+streams. For example, if you broadcast to two string streams, you have a
+stream of type BROADCAST-STREAM, not (necessarily) a string of type
+STRING-STREAM, etc.
+
+In any case, the write-up looks generally quite good as it stands and
+the proposal has my support.
+
+
+0,,
+*** EOOH ***
+Return-Path: <CL-Cleanup-mailer@SAIL.Stanford.EDU>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 10 JUN 88 02:05:38 PDT
+Received: from Xerox.COM by SAIL.Stanford.EDU with TCP; 10 Jun 88  02:04:59 PDT
+Received: from Cabernet.ms by ArpaGateway.ms ; 10 JUN 88 02:02:49 PDT
+Date: 10 Jun 88 02:02 PDT
+From: Masinter.pa
+Subject: Issue: FOLLOW-SYNONYM-STREAM
+To: cl-cleanup@sail.stanford.edu
+Message-ID: <880610-020249-6237@Xerox>
+
+
+     ----- Begin Forwarded Messages -----
+
+Return-Path: <@SAIL.STANFORD.EDU:KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Redistributed: Xerox-Common-Lisp^.x
+Received: from SAIL.STANFORD.EDU (SU-AI.ARPA) by Xerox.COM ; 19 DEC 86 12:59:09
+PST
+Received: from SCRC-STONY-BROOK.ARPA by SAIL.STANFORD.EDU with TCP; 19 Dec 86
+12:22:04 PST
+Received: from RIO-DE-JANEIRO.SCRC.Symbolics.COM by
+STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 28330; Fri 19-Dec-86
+15:20:50 EST
+Date: Fri, 19 Dec 86 15:19 EST
+From: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: FOLLOW-SYNONYM-STREAM
+To: Common-Lisp@SAIL.STANFORD.EDU
+Message-ID: <861219151955.2.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+
+From time to time, I find myself doing:
+
+ (LET ((*TERMINAL-IO* *STANDARD-OUTPUT*))
+   ...)
+
+in a multi-window system in order to temporarily change my interaction to the
+same window as output has been redirected to. On the Lisp Machine (and probably
+on many or most other implementations), *STANDARD-OUTPUT* can sometimes (often)
+contain a synonym-stream for *TERMINAL-IO* and the result of the operation
+above is to send output to a stream which is a (circular) synonym for itself.
+The kind of lossage this results in is fairly severe because *DEBUG-IO* is often
+a synonym for *TERMINAL-IO* and if that is in turn a synonym for *TERMINAL-IO*,
+then the debugger cannot run.
+
+A couple of things would make this problem more tractable:
+
+ SYNONYM-STREAM-P object				[Function]
+
+ This accepts any kind of argument. If the argument is not a synonym
+ stream, then NIL is returned. If the argument is a synonym stream,
+ then the symbol for which the object is a synonym is returned.
+
+ FOLLOW-SYNONYM-STREAM stream				[Function]
+
+ This accepts a stream and returns the result of following that stream
+ through any number of synonym stream indirections (including zero).
+
+While I'm on page 329, I think we should also have the following functions
+(or functionalities) which I have needed at other times:
+
+ BROADCAST-STREAM-P object				[Function]
+ CONCATENATED-STREAM-P stream				[Function]
+ TWO-WAY-STREAM-P					[Function]
+ ...
+
+ This accepts any kind of argument. It returns T if the argument is a
+ {concatenated/broadcast/two-way/...} stream and NIL if the argument is
+ any other kind of stream.
+
+ EXPAND-BROADCAST-STREAM broadcast-stream		[Function]
+ EXPAND-CONCATENATED-STREAM concatenated-stream		[Function]
+ EXPAND-TWO-WAY-STREAM two-way-stream			[Function]
+ ...
+
+ This accepts a {broadcast/concatenated/two-way/...} stream and returns 
+ a list of the streams which were used to compose it (in an order 
+ compatible with the order of arguments to the creation function).
+ Note: Implementations are allowed, but not required, to return the
+ same list every time. The result list should not be destructively modified.
+
+
+     ----- End Forwarded Messages -----
+
+
+0,,
+*** EOOH ***
+Date:  7 Oct 88 22:11 PDT
+From: masinter.pa
+Subject: Issue: STREAM-ACCESS (version 1)
+To: x3j13@sail.stanford.edu
+REPLY-TO: cl-cleanup@sail.stanford.edu
+line-fold: NO
+cc: Masinter
+
+This issue prompted the following comment, which has not been
+incorporated:
+
+"The editorial committee should see to it that it's clear that these
+types have to do with `structure' rather than `intent' of the resulting
+streams. For example, if you broadcast to two string streams, you have a
+stream of type BROADCAST-STREAM, not a stream of type STRING-STREAM, etc."
+
+
+
+Issue:		STREAM-ACCESS
+References:	streams (Chapter 21 of CLtL)
+Category:	ADDITION
+Edit History:	17-Jun-88, version 1 by Walter van Roggen
+
+Problem Description:
+
+  There are many components of streams which are specified upon creation
+  but are not accessible afterwards.  Furthermore there is no way in
+  Common Lisp to determine the type of a stream to see if it has particular
+  components, or even if it is OPEN.
+
+Proposal: (STREAM-ACCESS:PROVIDE)
+
+  Add the following types and functions to the language:
+
+  Stream Data Types and Predicates:
+
+    BROADCAST-STREAM		[Type]
+    BROADCAST-STREAM-P object	[Function]
+
+      The predicate is true if the object is of type BROADCAST-STREAM
+      and is false otherwise.  MAKE-BROADCAST-STREAM returns a stream
+      of type BROADCAST-STREAM.
+
+    CONCATENATED-STREAM		[Type]
+    CONCATENATED-STREAM-P object [Function]
+
+      The predicate is true if the object is of type CONCATENATED-STREAM
+      and is false otherwise.  MAKE-CONCATENATED-STREAM returns a stream
+      of type CONCATENATED-STREAM.
+
+    ECHO-STREAM			[Type]
+    ECHO-STREAM-P object	[Function]
+
+      The predicate is true if the object is of type ECHO-STREAM
+      and is false otherwise.  MAKE-ECHO-STREAM returns a stream
+      of type ECHO-STREAM.
+
+    FILE-STREAM			[Type]
+    FILE-STREAM-P object	[Function]
+
+      The predicate is true if the object is of type FILE-STREAM
+      and is false otherwise.  OPEN returns a stream
+      of type FILE-STREAM.
+
+    STRING-STREAM		[Type]
+    STRING-STREAM-P object	[Function]
+
+      The predicate is true if the object is of type STRING-STREAM
+      and is false otherwise.  MAKE-STRING-INPUT-STREAM and
+      MAKE-STRING-OUTPUT-STREAM return a stream of type STRING-STREAM.
+
+    SYNONYM-STREAM		[Type]
+    SYNONYM-STREAM-P object	[Function]
+
+      The predicate is true if the object is of type SYNONYM-STREAM
+      and is false otherwise.  MAKE-SYNONYM-STREAM returns a stream
+      of type SYNONYM-STREAM.
+
+    TWO-WAY-STREAM		[Type]
+    TWO-WAY-STREAM-P object	[Function]
+
+      The predicate is true if the object is of type TWO-WAY-STREAM
+      and is false otherwise.  MAKE-TWO-WAY-STREAM returns a stream
+      of type TWO-WAY-STREAM.
+
+
+  Stream Informational Functions:
+
+    BROADCAST-STREAM-STREAMS broadcast-stream       ==> list of streams
+
+      This function returns a list of output streams that constitute
+      all the streams the broadcast stream is broadcasting to.  It is
+      an error if the argument is not of type BROADCAST-STREAM.
+
+    CONCATENATED-STREAM-STREAMS concatenated-stream ==> list of streams
+
+      This function returns a list of input streams that constitute
+      the ordered set of streams the concatenated stream still has to
+      to read from, starting with the current one it is reading from.
+      The list may be () if no more streams remain to be read.
+      It is an error if the argument is not of type CONCATENATED-STREAM.
+
+    ECHO-STREAM-INPUT-STREAM echo-stream            ==> input-stream
+    ECHO-STREAM-OUTPUT-STREAM echo-stream           ==> output-stream
+
+      These functions return the corresponding component stream.  It is
+      an error if the argument is not of type ECHO-STREAM.
+
+    SYNONYM-STREAM-SYMBOL synonym-stream            ==> symbol
+
+      This function returns the symbol whose SYMBOL-VALUE the
+      synonym stream is using.  It is
+      an error if the argument is not of type SYNONYM-STREAM.
+
+    TWO-WAY-STREAM-INPUT-STREAM two-way-stream      ==> input-stream
+    TWO-WAY-STREAM-OUTPUT-STREAM two-way-stream     ==> output-stream
+
+      These functions return the corresponding component stream.  It is
+      an error if the argument is not of type TWO-WAY-STREAM.
+
+  Predicate:
+
+    OPEN-STREAM-P stream
+
+      Returns T if a stream is open, NIL if it is closed.  It is an error
+      if the argument is not a stream.
+
+Current Practice:
+
+  VAX LISP implements the proposal.
+
+Cost to Implementors:
+
+  Most of these should be trivial to implement, since the information
+  must be present for nearly all types.
+
+Cost to Users:
+
+  None.  This is an upward-compatible extension.
+
+Cost of Non-Adoption:
+
+  The benefits would not be available in a portable fashion.
+
+Benefits:
+
+  Programs would be able to access useful information otherwise hidden.
+
+Discussion:
+
+  This issue has come up frequently, particularly dealing with SYNONYM-STREAMs.
+
+0,,
+*** EOOH ***
+Return-Path: <X3J13-mailer@SAIL.Stanford.EDU>
+Received: from SAIL.Stanford.EDU ([36.86.0.194]) by Xerox.COM ; 07 OCT 88 22:30:05 PDT
+Received: from Xerox.COM by SAIL.Stanford.EDU with TCP; 7 Oct 88  22:15:36 PDT
+Received: from Semillon.ms by ArpaGateway.ms ; 07 OCT 88 22:11:28 PDT
+Date: 7 Oct 88 22:11 PDT
+From: masinter.pa
+Subject: Issue: STREAM-ACCESS (version 1)
+To: x3j13@sail.stanford.edu
+REPLY-TO: cl-cleanup@sail.stanford.edu
+line-fold: NO
+cc: Masinter.pa
+Message-ID: <881007-221128-1779@Xerox>
+
+This issue prompted the following comment, which has not been
+incorporated:
+
+"The editorial committee should see to it that it's clear that these
+types have to do with `structure' rather than `intent' of the resulting
+streams. For example, if you broadcast to two string streams, you have a
+stream of type BROADCAST-STREAM, not a stream of type STRING-STREAM, etc."
+
+
+!
+Issue:		STREAM-ACCESS
+References:	streams (Chapter 21 of CLtL)
+Category:	ADDITION
+Edit History:	17-Jun-88, version 1 by Walter van Roggen
+
+Problem Description:
+
+  There are many components of streams which are specified upon creation
+  but are not accessible afterwards.  Furthermore there is no way in
+  Common Lisp to determine the type of a stream to see if it has particular
+  components, or even if it is OPEN.
+
+Proposal: (STREAM-ACCESS:PROVIDE)
+
+  Add the following types and functions to the language:
+
+  Stream Data Types and Predicates:
+
+    BROADCAST-STREAM		[Type]
+    BROADCAST-STREAM-P object	[Function]
+
+      The predicate is true if the object is of type BROADCAST-STREAM
+      and is false otherwise.  MAKE-BROADCAST-STREAM returns a stream
+      of type BROADCAST-STREAM.
+
+    CONCATENATED-STREAM		[Type]
+    CONCATENATED-STREAM-P object [Function]
+
+      The predicate is true if the object is of type CONCATENATED-STREAM
+      and is false otherwise.  MAKE-CONCATENATED-STREAM returns a stream
+      of type CONCATENATED-STREAM.
+
+    ECHO-STREAM			[Type]
+    ECHO-STREAM-P object	[Function]
+
+      The predicate is true if the object is of type ECHO-STREAM
+      and is false otherwise.  MAKE-ECHO-STREAM returns a stream
+      of type ECHO-STREAM.
+
+    FILE-STREAM			[Type]
+    FILE-STREAM-P object	[Function]
+
+      The predicate is true if the object is of type FILE-STREAM
+      and is false otherwise.  OPEN returns a stream
+      of type FILE-STREAM.
+
+    STRING-STREAM		[Type]
+    STRING-STREAM-P object	[Function]
+
+      The predicate is true if the object is of type STRING-STREAM
+      and is false otherwise.  MAKE-STRING-INPUT-STREAM and
+      MAKE-STRING-OUTPUT-STREAM return a stream of type STRING-STREAM.
+
+    SYNONYM-STREAM		[Type]
+    SYNONYM-STREAM-P object	[Function]
+
+      The predicate is true if the object is of type SYNONYM-STREAM
+      and is false otherwise.  MAKE-SYNONYM-STREAM returns a stream
+      of type SYNONYM-STREAM.
+
+    TWO-WAY-STREAM		[Type]
+    TWO-WAY-STREAM-P object	[Function]
+
+      The predicate is true if the object is of type TWO-WAY-STREAM
+      and is false otherwise.  MAKE-TWO-WAY-STREAM returns a stream
+      of type TWO-WAY-STREAM.
+
+
+  Stream Informational Functions:
+
+    BROADCAST-STREAM-STREAMS broadcast-stream       ==> list of streams
+
+      This function returns a list of output streams that constitute
+      all the streams the broadcast stream is broadcasting to.  It is
+      an error if the argument is not of type BROADCAST-STREAM.
+
+    CONCATENATED-STREAM-STREAMS concatenated-stream ==> list of streams
+
+      This function returns a list of input streams that constitute
+      the ordered set of streams the concatenated stream still has to
+      to read from, starting with the current one it is reading from.
+      The list may be () if no more streams remain to be read.
+      It is an error if the argument is not of type CONCATENATED-STREAM.
+
+    ECHO-STREAM-INPUT-STREAM echo-stream            ==> input-stream
+    ECHO-STREAM-OUTPUT-STREAM echo-stream           ==> output-stream
+
+      These functions return the corresponding component stream.  It is
+      an error if the argument is not of type ECHO-STREAM.
+
+    SYNONYM-STREAM-SYMBOL synonym-stream            ==> symbol
+
+      This function returns the symbol whose SYMBOL-VALUE the
+      synonym stream is using.  It is
+      an error if the argument is not of type SYNONYM-STREAM.
+
+    TWO-WAY-STREAM-INPUT-STREAM two-way-stream      ==> input-stream
+    TWO-WAY-STREAM-OUTPUT-STREAM two-way-stream     ==> output-stream
+
+      These functions return the corresponding component stream.  It is
+      an error if the argument is not of type TWO-WAY-STREAM.
+
+  Predicate:
+
+    OPEN-STREAM-P stream
+
+      Returns T if a stream is open, NIL if it is closed.  It is an error
+      if the argument is not a stream.
+
+Current Practice:
+
+  VAX LISP implements the proposal.
+
+Cost to Implementors:
+
+  Most of these should be trivial to implement, since the information
+  must be present for nearly all types.
+
+Cost to Users:
+
+  None.  This is an upward-compatible extension.
+
+Cost of Non-Adoption:
+
+  The benefits would not be available in a portable fashion.
+
+Benefits:
+
+  Programs would be able to access useful information otherwise hidden.
+
+Discussion:
+
+  This issue has come up frequently, particularly dealing with SYNONYM-STREAMs.
+
+
+0,,
+*** EOOH ***
+Return-Path: <CL-Cleanup-mailer@SAIL.Stanford.EDU>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU ([36.86.0.194]) by Xerox.COM ; 13 OCT 88 18:11:26 PDT
+Received: from STONY-BROOK.SCRC.Symbolics.COM (SCRC-STONY-BROOK.ARPA) by SAIL.Stanford.EDU with TCP; 13 Oct 88  18:06:21 PDT
+Received: from BOBOLINK.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 476132; Thu 13-Oct-88 19:22:57 EDT
+Date: Thu, 13 Oct 88 19:22 EDT
+From: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: Issue: STREAM-ACCESS (Version 1)
+To: CL-Cleanup@SAIL.Stanford.EDU
+Message-ID: <881013192249.2.KMP@BOBOLINK.SCRC.Symbolics.COM>
+
+My notes from Fairfax meeting...
+
+Cleanup meeting:
+
+ Thought to be ready for vote.
+
+X3J13 meeting:
+
+ RWK: Don't like all the -P functions for the new types.
+
+ Someone said he wanted us to mention (which we apparently forgot)
+ that these types are subtypes of STREAM.
+
+ There were some people who wanted only the -P functions and not
+ the types.
+
+ A straw poll was taken to see if people wanted TYPES & -P FNS,
+ just TYPES, or just -P FNS. Alas, I didn't record the outcome
+ of this vote, though there were definitely people in all three
+ camps. I think we said we'd put all three options on the letter
+ ballot.
+
+
+0,,
+*** EOOH ***
+Return-Path: <CL-Cleanup-mailer@SAIL.Stanford.EDU>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU ([36.86.0.194]) by Xerox.COM ; 13 OCT 88 19:37:23 PDT
+Received: from STONY-BROOK.SCRC.Symbolics.COM (SCRC-STONY-BROOK.ARPA) by SAIL.Stanford.EDU with TCP; 13 Oct 88  18:06:21 PDT
+Received: from BOBOLINK.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 476132; Thu 13-Oct-88 19:22:57 EDT
+Date: Thu, 13 Oct 88 19:22 EDT
+From: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: Issue: STREAM-ACCESS (Version 1)
+To: CL-Cleanup@SAIL.Stanford.EDU
+Message-ID: <881013192249.2.KMP@BOBOLINK.SCRC.Symbolics.COM>
+
+My notes from Fairfax meeting...
+
+Cleanup meeting:
+
+ Thought to be ready for vote.
+
+X3J13 meeting:
+
+ RWK: Don't like all the -P functions for the new types.
+
+ Someone said he wanted us to mention (which we apparently forgot)
+ that these types are subtypes of STREAM.
+
+ There were some people who wanted only the -P functions and not
+ the types.
+
+ A straw poll was taken to see if people wanted TYPES & -P FNS,
+ just TYPES, or just -P FNS. Alas, I didn't record the outcome
+ of this vote, though there were definitely people in all three
+ camps. I think we said we'd put all three options on the letter
+ ballot.
+
+
+0,,
+*** EOOH ***
+Return-Path: <CL-Cleanup-mailer@SAIL.Stanford.EDU>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU ([36.86.0.194]) by Xerox.COM ; 30 NOV 88 12:22:33 PST
+Received: from Xerox.COM by SAIL.Stanford.EDU with TCP; 30 Nov 88  12:18:57 PST
+Received: from Semillon.ms by ArpaGateway.ms ; 30 NOV 88 11:58:53 PST
+Date: 30 Nov 88 11:43 PST
+From: masinter.pa
+Subject: Issue: STREAM-ACCESS (version 2)
+To: cl-cleanup@sail.stanford.edu
+Message-ID: <881130-115853-2468@Xerox>
+
+
+KMP's notes:
+
+" A straw poll was taken to see if people wanted TYPES & -P FNS,
+ just TYPES, or just -P FNS. Alas, I didn't record the outcome
+ of this vote, though there were definitely people in all three
+ camps. I think we said we'd put all three options on the letter
+ ballot.
+"
+
+I tried to separate out the acessor/predicate/type parts of
+this proposal into separate sections so that we could do
+this.
+
+
+!
+Issue:		STREAM-ACCESS
+References:	streams (Chapter 21 of CLtL)
+Category:	ADDITION
+Edit History:	17-Jun-88, version 1 by Walter van Roggen
+			30-Nov-88, version 2 by Masinter
+
+Problem Description:
+
+  There are many components of streams which are specified upon creation
+  but are not accessible afterwards.  Furthermore there is no way in
+  Common Lisp to determine the type of a stream to see if it has particular
+  components, or even if it is OPEN.
+
+  The accessors wanted are those associated with broadcast streams,
+  concatenated streams, echo streams, file streams, string streams, 
+  synonym streams, two way streams.
+
+  There are three proposals, which differ only by the whether
+  they include types, type predicates, or both, in addition to
+  the stream component acessors. Ballots can be either for
+  one of the proposals or none. (Other combinations of, say, 
+  accessors without either predicates or types, or types without
+  accessors, do not seem reasonable and are not being proposed
+  at this time.)
+
+
+Proposal STREAM-ACCESS:ADD-TYPES-PREDICATES-ACCESSORS
+
+
+First, add a function to determine whether a stream is "OPEN":
+
+OPEN-STREAM-P stream			[Function]
+
+      Returns T if a stream is open, NIL if it is closed.  It is an error
+      if the argument is not a stream.
+
+    Streams are "open" until they have been closed with
+    CLOSE, or, the dynamic context of the creating/accessing
+    macros of  WITH-OUTPUT-TO-STRING, WITH-OPEN-FILE, 
+    WITH-INPUT-FROM-STRING,  WITH-OPEN-STREAM, 
+    have been exited.
+    
+There are three kinds of things to add associated with each kind of
+stream: data types, predicates, accessors.
+
+Stream data types:
+   BROADCAST-STREAM (returned by MAKE-BROADCAST-STREAM)
+   CONCATENATED-STREAM (returned by MAKE-CONCATENATED-STREAM)
+   ECHO-STREAM (returned by MAKE-ECHO-STREAM)
+   FILE-STREAM (returned by OPEN or created by WITH-OPEN-FILE)
+   STRING-STREAM (returned by MAKE-STRING-INPUT-STREAM, 
+	MAKE-STRING-OUTPUT-STREAM, and created by WITH-INPUT-FROM-STRING
+      and WITH-OUTPUT-TO-STRING and FORMAT with second argument NIL)
+  SYNONYM-STREAM (created by MAKE-SYNONYM-STREAM)
+  TWO-WAY-STREAM (created by  MAKE-TWO-WAY-STREAM)
+
+  The stream data types are all subtypes of type STREAM and are mutually
+  exclusive. (In particular, a synonym stream is only of type SYNONYM-STREAM.)
+
+Stream Predicates:
+
+  Each of these returns T if the object is of the corresponding type,
+  and NIL otherwise.
+
+    BROADCAST-STREAM-P, CONCATENATED-STREAM-P,
+    ECHO-STREAM-P, FILE-STREAM-P, STRING-STREAM-P,
+    SYNONYM-STREAM-P, TWO-WAY-STREAM-P
+
+  Note that the predicates do not "follow the link" of a synonym
+  stream.
+
+Stream Informational Functions:
+
+  BROADCAST-STREAM-STREAMS broadcast-stream       ==> list of streams
+
+      This function returns a list of output streams that constitute
+      all the streams the broadcast stream is broadcasting to.  It is
+      an error if the argument is not of type BROADCAST-STREAM.
+
+  CONCATENATED-STREAM-STREAMS concatenated-stream ==> list of streams
+
+      This function returns a list of input streams that constitute
+      the ordered set of streams the concatenated stream still has to
+      to read from, starting with the current one it is reading from.
+      The list may be () if no more streams remain to be read.
+      It is an error if the argument is not of type CONCATENATED-STREAM.
+
+  ECHO-STREAM-INPUT-STREAM echo-stream            ==> input-stream
+  ECHO-STREAM-OUTPUT-STREAM echo-stream           ==> output-stream
+
+      These functions return the corresponding component stream.  It is
+      an error if the argument is not of type ECHO-STREAM.
+
+  SYNONYM-STREAM-SYMBOL synonym-stream            ==> symbol
+
+      This function returns the symbol whose SYMBOL-VALUE the
+      synonym stream is using.  It is
+      an error if the argument is not of type SYNONYM-STREAM.
+
+  TWO-WAY-STREAM-INPUT-STREAM two-way-stream      ==> input-stream
+  TWO-WAY-STREAM-OUTPUT-STREAM two-way-stream     ==> output-stream
+
+      These functions return the corresponding component stream.  It is
+      an error if the argument is not of type TWO-WAY-STREAM.
+
+
+Proposal: STREAM-ACCESS:ADD-TYPES-ACCESSORS
+
+Identical to ADD-TYPES-PREDICATES-ACCESSORS except to leave out the 
+stream type predicates.
+
+Proposal: STREAM-ACCESS:ADD-PREDICATES-ACCESSORS
+
+Identical to ADD-TYPES-PREDICATES-ACCESSORS except to not
+identify new data types. The accessors act as if the types were specified
+(i.e., are mutually excusive).
+
+Current Practice:
+
+VAX LISP implements ADD-TYPES-PREDICATES-ACCESSORS.
+ We have not surveyed other implementations. 
+
+Cost to Implementors:
+
+  All of the proposals are reasonably simple to implement, since the information
+  must be present for nearly all types. 
+
+Cost to Users:
+
+  The proposals are upward-compatible, and should have little impact.
+
+Cost of Non-Adoption:
+
+  The benefits would not be available in a portable fashion.
+
+Benefits:
+
+  Programs would be able to access useful information otherwise hidden.
+
+Discussion:
+
+  This issue has come up frequently, particularly dealing with SYNONYM-STREAMs.
+
+  The behavior of OPEN-STREAM-P on, for example, broadcast streams, might
+  be specified in a variety of alternative ways. This specification seems the simplest.
+
+  There are three proposals for voting because there was no agreement at the
+  October X3J13 on the issue of whether types, predicates, or both should be
+ added.
+
+  There was a proposal at one time to add a new function FOLLOW-SYNONYM-STREAM
+  which could be written as
+   (defun follow-synonym-stream (x)
+     (if (synonym-stream-p x)
+         (follow-synonym-stream (symbol-value (synonym-stream-symbol x)))
+         x))
+
+  i.e., which chases through zero or more synonym stream indirections.
+
+
+0,,
+*** EOOH ***
+Date:  9 Dec 88 01:30 PST
+Sender: masinter.pa
+To: x3j13@sail.stanford.edu
+Subject: Issue: STREAM-ACCESS (Version 2)
+From: cl-cleanup@sail.stanford.edu
+reply-to: cl-cleanup@sail.stanford.edu
+cc: masinter
+line-fold: no
+
+
+Issue:		STREAM-ACCESS
+References:	streams (Chapter 21 of CLtL)
+Category:	ADDITION
+Edit History:	17-Jun-88, version 1 by Walter van Roggen
+			30-Nov-88, version 2 by Masinter
+
+Problem Description:
+
+  There are many components of streams which are specified upon creation
+  but are not accessible afterwards.  Furthermore there is no way in
+  Common Lisp to determine the type of a stream to see if it has particular
+  components, or even if it is OPEN.
+
+  The accessors wanted are those associated with broadcast streams,
+  concatenated streams, echo streams, file streams, string streams, 
+  synonym streams, two way streams.
+
+  There are three proposals, which differ only by the whether
+  they include types, type predicates, or both, in addition to
+  the stream component acessors. Ballots can be either for
+  one of the proposals or none. (Other combinations of, say, 
+  accessors without either predicates or types, or types without
+  accessors, do not seem reasonable and are not being proposed
+  at this time.)
+
+
+Proposal STREAM-ACCESS:ADD-TYPES-PREDICATES-ACCESSORS
+
+
+First, add a function to determine whether a stream is "OPEN":
+
+OPEN-STREAM-P stream			[Function]
+
+      Returns T if a stream is open, NIL if it is closed.  It is an error
+      if the argument is not a stream.
+
+    Streams are "open" until they have been closed with
+    CLOSE, or, the dynamic context of the creating/accessing
+    macros of  WITH-OUTPUT-TO-STRING, WITH-OPEN-FILE, 
+    WITH-INPUT-FROM-STRING,  WITH-OPEN-STREAM, 
+    have been exited.
+    
+There are three kinds of things to add associated with each kind of
+stream: data types, predicates, accessors.
+
+Stream data types:
+   BROADCAST-STREAM (returned by MAKE-BROADCAST-STREAM)
+   CONCATENATED-STREAM (returned by MAKE-CONCATENATED-STREAM)
+   ECHO-STREAM (returned by MAKE-ECHO-STREAM)
+   FILE-STREAM (returned by OPEN or created by WITH-OPEN-FILE)
+   STRING-STREAM (returned by MAKE-STRING-INPUT-STREAM, 
+	MAKE-STRING-OUTPUT-STREAM, and created by WITH-INPUT-FROM-STRING
+      and WITH-OUTPUT-TO-STRING and FORMAT with second argument NIL)
+  SYNONYM-STREAM (created by MAKE-SYNONYM-STREAM)
+  TWO-WAY-STREAM (created by  MAKE-TWO-WAY-STREAM)
+
+  The stream data types are all subtypes of type STREAM and are mutually
+  exclusive. (In particular, a synonym stream is only of type SYNONYM-STREAM.)
+
+Stream Predicates:
+
+  Each of these returns T if the object is of the corresponding type,
+  and NIL otherwise.
+
+    BROADCAST-STREAM-P, CONCATENATED-STREAM-P,
+    ECHO-STREAM-P, FILE-STREAM-P, STRING-STREAM-P,
+    SYNONYM-STREAM-P, TWO-WAY-STREAM-P
+
+  Note that the predicates do not "follow the link" of a synonym
+  stream.
+
+Stream Informational Functions:
+
+  BROADCAST-STREAM-STREAMS broadcast-stream       ==> list of streams
+
+      This function returns a list of output streams that constitute
+      all the streams the broadcast stream is broadcasting to.  It is
+      an error if the argument is not of type BROADCAST-STREAM.
+
+  CONCATENATED-STREAM-STREAMS concatenated-stream ==> list of streams
+
+      This function returns a list of input streams that constitute
+      the ordered set of streams the concatenated stream still has to
+      to read from, starting with the current one it is reading from.
+      The list may be () if no more streams remain to be read.
+      It is an error if the argument is not of type CONCATENATED-STREAM.
+
+  ECHO-STREAM-INPUT-STREAM echo-stream            ==> input-stream
+  ECHO-STREAM-OUTPUT-STREAM echo-stream           ==> output-stream
+
+      These functions return the corresponding component stream.  It is
+      an error if the argument is not of type ECHO-STREAM.
+
+  SYNONYM-STREAM-SYMBOL synonym-stream            ==> symbol
+
+      This function returns the symbol whose SYMBOL-VALUE the
+      synonym stream is using.  It is
+      an error if the argument is not of type SYNONYM-STREAM.
+
+  TWO-WAY-STREAM-INPUT-STREAM two-way-stream      ==> input-stream
+  TWO-WAY-STREAM-OUTPUT-STREAM two-way-stream     ==> output-stream
+
+      These functions return the corresponding component stream.  It is
+      an error if the argument is not of type TWO-WAY-STREAM.
+
+
+Proposal: STREAM-ACCESS:ADD-TYPES-ACCESSORS
+
+Identical to ADD-TYPES-PREDICATES-ACCESSORS except to leave out the 
+stream type predicates.
+
+Proposal: STREAM-ACCESS:ADD-PREDICATES-ACCESSORS
+
+Identical to ADD-TYPES-PREDICATES-ACCESSORS except to not
+identify new data types. The accessors act as if the types were specified
+(i.e., are mutually excusive).
+
+Current Practice:
+
+VAX LISP implements ADD-TYPES-PREDICATES-ACCESSORS.
+ We have not surveyed other implementations. 
+
+Cost to Implementors:
+
+  All of the proposals are reasonably simple to implement, since the information
+  must be present for nearly all types. 
+
+Cost to Users:
+
+  The proposals are upward-compatible, and should have little impact.
+
+Cost of Non-Adoption:
+
+  The benefits would not be available in a portable fashion.
+
+Benefits:
+
+  Programs would be able to access useful information otherwise hidden.
+
+Discussion:
+
+  This issue has come up frequently, particularly dealing with SYNONYM-STREAMs.
+
+  The behavior of OPEN-STREAM-P on, for example, broadcast streams, might
+  be specified in a variety of alternative ways. This specification seems the simplest.
+
+  There are three proposals for voting because there was no agreement at the
+  October X3J13 on the issue of whether types, predicates, or both should be
+ added.
+
+  There was a proposal at one time to add a new function FOLLOW-SYNONYM-STREAM
+  which could be written as
+   (defun follow-synonym-stream (x)
+     (if (synonym-stream-p x)
+         (follow-synonym-stream (symbol-value (synonym-stream-symbol x)))
+         x))
+
+  i.e., which chases through zero or more synonym stream indirections.
+        TITAN 
+         TITAN 
+           Z       
+       }                            
+       	       
+       P             8       6      ó             3              ±       ,       _       1       ¥              d              |              H              ?       
+       J             ä      q "zº
+0,,
+*** EOOH ***
+Return-Path: <CL-Cleanup-mailer@SAIL.Stanford.EDU>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU ([36.86.0.194]) by Xerox.COM ; 09 DEC 88 08:31:27 PST
+Received: from cs.utah.edu by SAIL.Stanford.EDU with TCP; 9 Dec 88  08:30:06 PST
+Received: from defun.utah.edu by cs.utah.edu (5.59/utah-2.1-cs)
+	id AA15423; Fri, 9 Dec 88 09:29:10 MST
+Received: by defun.utah.edu (5.59/utah-2.0-leaf)
+	id AA01156; Fri, 9 Dec 88 09:29:08 MST
+From: sandra%defun@cs.utah.edu (Sandra J Loosemore)
+Message-Id: <8812091629.AA01156@defun.utah.edu>
+Date: Fri, 9 Dec 88 09:29:07 MST
+Subject: Re: Issue: STREAM-ACCESS (Version 2)
+To: cl-cleanup@sail.stanford.edu
+In-Reply-To: cl-cleanup@sail.stanford.edu, 9 Dec 88 01:30 PST
+
+I have one minor amendment I would like to offer on this issue.  How
+about specifying that the predicates return "true", not "T"?
+
+-Sandra
+-------
+
+
+0,,
+*** EOOH ***
+Return-Path: <CL-Cleanup-mailer@SAIL.Stanford.EDU>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU ([36.86.0.194]) by Xerox.COM ; 09 DEC 88 09:45:31 PST
+Received: from Xerox.COM by SAIL.Stanford.EDU with TCP; 9 Dec 88  09:44:37 PST
+Received: from Semillon.ms by ArpaGateway.ms ; 09 DEC 88 09:38:06 PST
+Date: 9 Dec 88 09:37 PST
+From: masinter.pa
+Subject: Re: Issue: STREAM-ACCESS (Version 2)
+In-reply-to: sandra%defun@cs.utah.edu (Sandra J Loosemore)'s message of
+ Fri, 9 Dec 88 09:29:07 MST
+To: sandra%defun@cs.utah.edu (Sandra J Loosemore)
+cc: cl-cleanup@sail.stanford.edu
+Message-ID: <881209-093806-6275@Xerox>
+
+Yes. Many people believe "true" means T, even though CLtL says that it
+means "non-NIL". I think we might recommend an editorial change to say
+"non-NIL" instead of "true" in the places where it means that.
+
+
+0,,
+*** EOOH ***
+Return-Path: <cperdue@Sun.COM>
+Received: from Sun.COM ([10.7.0.2]) by Xerox.COM ; 08 JAN 89 13:58:53 PST
+Received: from snail.Sun.COM by Sun.COM (4.1/SMI-4.0)
+	id AA28981; Sun, 8 Jan 89 14:01:41 PST
+Received: from clam.sun.com by snail.Sun.COM (4.1/SMI-4.0)
+	id AA05226; Sun, 8 Jan 89 13:58:21 PST
+Received: by clam.sun.com (3.2/SMI-3.2)
+	id AA11196; Sun, 8 Jan 89 13:59:27 PST
+Date: Sun, 8 Jan 89 13:59:27 PST
+From: cperdue@Sun.COM (Cris Perdue)
+Message-Id: <8901082159.AA11196@clam.sun.com>
+To: masinter.pa
+Subject: Re: Ballot
+Cc: cl-cleanup@sail.stanford.edu
+
+> The ballot incorrectly listed only one of three alternatives:
+> 
+> STREAM-ACCESS:ADD-TYPES-PREDICATES-ACCESSORS
+> STREAM-ACCESS:ADD-TYPES-ACCESSORS
+> STREAM-ACCESS:ADD-PREDICATES-ACCESSORS
+> 
+> Do you prefer the marked 
+> 
+> Y	| STREAM-ACCESS:ADD-TYPES-PREDICATES-ACCESSORS
+
+After reading the proposal again, I favor all of the proposals.
+I will guess that the types are not useful for performance purposes,
+and based on this, I prefer STREAM-ACCESS:ADD-PREDICATES-ACCESSORS,
+but do not really oppose any of the proposals.  I somewhat favor
+having predicates even when the types exist, because the predicates
+are usable with FUNCALL, APPLY, etc..
+
+
+0,,
+*** EOOH ***
+Return-Path: <CL-Cleanup-mailer@SAIL.Stanford.EDU>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU ([36.86.0.194]) by Xerox.COM ; 10 JAN 89 00:22:13 PST
+Received: from Xerox.COM by SAIL.Stanford.EDU with TCP; 10 Jan 89  00:22:01 PST
+Received: from Semillon.ms by ArpaGateway.ms ; 10 JAN 89 00:20:54 PST
+Date: 10 Jan 89 00:20 PST
+Sender: masinter.pa
+Subject: Issue: STREAM-ACCESS (Version 2)
+To: cl-cleanup@sail.stanford.edu
+From: gz@spt.entity.com (Gail Zacharias)
+Message-ID: <890110-002054-5595@Xerox>
+
+The following paragraph from the description of OPEN-STREAM-P may
+be misleading:
+   Streams are "open" until they have been closed with CLOSE, or, the
+   dynamic context of the creating/accessing macros of WITH-OUTPUT-TO-STRING,
+   WITH-OPEN-FILE, WITH-INPUT-FROM-STRING, WITH-OPEN-STREAM, have been
+   exited.
+This may be taken to imply that the stream still exists (as a closed stream)
+even after the dynamic extent of the WITH-xxx form is exited.  Because these
+stream objects have dynamic extent, they cannot be referenced in any way once
+the WITH-xxx form exits.  (They can't even be passed to OPEN-STREAM-P.) As a
+practical example, the streams could be stack-consed, and future use could
+cause crashes.  The reference to exited WITH-xxx forms should be deleted, or
+explanatory text should be added.
+
+
+0,,
+*** EOOH ***
+Return-Path: <CL-Cleanup-mailer@SAIL.Stanford.EDU>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU ([36.86.0.194]) by Xerox.COM ; 10 MAR 89 14:45:19 PST
+Received: from ECLA.USC.EDU by SAIL.Stanford.EDU with TCP; 10 Mar 89  14:44:20 PST
+Date: Fri, 10 Mar 89 14:41:53 PST
+From: Kim A. Barrett <IIM@ECLA.USC.EDU>
+Subject: Issue STREAM-ACCESS
+To: cl-cleanup@SAIL.STANFORD.EDU
+cc: iim@ECLA.USC.EDU
+Message-ID: <12476991602.30.IIM@ECLA.USC.EDU>
+
+Proposal STREAM-ACCESS:ADD-TYPES-ACCESSORS, passed at the Hawaii meeting, says
+that the types TWO-WAY-STREAM and ECHO-STREAM are mutually exclusive.  This
+seems inappropriate -- the two seem to be equivelent except that echo-streams
+provide the additional echoing functionality.
+
+We wish to add an ammendment to require (or allow, if somebody claims problems
+with this) ECHO-STREAM to be a subtype of TWO-WAY-STREAM.
+
+kab
+-------
+
+
+0,,
+*** EOOH ***
+GV-Info: CL-Cleanup-mailer@SAIL.Stanford.EDU at 15-Mar-89 19:48:30 from AG
+Return-Path: <CL-Cleanup-mailer@SAIL.Stanford.EDU>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU ([36.86.0.194]) by Xerox.COM ; 15 MAR 89 19:48:19 PST
+Received: from Xerox.COM by SAIL.Stanford.EDU with TCP; 15 Mar 89  19:06:57 PST
+Received: from Semillon.ms by ArpaGateway.ms ; 15 MAR 89 18:33:15 PST
+Date: 15 Mar 89 18:31 PST
+From: masinter.pa
+Subject: Re: Issue STREAM-ACCESS
+In-reply-to: Kim A. Barrett <IIM@ECLA.USC.EDU>'s message of Fri, 10 Mar 89
+ 14:41:53 PST
+To: Kim A. Barrett <IIM@ECLA.USC.EDU>
+cc: cl-cleanup@SAIL.STANFORD.EDU
+Message-ID: <890315-183315-1621@Xerox>
+
+I don't think we want either
+
+(typecase stream
+	(two-way-stream ...)
+	(echo-stream ...)
+
+
+to behave in an implementation-dependent manner, or
+to require that echo-stream be a subtype of two-way-stream.
+
+You can always have a class that is their mutual 
+superclass, i.e., that they both inherit from.
+
+However, the relation between the streams in
+echo and two-way is significantly different.
+
+

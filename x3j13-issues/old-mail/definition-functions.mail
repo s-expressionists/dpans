@@ -1,0 +1,318 @@
+*start*
+00359 00024 US 
+From: masinter.pa
+Date: 14-Aug-87 10:09:22 PDT
+Subject: Re: definition-functions
+In-reply-to: Your message of Thu, 13 Aug 87 19:52:36 PDT
+To: Pavel
+cc: masinter
+
+The main facility that this is supposed to provide is the portable way of "undoing" a DEFUN, DEFCONSTANT and friends. Outside of delete-definition, the rest is just frill.
+
+*start*
+00488 00024 US 
+Date: Thu, 13 Aug 87 19:52:36 PDT
+From: Pavel.pa
+Subject: Re: definition-functions
+In-reply-to: "Your message of 13 Aug 87 18:56 PDT"
+To: masinter
+
+Here are some simple comments:
+
+(symbol-definition-types name)
+	Return list of all types for which name has a definition
+
+You shouldn't name this that if names don't have to be symbols.
+
+Let me play devil's advocate for you here.  What common, important, portable problem is this proposal intended to solve?
+
+	Pavel
+*start*
+03341 00024 USf
+Date: 13 Aug 87 18:56 PDT
+From: masinter.pa
+TO: Pavel
+cc: masinter
+
+I promised I would submit to the cleanup committee a proposal for "named definitions" for making documentation etc more extensible in Common Lisp. Wonder what I modeled it after?
+
+Opinions about this? 
+
+
+Subject: definition-functions
+To: cl-cleanup@sail.stanford.edu
+
+Here's a very rough idea of the functions I was going to propose, I'll write this up more formally later...
+
+
+
+A "definition type" a symbol, like one of the following
+	function (including defun, defmacro, define-modify-macro...)
+	setf  
+	variable
+	type
+
+(delete-definition name type)
+	delete all effects of name having a definition of type
+	(delete-definition name 'function)  replaces (fmakunbound name)
+
+	(delete-definition name 'variable) 
+
+(documentation name type)
+	As before, type can be any definition type, name need not be symbol
+
+(has-definition-p name type &key)
+	True if name has some definition of given type 
+
+(ed name &optional type)  
+	Optional type allows you to say which definition if there is more than one.
+
+(symbol-definition-types name)
+	Return list of all types for which name has a definition
+
+(def-define-type type-name description &key undefiner)
+	Define type-name as a new kind of definition type.
+	Undefiner is a function which will remove a definition
+
+(defdefiner definer-name type &key undefiner name-function)
+	says that definer-name defines things of type.
+	Undefiner says how to remove 'em
+	name-function, defaults to second, says, given an expression
+		which starts with definer-name, what the name of the thing is, e.g.,
+
+	(defdefiner defun function :undefiner #'fmakunbound :name-function #'second)
+
+	(defdefiner defstruct type :undefiner #'si:remove-structure-definition
+			:name-function #'(lambda (x) (if (consp (second x)) (car (second x)) (Second x)))))
+
+	Note that when you undefine a name using delete-definition, *all* of the known undefiners
+	(both the general one supplied with def-define-type and the specific one defined
+	for each definer with defdefiner) are applied. The undefiner should not error
+	if there is no definition. 
+
+	function is defined by (DEFINE-MODIFY-MACRO DEFMACRO DEFINLINE DEFUN) 
+	type is defined by ( DEFTYPE DEFSTRUCT)
+	variable is defined by  DEFCONSTANT DEFPARAMETER DEFVAR
+	setf is defined by DEFSETF and DEFINE-SETF-METHOD
+	define-type is defined by DEF-DEFINE-TYPE
+
+With the error proposal, DEFINE-PROCEED-FUNCTION would define function, too.
+With CLOS, DEFCLASS would define a class.
+
+This is awkwardly said, so I may have to explain it better: definers are for things that define the *whole thing*, for which other definitions are mutually exclusive.  Thus, a defmethod doesn't define the generic function, it only defines a piece of the generic function. So (defmethod frob ((a widget) ...) ...) can't be a "definer" for the function frob. 
+
+There is some design choice of whether it is a definer for the function (:method frob widget) (since definition names need not be symbols) or whether it is the definer for the method (frob widget).  I think this need not be nailed down by the definition protocol.
+
+I think this is separate from the "function spec" proposal because "function specs" have to do with identifying pieces of executable code which might have breakpoints, etc. assigned to them.
+
+*start*
+01151 00024 USa
+Return-Path: <@SAIL.Stanford.EDU:FAHLMAN@C.CS.CMU.EDU>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 18 OCT 87 20:01:57 PDT
+Received: from C.CS.CMU.EDU by SAIL.STANFORD.EDU with TCP; 18 Oct 87  19:59:34 PDT
+Received: ID <FAHLMAN@C.CS.CMU.EDU>; Sun 18 Oct 87 23:00:05-EDT
+Date: Sun, 18 Oct 87 23:00 EDT
+Message-ID: <FAHLMAN.12343607303.BABYL@C.CS.CMU.EDU>
+Sender: FAHLMAN@C.CS.CMU.EDU
+From: "Scott E. Fahlman" <Fahlman@C.CS.CMU.EDU>
+To: Masinter.pa
+Cc: cl-cleanup@SAIL.STANFORD.EDU
+Subject: Issue: DEFINITION-FUNCTIONS
+In-reply-to: Msg of 9 Oct 1987  18:20-EDT from Masinter.pa at Xerox.COM
+
+
+    Date: Friday, 9 October 1987  18:20-EDT
+    From: Masinter.pa at Xerox.COM
+    To:   cl-cleanup at Sail.stanford.edu
+    Re:   Issue: DEFINITION-FUNCTIONS
+
+    I promised I would submit a proposal for "named definitions" for making
+    documentation etc more extensible in Common Lisp.
+
+Just going over some old mail and found this.  I'd like to see a lot
+more motivation for all this machinery.  Does this really solve some
+useful problem, or is it extensibility for its own sake?
+
+-- Scott
+
+*start*
+04524 00024 USh
+Return-Path: <@SAIL.Stanford.EDU:Masinter.pa@Xerox.COM>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 09 OCT 87 15:28:37 PDT
+Received: from XEROX.COM by SAIL.STANFORD.EDU with TCP; 9 Oct 87  15:23:54 PDT
+Received: from Cabernet.ms by ArpaGateway.ms ; 09 OCT 87 15:20:50 PDT
+Date: 9 Oct 87 15:20 PDT
+From: Masinter.pa
+Subject: Issue: DEFINITION-FUNCTIONS
+to: cl-cleanup@Sail.stanford.edu
+Message-ID: <871009-152050-1749@Xerox>
+
+
+I promised I would submit a proposal for "named definitions" for making
+documentation etc more extensible in Common Lisp.  I don't have a formal
+proposal, but I've been sitting on this  very rough draft...  
+
+
+- - - - 
+A "definition type" a symbol, like one of the following
+	function (including defun, defmacro, define-modify-macro...)
+	setf  
+	variable
+	type
+
+
+Definition types are used by several functions, including DOCUMENTATION.
+
+A defining form, such as a form introduced with DEFUN, DEFSTRUCT, or
+whatever, is said to give a given definition type to a specific name.
+Frequently, a definition name is a symbol, but need not be.
+
+(definition-type form)
+     Given a form (such as DEFUN, DEFMACRO and the like) returns the
+type of thing defined by it.
+      (Can be either a form or else the symbol that introduces such a
+form).
+     DEFSTRUCT, DEFTYPE => TYPE
+     DEFMACRO, DEFUN, DEFINE-MODIFY-MACRO, ... => FUNCTION
+     DEFSETF => SETF
+     DEFVAR, DEFPARAMETER, DEFCONST => VARIABLE
+
+(definition-name form)
+      Given a form (no symbol allowed), returns the name of the thing
+defined. Often SECOND, but e.g.
+     with DEFSTRUCT might do more processing.
+
+
+(documentation name definition-type)
+	As before, type can be any definition type.
+
+(delete-definition name definition-type)
+	delete all effects of name having a definition of type
+	(delete-definition name 'function)  replaces (fmakunbound name)
+
+	(delete-definition name 'variable)  replaces (makunbound name)
+
+For adding more:
+
+(def-definition-type type-name description &key undefiner)
+	Define type-name as a new kind of definition type.
+	Undefiner is a function which will remove a definition
+
+
+(defdefiner definer-name type &key undefiner name-function)
+	says that definer-name defines things of type.
+	Undefiner says how to remove 'em
+	name-function, defaults to second, says, given an expression
+		which starts with definer-name, what the name of the thing is, e.g.,
+
+	(defdefiner defun function :undefiner #'fmakunbound :name-function
+#'second)
+
+	(defdefiner defstruct type :undefiner #'si:remove-structure-definition
+			:name-function #'(lambda (x) (if (consp (second x)) (car (second x))
+(Second x)))))
+
+	Note that when you undefine a name using delete-definition, *all* of
+the known undefiners
+	(both the general one supplied with def-define-type and the specific
+one defined
+	for each definer with defdefiner) are applied. The undefiner should not
+error
+	if there is no definition. 
+
+	function is defined by (DEFINE-MODIFY-MACRO DEFMACRO DEFUN) 
+	type is defined by  DEFTYPE DEFSTRUCT
+	variable is defined by  DEFCONSTANT DEFPARAMETER DEFVAR
+	setf is defined by DEFSETF and DEFINE-SETF-METHOD
+	define-type is defined by DEF-DEFINE-TYPE
+
+
+(ed name &optional type)  
+	Optional type allows you to say which definition if there is more than
+one.
+
+- - - - - - - - - - -
+The following make sense in some environments:
+
+
+(has-definition-p name definition-type &key)
+	True if name has some definition of given type 
+
+(symbol-definition-types name)
+	Return list of all types for which name has a definition
+
+- - - - - - - - -
+
+With the error proposal, DEFINE-PROCEED-FUNCTION would define function,
+too.
+With CLOS, DEFCLASS would define a class.
+
+This is awkwardly said, so I may have to explain it better: definers are
+for things that define the *whole thing*, for which other definitions
+are mutually exclusive.  Thus, a defmethod doesn't define the generic
+function, it only defines a piece of the generic function. So (defmethod
+frob ((a widget) ...) ...) can't be a "definer" for the function frob. 
+
+There is some design choice of whether it is a definer for the function
+(:method frob widget) (since definition names need not be symbols) or
+whether it is the definer for the method (frob widget).  I think this
+need not be nailed down by the definition protocol.
+
+I think this is separate from the "function spec" proposal because
+"function specs" have to do with identifying pieces of executable code
+which might have breakpoints, etc. assigned to them.
+
+*start*
+01963 00024 USh
+Return-Path: <@SAIL.Stanford.EDU:Masinter.pa@Xerox.COM>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 22 OCT 87 17:34:18 PDT
+Received: from XEROX.COM by SAIL.STANFORD.EDU with TCP; 22 Oct 87  17:32:16 PDT
+Received: from Cabernet.ms by ArpaGateway.ms ; 22 OCT 87 17:28:25 PDT
+Date: 22 Oct 87 17:26 PDT
+From: Masinter.pa
+Subject: Re: Issue: DEFINITION-FUNCTIONS
+In-reply-to: "Scott E. Fahlman" <Fahlman@C.CS.CMU.EDU>'s message of Sun,
+ 18 Oct 87 23:00 EDT
+To: cl-cleanup@SAIL.STANFORD.EDU
+Message-ID: <871022-172825-5809@Xerox>
+
+>Just going over some old mail and found this.  I'd like to see a lot
+>more motivation for all this machinery.  Does this really solve some
+>useful problem, or is it extensibility for its own sake?
+
+>-- Scott
+
+Well, I can say that I use (a version of) this machinery frequently in
+the Xerox Lisp environment, but I'm not sure it isn't because it also
+interacts nicely with the residential environment.
+
+
+One reason for mailing this proposal out was to allay suspicion that the
+trace proposal and this one might interact.
+
+>From: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+>Date: Thu, 6 Aug 87 14:10 EDT
+>cc: common-lisp-object-system@SAIL.STANFORD.EDU, Masinter.pa
+
+. . . .
+
+>The Cleanup subcommittee of X3J13 were discussing something similar
+>a while back, starting from a different point.  The DOCUMENTATION
+function
+>of Common Lisp introduces the concept of "definition types", and this
+>concept could be useful in other operations.  For instance, it would be
+>nice to be able to remove any definition (function, variable, type,
+setf)
+>through a uniform interface.  "Definition type" and "function spec
+type"
+>are not the same concept, however there seems to be enough overlap here
+>that some coordination is probably called for.
+
+>I don't remember for sure, but I think Larry Masinter volunteered to
+make
+>a proposal for "definition types" when he got time.
+
+

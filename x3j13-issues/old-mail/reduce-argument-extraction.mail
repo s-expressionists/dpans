@@ -1,0 +1,1175 @@
+*start*
+01423 00024 US 
+Originator: Common-Lisp-mailer%SAIL.Stanford:EDU:Xerox
+Date: 14 Nov 87 02:15
+From: bromley%Think:COM:Xerox
+Subject: reduce should allow an accessor function to be specified
+To: common-lisp%Think:COM:Xerox
+
+GVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGV
+From: Mark Bromley <bromley@Think.COM>
+To: common-lisp@Think.COM
+Subject: reduce should allow an accessor function to be specified
+Return-Path: <Common-Lisp-mailer@SAIL.Stanford.EDU>
+Redistributed: Xerox-Common-Lisp^.x
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 14 NOV 87 02:15:04 PST
+Received: from THINK.COM by SAIL.STANFORD.EDU with TCP; 14 Nov 87  01:39:19 PST
+Return-Path: <bromley@Think.COM>
+Received: from pozzo by Think.COM; Sat, 14 Nov 87 04:38:39 EST
+Received: by pozzo; Sat, 14 Nov 87 04:38:32 est
+Original-Date: Sat, 14 Nov 87 04:38:32 est
+Message-Id: <8711140938.AA17929@pozzo>
+GVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGV
+
+Currently, the function is directly applied to the elements of the sequence.
+This limits the utility of reduce.  Summing the cars of a sequence of conses is
+cumbersome using reduce, and is possible only because numbers can be
+distinguished from conses at run time.  E.g.
+
+(reduce #'(lambda (a b) (+ (if (consp a) (car a) a) (if (consp b) (car b) b))) sequence)
+
+It would be much more natural to be able to use the following
+
+(reduce #'+ sequence :key #'car).
+
+
+Mark Bromley
+bromley@think.com
+
+
+*start*
+02036 00024 US 
+Originator: Common-Lisp-mailer%SAIL.Stanford:EDU:Xerox
+Date: 14 Nov 87 09:02
+From: STEVER%OZ.AI.MIT.EDU%xx.lcs.mit:EDU:Xerox
+Subject: reduce should allow an accessor function to be specified
+In-Reply-to: Msg of 14 Nov 1987  04:38-EST from Mark Bromley <bromley at Think.COM>
+To: bromley%Think:COM:Xerox
+cc: common-lisp%Think:COM:Xerox
+
+GVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGV
+From: STEVER%OZ.AI.MIT.EDU@xx.lcs.mit.edu
+To: Mark Bromley <bromley@Think.COM>
+Cc: common-lisp@Think.COM
+Subject: reduce should allow an accessor function to be specified
+In-Reply-To: Msg of 14 Nov 1987  04:38-EST from Mark Bromley <bromley at Think.COM>
+Return-Path: <Common-Lisp-mailer@SAIL.Stanford.EDU>
+Redistributed: Xerox-Common-Lisp^.x
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 14 NOV 87 09:02:02 PST
+Received: from THINK.COM by SAIL.STANFORD.EDU with TCP; 14 Nov 87  08:26:05 PST
+Return-Path: <STEVER%OZ.AI.MIT.EDU@ai.ai.mit.edu>
+Received: from OZ.AI.MIT.EDU (AI.AI.MIT.EDU) by Think.COM; Sat, 14 Nov 87 11:25:23 EST
+Original-Date: Sat, 14 Nov 87 11:26 EST
+Message-Id: <STEVER.12350569792.BABYL@MIT-OZ>
+GVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGV
+
+    Date: Saturday, 14 November 1987  04:38-EST
+    From: Mark Bromley <bromley at Think.COM>
+
+    [request for :KEY argument to REDUCE]
+
+    Summing the cars of a sequence of conses is cumbersome using
+    reduce:
+
+    (reduce #'(lambda (a b)
+		(+ (if (consp a) (car a) a)
+		   (if (consp b) (car b) b))) sequence)
+
+Could you clean this up by using:
+
+(reduce #'(lambda (total cons) (+ total (car cons)))
+	sequence
+	:initial-value 0)
+
+???
+
+It's still not pretty, but it's a bit closer to 'nice'.  It treats
+empty sequences differently, though.  My version returns 0 (the
+:INITIAL-VALUE argument), while the other signals an error (the LAMBDA is
+called with 0 arguments).
+
+    It would be much more natural to be able to use the following
+
+    (reduce #'+ sequence :key #'car).
+
+I agree.  :KEY is a much more elegant way to solve the problem.
+
+-- Stephen
+
+
+*start*
+02141 00024 US 
+Originator: Common-Lisp-mailer%SAIL.Stanford:EDU:Xerox
+Date: 14 Nov 87 09:59
+From: DCP%quabbin.scrc.symbolics:COM:Xerox
+Subject: reduce should allow an accessor function to be specified
+In-Reply-to: <8711140938.AA17929@pozzo>
+To: bromley%Think:COM:Xerox, common-lisp%Think:COM:Xerox
+
+GVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGV
+From: David C. Plummer <DCP@quabbin.scrc.symbolics.com>
+Subject: reduce should allow an accessor function to be specified
+To: Mark Bromley <bromley@Think.COM>, common-lisp@Think.COM
+In-Reply-To: <8711140938.AA17929@pozzo>
+Return-Path: <Common-Lisp-mailer@SAIL.Stanford.EDU>
+Redistributed: Xerox-Common-Lisp^.x
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 14 NOV 87 09:59:48 PST
+Received: from THINK.COM by SAIL.STANFORD.EDU with TCP; 14 Nov 87  09:22:37 PST
+Return-Path: <DCP@elephant-butte.scrc.symbolics.com>
+Received: from ELEPHANT-BUTTE.SCRC.Symbolics.COM by Think.COM; Sat, 14 Nov 87 12:21:46 EST
+Received: from SWAN.SCRC.Symbolics.COM by ELEPHANT-BUTTE.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 235305; Sat 14-Nov-87 12:21:32 EST
+Original-Date: Sat, 14 Nov 87 12:21 EST
+Message-Id: <19871114172119.6.DCP@SWAN.SCRC.Symbolics.COM>
+GVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGV
+
+    Date: Sat, 14 Nov 87 04:38:32 est
+    From: Mark Bromley <bromley@Think.COM>
+
+    ...
+    It would be much more natural to be able to use the following
+
+    (reduce #'+ sequence :key #'car).
+
+Several people have suggested this functionality and I think most of us
+think it is reasonable.  Many people also believe the :KEY is not the
+right keyword for extraction on the grounds that keys are for
+predicates, not for operators.  We even had a naming contest for the
+name of extraction keyword.  I don't remember if there was a clear
+winner.
+
+I really don't know what to do with this conversation.  We've been over
+this about 5 times now and it seems like beating a dead horse to have
+another long discussion.  On the other hand, we never reached
+consensus/conclusion during any of those previous attempts, so this
+issue will come up again and again until the functionality exists.
+
+
+*start*
+01961 00024 US 
+Originator: Common-Lisp-mailer%SAIL.Stanford:EDU:Xerox
+Date: 14 Nov 87 14:53
+From: barmar%Think:COM:Xerox
+Subject: reduce should allow an accessor function to be specified
+In-Reply-to: <8711140938.AA17929@pozzo>
+To: bromley%Think:COM:Xerox
+cc: common-lisp%Think:COM:Xerox
+
+GVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGV
+From: Barry Margolin <barmar@Think.COM>
+Subject: reduce should allow an accessor function to be specified
+To: Mark Bromley <bromley@Think.COM>
+Cc: common-lisp@Think.COM
+In-Reply-To: <8711140938.AA17929@pozzo>
+Return-Path: <Common-Lisp-mailer@SAIL.Stanford.EDU>
+Redistributed: Xerox-Common-Lisp^.x
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 14 NOV 87 14:53:32 PST
+Received: from THINK.COM by SAIL.STANFORD.EDU with TCP; 14 Nov 87  14:16:10 PST
+Return-Path: <@Think.COM:barmar@Think.COM>
+Received: from sauron.think.com by Think.COM; Sat, 14 Nov 87 17:15:34 EST
+Received: from OCCAM.THINK.COM by sauron.think.com; Sat, 14 Nov 87 17:14:30 EST
+Original-Date: Sat, 14 Nov 87 17:16 EST
+Message-Id: <871114171605.6.BARMAR@OCCAM.THINK.COM>
+GVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGV
+
+    Date: Sat, 14 Nov 87 04:38:32 est
+    From: Mark Bromley <bromley@Think.COM>
+
+    Currently, the function is directly applied to the elements of the sequence.
+    This limits the utility of reduce.  Summing the cars of a sequence of conses is
+    cumbersome using reduce, and is possible only because numbers can be
+    distinguished from conses at run time.  E.g.
+
+    (reduce #'(lambda (a b) (+ (if (consp a) (car a) a) (if (consp b) (car b) b))) sequence)
+
+    It would be much more natural to be able to use the following
+
+    (reduce #'+ sequence :key #'car).
+
+A better interim solution, except for the fact that it conses more,
+would be to use
+
+	(reduce #'+ (map 'vector #'car sequence))
+
+This doesn't depend on distinguishing previous results from input.
+
+                                                barmar
+
+
+*start*
+04660 00024 US 
+Return-Path: <CL-Cleanup-mailer@SAIL.Stanford.EDU>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 08 DEC 87 09:50:00 PST
+Received: from SCRC-STONY-BROOK.ARPA by SAIL.STANFORD.EDU with TCP; 8 Dec 87  09:48:22 PST
+Received: from RIO-DE-JANEIRO.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 297885; Tue 8-Dec-87 12:47:14 EST
+Date: Tue, 8 Dec 87 12:47 EST
+From: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: Issue: REDUCE-ARGUMENT-EXTRACTION (version 1)
+To: pierson@MULTIMAX.ARPA
+cc: cl-cleanup@sail.stanford.edu, KMP@STONY-BROOK.SCRC.Symbolics.COM
+In-Reply-To: <8712072337.AA01737@multimax.ARPA>
+Message-ID: <871208124709.5.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+
+I mostly support the contained proposal, but have a number of specific comments...
+
+    Date: Mon, 07 Dec 87 18:37:19 EST
+    From: Dan L. Pierson <pierson@multimax.ARPA>
+
+    Issue:         REDUCE-ARGUMENT-EXTRACTION
+    References:    REDUCE (pp. 251-252), :KEY arguments (p. 246), 
+		   the astronaut structure (pp. 312-313),
+		   see also REMOVE, REMOVE-IF, REMOVE-IF-NOT, DELETE, DELETE-IF,
+		   DELETE-IF-NOT, REMOVE-DUPLICATES, DELETE-DUPLICATES, SUBSTITUTE,
+		   SUBSTITUTE-IF, SUBSTITUTE-IF-NOT, NSUBSTITUTE, NSUBSTITUTE-IF,
+		   NSUBSTITUTE-IF-NOT, FIND, FIND-IF, FIND-IF-NOT, POSITION,
+		   POSITION-IF, POSITION-IF-NOT, COUNT, COUNT-IF, COUNT-IF-NOT,
+		   MISMATCH, SEARCH, SORT, STABLE-SORT, MERGE (pp. 253-261), 
+		   SUBST, SUBST-IF, SUBST-IF-NOT, NSUBST, NSUBST-IF, NSUBST-IF-NOT,
+		   SUBLIS, NSUBLIS, MEMBER, MEMBER-IF, MEMBER-IF-NOT (pp. 273-275),
+		   ADJOIN, UNION, NUNION, INTERSECTION, NINTERSECTION, 
+		   SET-DIFFERENCE, NSET-DIFFERENCE, SET-EXCLUSIVE-OR, 
+		   NSET-EXCLUSIVE-OR, SUBSETP (pp. 276-279),
+		   ASSOC, ASSOC-IF, ASSOC-IF-NOT, RASSOC, RASSOC-IF, RASSOC-IF-NOT
+		   (pp. 280-281)
+
+I think this references list will scare people voting. I think the references is
+intended to give people an idea of how sweeping the change is. If we feel strongly
+that this isn't enough, we might want to have both a references and a cross-references
+field. But for now I'd just leave the references as
+
+ REDUCE (pp. 251-252), :KEY arguments (p. 246),
+ the astronaut example (pp. 312-313)
+
+and drop the rest.
+
+    Category:      ADDITION
+    Edit history:  Version 1 by Pierson 12/5/87
+    Issue:         For Internal Discussion
+
+    Problem description:
+
+    REDUCE is the only one of the Common Lisp functions that modify or
+    search lists and sequences which does not accept a :KEY argument.
+    This complicates many uses of REDUCE.
+
+    Proposal (REDUCE-ARGUMENT-EXTRACTION:KEY):
+
+    Change the definition of REDUCE to take a :KEY keyword.
+
+This needs to be more elaborated. You need to say what the :KEY keyword will do.
+The proposal part of these write-ups is intended to stand on its own.
+
+    Test Cases/Examples:
+    ...
+
+This is a good example.
+
+    Rationale:
+
+    This proposal brings REDUCE into line with the rest of the sequence
+    and list modifying and searching functions at the cost of slightly
+    blurring the meaning of :KEY arguments.
+
+I would not mention the discussion of the name :KEY here at all. Leave it for
+the discussion because it's confusing unless presented in full form, and it's
+too much work to present here. Maybe just say:
+
+ This proposal makes many common situations where REDUCE would be useful
+ much less cumbersome.
+
+    Current practice:
+
+    Does anyone currently support this as an extension?
+    ...
+
+It's not worth mentioning in the proposal, but for your general information
+so you don't think we didn't notice the question, Symbolics does not currently
+support this.
+
+    Aesthetics:
+
+    Slightly damaged.  All :KEY arguments are currently defined to be used
+    for predicates, this proposal will implicitly broaden :KEY to support
+    general extraction for any purpose.
+
+I might say "Slightly damaged in one way..." and then have a second paragraph
+that says "Slightly improved in another way. Many common situations where
+REDUCE could be used would be easier to write and easier to later read."
+
+    Discussion:
+
+    Several members of the committee feel that the increased functionality
+    outweighs the damage to the definition of :KEY.  No one has objected
+    to this change in the recent round of discussions.
+
+There is no "definition" of :KEY. At best, it's an unwritten rule. It's arguably
+just a coincidence. Anyway, the general sentiment of this paragraph is right,
+but it should be worded more carefully so that it doesn't set a precedent for
+"unwritten rules" having to be too strongly justified.
+
+*start*
+02332 00024 US 
+Return-Path: <CL-Cleanup-mailer@SAIL.Stanford.EDU>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 08 DEC 87 12:32:45 PST
+Received: from XEROX.COM by SAIL.STANFORD.EDU with TCP; 8 Dec 87  12:31:10 PST
+Received: from Cabernet.ms by ArpaGateway.ms ; 08 DEC 87 12:05:20 PST
+Date: 8 Dec 87 12:05 PST
+From: Daniels.pa
+Subject: Re: Issue: REDUCE-ARGUMENT-EXTRACTION (version 1)
+In-reply-to: Dan L. Pierson <pierson@multimax.ARPA>'s message of Mon, 07 Dec 87
+ 18:37:19 EST
+To: pierson@multimax.ARPA
+cc: cl-cleanup@sail.stanford.edu
+Message-ID: <871208-120520-5164@Xerox>
+
+In general I favor this proposal, but it needs some cleaning up before I'm happy
+with it.
+
+It cleans up a non-uniformity in the arguments passed to the reduction function
+that has always bothered me: If there is no initial value, the first call to the
+reduction function receives two sequence elements; successive calls receive an
+accumulated value and a sequence element. The order of these arguments depends
+on :FROM-END as well. I've taken to providing an :INITIAL-VALUE argument just to
+avoid cluttering up the reduction function with the hair to handle all this.
+
+In fact, because of this nonsense, the example given in the proposal only works
+for sequences with exactly two elements. A more correct example is
+
+  (reduce #'(lambda (x y) (+ x (person-age y))) astros :initial-value 0)
+
+NB: Since there's an initial value you can dispense with the &optional, and the
+first argument to the reduction function is now always the accumulated value.
+
+Even with this new example, I think I'd still rather write
+
+  (reduce #'+ astros :key #'person-age)
+
+The intent of the code seems clearer to me here.
+
+There are a few details missing from the proposal.
+
+1) The key-fn is never applied to the initial value, if any.
+
+2) The wording in CLtL about how the initial value participates in the reduction
+will have to be changed a bit.
+
+3) If the specified subsequence contains exactly one element, no initial value
+is given, and a key-fn has been provided, it is applied to that element and the
+resulting value is returned.
+
+If people are unhappy about using the :KEY keyword for this purpose because of
+the aesthetic problems, I'm happy to entertain suggestions for another keyword
+to use instead.
+
+		-- Andy. --
+
+*start*
+01043 00024 US 
+Return-Path: <CL-Cleanup-mailer@SAIL.Stanford.EDU>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 08 DEC 87 13:36:28 PST
+Received: from XEROX.COM by SAIL.STANFORD.EDU with TCP; 8 Dec 87  13:34:40 PST
+Received: from Cabernet.ms by ArpaGateway.ms ; 08 DEC 87 13:19:30 PST
+Date: 8 Dec 87 12:36 PST
+From: Masinter.pa
+Subject: Re: Issue: REDUCE-ARGUMENT-EXTRACTION (version 1)
+In-reply-to: Dan L. Pierson <pierson@multimax.ARPA>'s message of Mon, 07 Dec 87
+ 18:37:19 EST
+To: pierson@multimax.ARPA
+cc: cl-cleanup@sail.stanford.edu
+Message-ID: <871208-131930-5290@Xerox>
+
+This is a good writeup. I think we should add the alternative form
+
+(reduce  #'+ (mapcar #'person-age astros)) 
+
+as the most natural equivalence; the stuff with the &optional arguments is
+arcane and bogus in cases where there is an initial value.
+
+I think that it is true that
+
+(reduce <fn> sequence :key <key-fn>)  = (reduce <fn> (mapcar <key-fn> sequence))
+
+except of course in the matter of order of evaluation.
+
+
+*start*
+02325 00024 US 
+Return-Path: <CL-Cleanup-mailer@SAIL.Stanford.EDU>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 08 DEC 87 16:49:13 PST
+Received: from MULTIMAX.ARPA by SAIL.STANFORD.EDU with TCP; 8 Dec 87  16:44:47 PST
+Received:  by multimax.ARPA (5.51/25-eef)
+	id AA01634; Tue, 8 Dec 87 16:50:18 EST
+Message-Id: <8712082150.AA01634@multimax.ARPA>
+To: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Cc: cl-cleanup@sail.stanford.edu
+Subject: Re: Issue: REDUCE-ARGUMENT-EXTRACTION (version 1) 
+In-Reply-To: Your message of Tue, 08 Dec 87 12:47:00 -0500.
+             <871208124709.5.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM> 
+Date: Tue, 08 Dec 87 16:50:09 EST
+From: Dan L. Pierson <pierson@multimax.ARPA>
+
+    Date: Tue, 8 Dec 87 12:47 EST
+    From: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+
+        Discussion:
+    
+        Several members of the committee feel that the increased functionality
+        outweighs the damage to the definition of :KEY.  No one has objected
+        to this change in the recent round of discussions.
+    
+    There is no "definition" of :KEY. At best, it's an unwritten rule. It's arguably
+    just a coincidence. Anyway, the general sentiment of this paragraph is right,
+    but it should be worded more carefully so that it doesn't set a precedent for
+    "unwritten rules" having to be too strongly justified.
+
+To quote from CLtL page 246: "If an operation tests elements of a
+sequence in any manner, the keyword argument :KEY, if not NIL, should
+be function of one argument that will extract from an element the part
+to be tested in place of the whole element."
+
+This seems like a definition of :KEY to me, though I will cheerfully
+agree that it doesn't specify that this is the only legal meaning of
+:KEY.
+
+	Proposal (REDUCE-ARGUMENT-EXTRACTION:KEY):
+
+	Change the definition of REDUCE to take a :KEY keyword.
+
+    This needs to be more elaborated. You need to say what the :KEY keyword will do.
+    The proposal part of these write-ups is intended to stand on its own.
+
+The text on page 246 is also the only place that :KEY is documented in
+CLtL.  However, I agree that a full description should be here both
+because this is a slightly different use of :KEY and because our
+standard document is likely to be more verbose than CLtL.
+
+*start*
+03696 00024 USa
+Return-Path: <CL-Cleanup-mailer@SAIL.Stanford.EDU>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 07 DEC 87 23:29:39 PST
+Received: from MULTIMAX.ARPA by SAIL.STANFORD.EDU with TCP; 7 Dec 87  23:24:56 PST
+Received:  by multimax.ARPA (5.51/25-eef)
+	id AA01737; Mon, 7 Dec 87 18:37:22 EST
+Message-Id: <8712072337.AA01737@multimax.ARPA>
+To: cl-cleanup@sail.stanford.edu
+Subject: Issue: REDUCE-ARGUMENT-EXTRACTION (version 1)
+Date: Mon, 07 Dec 87 18:37:19 EST
+From: Dan L. Pierson <pierson@multimax.ARPA>
+
+Issue:         REDUCE-ARGUMENT-EXTRACTION
+References:    REDUCE (pp. 251-252), :KEY arguments (p. 246), 
+               the astronaut structure (pp. 312-313),
+               see also REMOVE, REMOVE-IF, REMOVE-IF-NOT, DELETE, DELETE-IF,
+               DELETE-IF-NOT, REMOVE-DUPLICATES, DELETE-DUPLICATES, SUBSTITUTE,
+               SUBSTITUTE-IF, SUBSTITUTE-IF-NOT, NSUBSTITUTE, NSUBSTITUTE-IF,
+               NSUBSTITUTE-IF-NOT, FIND, FIND-IF, FIND-IF-NOT, POSITION,
+               POSITION-IF, POSITION-IF-NOT, COUNT, COUNT-IF, COUNT-IF-NOT,
+               MISMATCH, SEARCH, SORT, STABLE-SORT, MERGE (pp. 253-261), 
+               SUBST, SUBST-IF, SUBST-IF-NOT, NSUBST, NSUBST-IF, NSUBST-IF-NOT,
+               SUBLIS, NSUBLIS, MEMBER, MEMBER-IF, MEMBER-IF-NOT (pp. 273-275),
+               ADJOIN, UNION, NUNION, INTERSECTION, NINTERSECTION, 
+               SET-DIFFERENCE, NSET-DIFFERENCE, SET-EXCLUSIVE-OR, 
+               NSET-EXCLUSIVE-OR, SUBSETP (pp. 276-279),
+               ASSOC, ASSOC-IF, ASSOC-IF-NOT, RASSOC, RASSOC-IF, RASSOC-IF-NOT
+               (pp. 280-281)
+Category:      ADDITION
+Edit history:  Version 1 by Pierson 12/5/87
+Issue:         For Internal Discussion
+
+Problem description:
+
+REDUCE is the only one of the Common Lisp functions that modify or
+search lists and sequences which does not accept a :KEY argument.
+This complicates many uses of REDUCE.
+
+Proposal (REDUCE-ARGUMENT-EXTRACTION:KEY):
+
+Change the definition of REDUCE to take a :KEY keyword.
+
+Test Cases/Examples:
+
+Using REDUCE to obtain the total of the ages of the possibly empty
+sequence of astronauts ASTROS, would currently require:
+
+(REDUCE #'(LAMBDA (&OPTIONAL (X 0) (Y 0)) (+ (PERSON-AGE X) (PERSON-AGE Y)))
+        ASTROS)
+
+If this proposal is adopted, the same result could be obtained with:
+
+(REDUCE #'+ ASTROS :KEY #'PERSON-AGE)
+
+Rationale:
+
+This proposal brings REDUCE into line with the rest of the sequence
+and list modifying and searching functions at the cost of slightly
+blurring the meaning of :KEY arguments.
+
+Current practice:
+
+Does anyone currently support this as an extension?
+
+Cost to Implementors:
+
+This will require most implementations to make a trivial modification
+to REDUCE.  Implementations which wish to use this as an opportunity to
+further optimize compiled calls to REDUCE will have to undertake more
+work (which would be much more difficult today).
+
+Cost to Users:
+
+None, this is an upward compatible extension.
+
+Cost of non-Adoption:
+
+REDUCE will continue to be more difficult to use than other sequence
+functions on sequences of complex objects.
+
+Benefits:
+
+REDUCE will become easier to use on sequences of complex objects.  It
+will be easier for compilers to convert some calls to REDUCE into
+efficient loops.
+
+Aesthetics:
+
+Slightly damaged.  All :KEY arguments are currently defined to be used
+for predicates, this proposal will implicitly broaden :KEY to support
+general extraction for any purpose.
+
+Discussion:
+
+Several members of the committee feel that the increased functionality
+outweighs the damage to the definition of :KEY.  No one has objected
+to this change in the recent round of discussions.
+
+*start*
+00535 00024 US 
+Date:  8 Dec 87 14:10 PST
+From: Daniels.pa
+Subject: Re: Issue: REDUCE-ARGUMENT-EXTRACTION (version 1)
+In-reply-to: Masinter.pa's message of 8 Dec 87 12:36 PST
+To: Masinter.pa
+cc: pierson@multimax.ARPA, cl-cleanup@sail.stanford.edu
+
+Masinter writes:
+
+    I think that it is true that
+
+    (reduce <fn> sequence :key <key-fn>)  = (reduce <fn> (mapcar
+    <key-fn> sequence))
+
+    except of course in the matter of order of evaluation.
+
+Well, that and the fact that MAPCAR doesn't work on arrays...
+
+		-- Andy. --
+*start*
+01622 00024 US 
+Return-Path: <CL-Cleanup-mailer@SAIL.Stanford.EDU>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 09 DEC 87 08:49:40 PST
+Received: from MULTIMAX.ARPA by SAIL.STANFORD.EDU with TCP; 9 Dec 87  08:48:03 PST
+Received:  by multimax.ARPA (5.51/25-eef)
+	id AA05595; Wed, 9 Dec 87 11:51:24 EST
+Message-Id: <8712091651.AA05595@multimax.ARPA>
+To: Daniels.pa
+Cc: cl-cleanup@sail.stanford.edu
+Subject: Re: Issue: REDUCE-ARGUMENT-EXTRACTION (version 1) 
+In-Reply-To: Your message of 08 Dec 87 14:10:00 -0800.
+             <871208-141224-5386@Xerox> 
+Date: Wed, 09 Dec 87 11:51:12 EST
+From: Dan L. Pierson <pierson@multimax.ARPA>
+
+    From: Daniels.pa@Xerox.COM
+    Subject: Re: Issue: REDUCE-ARGUMENT-EXTRACTION (version 1)
+
+    Masinter writes:
+    
+        I think that it is true that
+    
+        (reduce <fn> sequence :key <key-fn>)  = (reduce <fn> (mapcar
+        <key-fn> sequence))
+    
+        except of course in the matter of order of evaluation.
+    
+    Well, that and the fact that MAPCAR doesn't work on arrays...
+    
+Make that:
+   (reduce <fn> sequence :key <key-fn>) = 
+        (reduce <fn> (map 'list <key-fn> sequence))
+
+Feel free to replace the "'list" with your favorite sequence type.
+I'll change REDUCE-ARGUMENT-EXTRACTION to use this construct as the
+present case.  You're absolutely right that my previous code was badly
+broken and attempts to fix it up produce a real mess.  This almost
+makes it interesting because the result is as cons-efficient as the
+proposed new feature, while the mapping approach builds a whole new,
+unecessary structure.
+
+*start*
+01067 00024 US 
+Return-Path: <CL-Cleanup-mailer@SAIL.Stanford.EDU>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 17 DEC 87 17:59:56 PST
+Received: from SCRC-STONY-BROOK.ARPA by SAIL.STANFORD.EDU with TCP; 17 Dec 87  17:57:01 PST
+Received: from EUPHRATES.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 306500; Thu 17-Dec-87 20:57:01 EST
+Date: Thu, 17 Dec 87 20:56 EST
+From: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: Issue: REDUCE-ARGUMENT-EXTRACTION (version 1)
+To: Dan L. Pierson <pierson@MULTIMAX.ARPA>
+cc: cl-cleanup@SAIL.STANFORD.EDU
+In-Reply-To: <8712072337.AA01737@multimax.ARPA>
+Message-ID: <19871218015659.3.MOON@EUPHRATES.SCRC.Symbolics.COM>
+
+I favor REDUCE-ARGUMENT-EXTRACTION:KEY.
+
+I'd like to see a version 2 of this proposal, amended according to
+the comments received.  The changes would all be to the form of the
+proposal, not its substance, but would make it more approvable.
+Proposals containing test cases that have not been tested are
+a real no-no!
+
+*start*
+03422 00024 USf
+Return-Path: <CL-Cleanup-mailer@SAIL.Stanford.EDU>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 30 DEC 87 16:35:43 PST
+Received: from MULTIMAX.ARPA by SAIL.STANFORD.EDU with TCP; 30 Dec 87  16:34:14 PST
+Received:  by multimax.ARPA (5.51/25-eef)
+	id AA18840; Wed, 30 Dec 87 19:39:01 EST
+Received: from localhost by mist.UUCP (3.2/4.7)
+	id AA19317; Wed, 30 Dec 87 19:35:38 EST
+Message-Id: <8712310035.AA19317@mist.UUCP>
+To: cl-cleanup%sail.stanford.edu@multimax.ARPA
+Subject: Issue: REDUCE-ARGUMENT-EXTRACTION (version 2)
+Date: Wed, 30 Dec 87 19:35:36 EST
+From: Dan L. Pierson <pierson@mist.ARPA>
+
+Issue:         REDUCE-ARGUMENT-EXTRACTION
+References:    REDUCE (pp. 251-252), :KEY arguments (p. 246), 
+               the astronaut structure (pp. 312-313),
+Category:      ADDITION
+Edit history:  Version 2 by Pierson 12/30/87
+Issue:         For Internal Discussion
+
+Problem description:
+
+REDUCE is the only one of the Common Lisp functions that modify or
+search lists and sequences which does not accept a :KEY argument.
+This complicates many uses of REDUCE.
+
+Proposal (REDUCE-ARGUMENT-EXTRACTION:KEY):
+
+Change the definition of REDUCE to take a :KEY keyword described as
+follows: 
+
+If a :KEY argument is supplied, its value must be a function of one
+argument which will be used to extract the values to reduce.  The :KEY
+function will be applied exactly once to each element of the sequence
+in the order implied by the reduction order but not to the value of
+the :INITIAL-VALUE argument, if any.
+
+Test Cases/Examples:
+
+Using REDUCE to obtain the total of the ages of the possibly empty
+sequence of astronauts ASTROS, would currently require:
+
+    (REDUCE #'+ (MAP 'LIST #'PERSON-AGE ASTROS))
+
+If this proposal is adopted, the same result could be obtained without
+creating a new list by: 
+
+    (REDUCE #'+ ASTROS :KEY #'PERSON-AGE)
+
+Rationale:
+
+This proposal makes many common situations where REDUCE would be useful
+much less cumbersome.
+
+Current practice:
+
+Does anyone currently support this as an extension?
+
+Cost to Implementors:
+
+This will require most implementations to make a trivial modification
+to REDUCE.  Implementations which wish to use this as an opportunity to
+further optimize compiled calls to REDUCE will have to undertake more
+work (which would be much more difficult today).
+
+Cost to Users:
+
+None, this is an upward compatible extension.
+
+Cost of non-Adoption:
+
+REDUCE will continue to be more difficult to use than other sequence
+functions on sequences of complex objects.
+
+Benefits:
+
+REDUCE will become easier to use on sequences of complex objects.  It
+will be easier for compilers to convert some calls to REDUCE into
+efficient loops.
+
+Aesthetics:
+
+Slightly damaged in one way.  All :KEY arguments are currently defined
+to be used for predicates, this proposal will implicitly broaden :KEY
+to support general extraction for any purpose.
+
+Slightly improved in another way. Many common situations where REDUCE
+could be used would be easier to write and easier to later read.
+
+Discussion:
+
+Several members of the committee feel that the increased functionality
+outweighs the damage to the definition of :KEY.  No one has objected
+to this change in the recent round of discussions.
+
+There is some controversy over whether the "definition" of :KEY
+arguments on page 246 of CLtL really constitutes a definition or just
+an "unwritten rule".
+
+*start*
+00838 00024 US 
+Return-Path: <CL-Cleanup-mailer@SAIL.Stanford.EDU>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 31 DEC 87 11:27:30 PST
+Received: from SCRC-STONY-BROOK.ARPA by SAIL.STANFORD.EDU with TCP; 31 Dec 87  11:26:05 PST
+Received: from EUPHRATES.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 313154; Thu 31-Dec-87 14:26:24 EST
+Date: Thu, 31 Dec 87 14:26 EST
+From: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: Issue: REDUCE-ARGUMENT-EXTRACTION (version 2)
+To: Dan L. Pierson <pierson@multimax.com>
+cc: cl-cleanup@SAIL.STANFORD.EDU
+In-Reply-To: <8712310035.AA19317@mist.UUCP>
+Message-ID: <19871231192614.0.MOON@EUPHRATES.SCRC.Symbolics.COM>
+
+This looks fine to me.
+
+Current practice: Symbolics does not have :KEY in REDUCE currently.
+
+*start*
+02934 00024 USf
+Date:  5 Feb 88 16:03 PST
+From: Masinter.pa
+Subject: Issue: REDUCE-ARGUMENT-EXTRACTION (version 3)
+to: Masinter
+
+Issue:         REDUCE-ARGUMENT-EXTRACTION
+References:    REDUCE (pp. 251-252), :KEY arguments (p. 246), 
+               the astronaut structure (pp. 312-313),
+Category:      ADDITION
+Edit history:  Version 1 by Pierson
+		Version 2 by Pierson 12/30/87
+		Version 3, minor edits  5-Feb-88
+
+Problem description:
+
+REDUCE is the only one of the Common Lisp functions that modify or
+search lists and sequences which does not accept a :KEY argument.
+This complicates many uses of REDUCE.
+
+Proposal (REDUCE-ARGUMENT-EXTRACTION:KEY):
+
+Change the definition of REDUCE to take a :KEY keyword described as
+follows: 
+
+If a :KEY argument is supplied, its value must be a function of one
+argument which will be used to extract the values to reduce.  The :KEY
+function will be applied exactly once to each element of the sequence
+in the order implied by the reduction order but not to the value of
+the :INITIAL-VALUE argument, if any.
+
+Test Cases/Examples:
+
+Using REDUCE to obtain the total of the ages of the possibly empty
+sequence of astronauts ASTROS, would currently require:
+
+    (REDUCE #'+ (MAP 'LIST #'PERSON-AGE ASTROS))
+
+If this proposal is adopted, the same result could be obtained without
+creating a new list by: 
+
+    (REDUCE #'+ ASTROS :KEY #'PERSON-AGE)
+
+Rationale:
+
+This proposal makes many common situations where REDUCE would be useful
+much less cumbersome.
+
+Current practice:
+
+We know of no implementation which currently supports this feature.
+
+Cost to Implementors:
+
+This will require most implementations to make a trivial modification
+to REDUCE.  Implementations which wish to use this as an opportunity to
+further optimize compiled calls to REDUCE will have to undertake more
+work (which would be much more difficult today).
+
+Cost to Users:
+
+None, this is an upward compatible extension.
+
+Cost of non-Adoption:
+
+REDUCE will continue to be more difficult to use than other sequence
+functions on sequences of complex objects.
+
+Benefits:
+
+REDUCE will become easier to use on sequences of complex objects.  It
+will be easier for compilers to convert some calls to REDUCE into
+efficient loops.
+
+Aesthetics:
+
+Slightly damaged in one way.  All :KEY arguments are currently defined
+to be used for predicates, this proposal will implicitly broaden :KEY
+to support general extraction for any purpose.
+
+Slightly improved in another way. Many common situations where REDUCE
+could be used would be easier to write and easier to later read.
+
+Discussion:
+
+Several members of the committee feel that the increased functionality
+outweighs the damage to the definition of :KEY.  No one has objected
+to this change in the recent round of discussions.
+
+There is some controversy over whether the "definition" of :KEY
+arguments on page 246 of CLtL really constitutes a definition or just
+an "unwritten rule".
+*start*
+00955 00024 US 
+Return-Path: <CL-Cleanup-mailer@SAIL.Stanford.EDU>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 08 FEB 88 10:35:28 PST
+Received: from STONY-BROOK.SCRC.Symbolics.COM (SCRC-STONY-BROOK.ARPA) by SAIL.Stanford.EDU with TCP; 8 Feb 88  10:33:42 PST
+Received: from RIO-DE-JANEIRO.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 338699; Mon 8-Feb-88 13:32:48 EST
+Date: Mon, 8 Feb 88 13:32 EST
+From: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: Issue: REDUCE-ARGUMENT-EXTRACTION (version 2)
+To: pierson@MULTIMAX.ARPA
+cc: CL-Cleanup@SAIL.Stanford.EDU
+In-Reply-To: <8712310035.AA19317@mist.UUCP>
+Message-ID: <880208133244.3.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+
+I support REDUCE-ARGUMENT-EXTRACTION:KEY.
+
+The Edit History seems to have lost the info about Version 1. That
+should be restored.
+
+There's a stray comma at the end of the References field.
+
+*start*
+02999 00024 US 
+Date: 13 Feb 88 16:28 PST
+From: Masinter.pa
+Subject: Issue: REDUCE-ARGUMENT-EXTRACTION (version 3)
+to: cl-cleanup@Sail.stanford.edu
+cc: Masinter
+
+very minor edits here
+
+Issue:         REDUCE-ARGUMENT-EXTRACTION
+References:    REDUCE (pp. 251-252), :KEY arguments (p. 246), 
+               the astronaut structure (pp. 312-313)
+Category:      ADDITION
+Edit history:  Version 1 by Pierson 5-Dec-87
+		Version 2 by Pierson 30-Dec-87
+		Version 3 by Masinter 13-Feb-88
+
+Problem description:
+
+REDUCE is the only one of the Common Lisp functions that modify or
+search lists and sequences which does not accept a :KEY argument.
+This complicates many uses of REDUCE.
+
+Proposal (REDUCE-ARGUMENT-EXTRACTION:KEY):
+
+Change the definition of REDUCE to take a :KEY keyword described as
+follows: 
+
+If a :KEY argument is supplied, its value must be a function of one
+argument which will be used to extract the values to reduce.  The :KEY
+function will be applied exactly once to each element of the sequence
+in the order implied by the reduction order but not to the value of
+the :INITIAL-VALUE argument, if any.
+
+Test Cases/Examples:
+
+Using REDUCE to obtain the total of the ages of the possibly empty
+sequence of astronauts ASTROS, would currently require:
+
+    (REDUCE #'+ (MAP 'LIST #'PERSON-AGE ASTROS))
+
+If this proposal is adopted, the same result could be obtained without
+creating a new list by: 
+
+    (REDUCE #'+ ASTROS :KEY #'PERSON-AGE)
+
+Rationale:
+
+This proposal makes many common situations where REDUCE would be useful
+much less cumbersome.
+
+Current practice:
+
+We know of no implementation which currently supports this feature.
+
+Cost to Implementors:
+
+This will require most implementations to make a trivial modification
+to REDUCE.  Implementations which wish to use this as an opportunity to
+further optimize compiled calls to REDUCE will have to undertake more
+work (which would be much more difficult today).
+
+Cost to Users:
+
+None, this is an upward compatible extension.
+
+Cost of non-Adoption:
+
+REDUCE will continue to be more difficult to use than other sequence
+functions on sequences of complex objects.
+
+Benefits:
+
+REDUCE will become easier to use on sequences of complex objects.  It
+will be easier for compilers to convert some calls to REDUCE into
+efficient loops.
+
+Aesthetics:
+
+Slightly damaged in one way.  All :KEY arguments are currently defined
+to be used for predicates, this proposal will implicitly broaden :KEY
+to support general extraction for any purpose.
+
+Slightly improved in another way. Many common situations where REDUCE
+could be used would be easier to write and easier to later read.
+
+Discussion:
+
+Several members of the committee feel that the increased functionality
+outweighs the damage to the definition of :KEY.  No one has objected
+to this change in the recent round of discussions.
+
+There is some controversy over whether the "definition" of :KEY
+arguments on page 246 of CLtL really constitutes a definition or just
+an "unwritten rule".
+*start*
+03351 00024 US 
+Return-Path: <CL-Cleanup-mailer@SAIL.Stanford.EDU>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 13 FEB 88 16:32:29 PST
+Received: from Xerox.COM by SAIL.Stanford.EDU with TCP; 13 Feb 88  16:30:13 PST
+Received: from Cabernet.ms by ArpaGateway.ms ; 13 FEB 88 16:28:49 PST
+Date: 13 Feb 88 16:28 PST
+From: Masinter.pa
+Subject: Issue: REDUCE-ARGUMENT-EXTRACTION (version 3)
+to: cl-cleanup@Sail.stanford.edu
+cc: Masinter.pa
+Message-ID: <880213-162849-10481@Xerox>
+
+very minor edits here
+!
+Issue:         REDUCE-ARGUMENT-EXTRACTION
+References:    REDUCE (pp. 251-252), :KEY arguments (p. 246), 
+               the astronaut structure (pp. 312-313)
+Category:      ADDITION
+Edit history:  Version 1 by Pierson 5-Dec-87
+		Version 2 by Pierson 30-Dec-87
+		Version 3 by Masinter 13-Feb-88
+
+Problem description:
+
+REDUCE is the only one of the Common Lisp functions that modify or
+search lists and sequences which does not accept a :KEY argument.
+This complicates many uses of REDUCE.
+
+Proposal (REDUCE-ARGUMENT-EXTRACTION:KEY):
+
+Change the definition of REDUCE to take a :KEY keyword described as
+follows: 
+
+If a :KEY argument is supplied, its value must be a function of one
+argument which will be used to extract the values to reduce.  The :KEY
+function will be applied exactly once to each element of the sequence
+in the order implied by the reduction order but not to the value of
+the :INITIAL-VALUE argument, if any.
+
+Test Cases/Examples:
+
+Using REDUCE to obtain the total of the ages of the possibly empty
+sequence of astronauts ASTROS, would currently require:
+
+    (REDUCE #'+ (MAP 'LIST #'PERSON-AGE ASTROS))
+
+If this proposal is adopted, the same result could be obtained without
+creating a new list by: 
+
+    (REDUCE #'+ ASTROS :KEY #'PERSON-AGE)
+
+Rationale:
+
+This proposal makes many common situations where REDUCE would be useful
+much less cumbersome.
+
+Current practice:
+
+We know of no implementation which currently supports this feature.
+
+Cost to Implementors:
+
+This will require most implementations to make a trivial modification
+to REDUCE.  Implementations which wish to use this as an opportunity to
+further optimize compiled calls to REDUCE will have to undertake more
+work (which would be much more difficult today).
+
+Cost to Users:
+
+None, this is an upward compatible extension.
+
+Cost of non-Adoption:
+
+REDUCE will continue to be more difficult to use than other sequence
+functions on sequences of complex objects.
+
+Benefits:
+
+REDUCE will become easier to use on sequences of complex objects.  It
+will be easier for compilers to convert some calls to REDUCE into
+efficient loops.
+
+Aesthetics:
+
+Slightly damaged in one way.  All :KEY arguments are currently defined
+to be used for predicates, this proposal will implicitly broaden :KEY
+to support general extraction for any purpose.
+
+Slightly improved in another way. Many common situations where REDUCE
+could be used would be easier to write and easier to later read.
+
+Discussion:
+
+Several members of the committee feel that the increased functionality
+outweighs the damage to the definition of :KEY.  No one has objected
+to this change in the recent round of discussions.
+
+There is some controversy over whether the "definition" of :KEY
+arguments on page 246 of CLtL really constitutes a definition or just
+an "unwritten rule".
+
+*start*
+03443 00024 US 
+Date: 14 Feb 88 13:49 PST
+From: Masinter.pa
+Subject: Issue: REDUCE-ARGUMENT-EXTRACTION (version 3)
+To: X3J13@Sail.stanford.edu
+cc: Masinter
+reply-to: CL-CLEANUP@Sail.Stanford.EDU
+
+This issue is new.
+
+Issue:         REDUCE-ARGUMENT-EXTRACTION
+References:    REDUCE (pp. 251-252), :KEY arguments (p. 246), 
+               the astronaut structure (pp. 312-313)
+Category:      ADDITION
+Edit history:  Version 1 by Pierson 5-Dec-87
+               Version 2 by Pierson 30-Dec-87
+               Version 3 by Masinter 13-Feb-88
+
+Problem description:
+
+REDUCE is the only one of the Common Lisp functions that modify or
+search lists and sequences which does not accept a :KEY argument.
+This complicates many uses of REDUCE.
+
+Proposal (REDUCE-ARGUMENT-EXTRACTION:KEY):
+
+Change the definition of REDUCE to take a :KEY keyword described as
+follows: 
+
+If a :KEY argument is supplied, its value must be a function of one
+argument which will be used to extract the values to reduce.  The :KEY
+function will be applied exactly once to each element of the sequence
+in the order implied by the reduction order but not to the value of
+the :INITIAL-VALUE argument, if any.
+
+Example:
+
+Using REDUCE to obtain the total of the ages of the possibly empty
+sequence of astronauts ASTROS, would currently require:
+
+    (REDUCE #'+ (MAP 'LIST #'PERSON-AGE ASTROS))
+
+If this proposal is adopted, the same result could be obtained without
+creating a new list by: 
+
+    (REDUCE #'+ ASTROS :KEY #'PERSON-AGE)
+
+Rationale:
+
+This proposal makes many common situations where REDUCE would be useful
+much less cumbersome.
+
+Current practice:
+
+We know of no implementation which currently supports this feature.
+
+Cost to Implementors:
+
+This will require most implementations to make a trivial modification
+to REDUCE.  Implementations which wish to use this as an opportunity to
+further optimize compiled calls to REDUCE will have to undertake more
+work (which would be much more difficult today).
+
+Cost to Users:
+
+None, this is an upward compatible extension.
+
+Cost of non-Adoption:
+
+REDUCE will continue to be more difficult to use than other sequence
+functions on sequences of complex objects.
+
+Benefits:
+
+REDUCE will become easier to use on sequences of complex objects.  It
+will be easier for compilers to convert some calls to REDUCE into
+efficient loops.
+
+Aesthetics:
+
+Slightly damaged in one way.  All :KEY arguments are currently defined
+to be used for predicates, this proposal will implicitly broaden :KEY
+to support general extraction for any purpose.
+
+Slightly improved in another way. Many common situations where REDUCE
+could be used would be easier to write and easier to later read.
+
+Discussion:
+
+Several members of the committee feel that the increased functionality
+outweighs the damage to the definition of :KEY.  No one has objected
+to this change in the recent round of discussions.
+
+There is some controversy over whether the "definition" of :KEY
+arguments on page 246 of CLtL really constitutes a definition or just
+an "unwritten rule".
+        TITAN 
+         
+TIMESROMAN 
+          TITAN 
+          
+TIMESROMAN 
+           c       P                                   e              	              |              ­       +      ‹       	      ;              `              F                           0              r       
+       ›             F             \      Ì !zº

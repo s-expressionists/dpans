@@ -1,0 +1,1132 @@
+*start*
+08590 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:Masinter.pa@Xerox.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 07 APR 87 15:08:54 PDT
+Received: from XEROX.COM by SAIL.STANFORD.EDU with TCP; 7 Apr 87  15:06:23 PDT
+Received: from Cabernet.ms by ArpaGateway.ms ; 07 APR 87 14:54:29 PDT
+Date: 7 Apr 87 14:55 PDT
+From: Masinter.pa
+Subject: Issue ADJUST-ARRAY-DISPLACEMENT
+To: CL-CLEANUP@sail.stanford.edu
+Message-ID: <870407-145429-2490@Xerox>
+
+Status: Received but not discussed
+	Need volunteer to lead discussion, summarize positions
+
+
+Revision 1:
+
+Issue: ADJUST-ARRAY-DISPLACEMENT
+Reference: Steele p.297
+Category: Clarification
+Edit history: Submission 15 may 86 (Steele's list, NGall@G.BBN.COM)
+
+The interaction of ADJUST-ARRAY and displacement is unspecified, i.e.,
+what happens when the array being adjust is displaced.
+
+Proposal: ADJUST-ARRAY-DISPLAYCEMENT:RULES
+
+Suppose we are adjusting array A, which is perhaps displaced
+to B before adjustment and perhaps to C after adjustment.
+(1) Not displaced before or after.  The dimensions of A are altered, and
+the contents rearranged as appropriate.  Additional elements of A are
+taken from the :initial-element.  The use of :initial-contents causes
+all old contents to be discarded.
+(2) Not displaced before, but displaced afterwards to C.  As already
+specified, none of the original contents of A appears in A afterwards,
+but rather the contents of C without any rearrangement of C.
+(3) Displaced beforehand to B, and afterward to C.  As in case (2), no
+contents of B appear in A afterward.  If :DISPLACED-INDEX-OFFSET is not
+specified in this case, it defaults to zero; the old offset (into B) is
+not retained.
+(4) Displaced beforehand to B, but not displaced afterward.  A gets a
+new "data region", and contents of B are copied into it as appropriate
+to maintain the existing old contents; additional elements of A are
+taken from the :initial-element.  However, the use of :initial-contents
+causes all old contents to be discarded.
+
+!
+Discussion:
+Received: from BBNG.ARPA by SU-AI.ARPA with TCP; 15 May 86  16:24:10 PDT
+Date: 15 May 1986 19:26-EDT
+Sender: NGALL@G.BBN.COM
+Subject: adjusting displaced arrays
+From: NGALL@G.BBN.COM
+To: common-lisp@SU-AI.ARPA
+Message-ID: <[G.BBN.COM]15-May-86 19:26:22.NGALL>
+
+The following appears in Guy's list of `clarifications':
+
+(*) 293 ...Add a function DISPLACED-ARRAY-P, which takes an array and
+returns NIL and 0 if it is not displaced or the array displaced to and
+the displaced-index-offset if it is displaced.  These allow certain code
+efficiencies, and also allow array displacement to be explained in terms
+of Lisp primitives: (DEFUN AREF (ORIGINAL-ARRAY &REST SUBSCRIPTS)
+  (LABELS ((FOO (ARRAY INDEX)
+	     (MULTIPLE-VALUE-BIND (NEW-ARRAY OFFSET) (DISPLACED-ARRAY-P ARRAY)
+	       (IF (NULL NEW-ARRAY)
+	           (ROW-MAJOR-AREF ARRAY INDEX)
+		   (MULTIPLE-VALUE-CALL #'FOO
+		                        NEW-ARRAY
+					(+ INDEX OFFSET)))))
+      (FOO ORIGINAL-ARRAY
+	   (APPLY #'ARRAY-ROW-MAJOR-INDEX ORIGINAL-ARRAY SUBSCRIPTS)))) As a
+bow to efficiency, note the fact that if array A is displaced to B with
+offset M, and B is displaced to C with offset N, and B is not
+adjustable, then DISPLACED-ARRAY-P of A might return either array B with
+offset M or array C with offset (+ M N).  This generalizes to chains of
+non-adjustable arrays. ----------
+
+I would like to add an additional (and I think stronger) argument for
+DISPLACED-ARRAY-P.  Someone in our group had the following type of
+problem:  Given a very long string (representing, say, a long report),
+he wanted to be able to displace a char. string of length N (call it
+N-char-string) (where 1 <= N <= 80) to the beginning of the
+very-long-string, do some parsing of the N-char-string, and then ADJUST
+the N-char-string to start where it had previously ended and to have a
+new length.  In other words, he wanted to slide this variable length
+window over the very-long-string.  Without DISPLACED-ARRAY-P, he is
+forced to wrap a structure around the displaced-array to record the
+original array the current offset, even though the displaced array
+structure already contains this info!
+
+I would suggest one minor change to DISPLACED-ARRAY-P, in the case that
+it returns NIL, I suggest that it should return only that (and not
+return the 0).  The zero provides no information and does not seem to be
+of any use.
+
+---------- (*) 297 Here are the interactions of ADJUST-ARRAY with
+displacement. Suppose we are adjusting array A, which is perhaps
+displaced to B before adjustment and perhaps to C after adjustment. (1)
+Not displaced before or after.  The dimensions of A are altered, and the
+contents rearranged as appropriate.  Additional elements of A are taken
+from the :initial-element.  The use of :initial-contents causes all old
+contents to be discarded. (2) Not displaced before, but displaced
+afterwards to C.  As already specified, none of the original contents of
+A appears in A afterwards, but rather the contents of C without any
+rearrangement of C. (3) Displaced beforehand to B, and afterward to C.
+As in case (2), no contents of B appear in A afterward.  If
+:DISPLACED-INDEX-OFFSET is not specified in this case, it defaults to
+zero; the old offset (into B) is not retained. (4) Displaced beforehand
+to B, but not displaced afterward.  A gets a new "data region", and
+contents of B are copied into it as appropriate to maintain the existing
+old contents; additional elements of A are taken from the
+:initial-element.  However, the use of :initial-contents causes all old
+contents to be discarded. ---------- In case (3), what if (eq B C)?
+(this would be the case in the sliding window above).  Saying that "no
+contents of B appear in A afterward" is not true.
+
+	-- Nick
+
+!
+Received: from XEROX.ARPA by SU-AI.ARPA with TCP; 26 Jun 85  15:26:44
+PDT
+Received: from Semillon.ms by ArpaGateway.ms ; 26 JUN 85 15:26:02 PDT
+Date: 26 Jun 85 15:25 PDT
+From: Fischer.pa@Xerox.ARPA
+Subject: Adjustable and displaced arrays (summary)
+To: Common-Lisp@SU-AI.arpa
+Message-ID: <850626-152602-1271@Xerox>
+
+Here is "my understanding" of adjustable and  displaced arrays.
+
+This is an "unproofed by the other participants" summary of a discussion
+between: Moon@STONY-BROOK.SCRC.Symbolics.COM, fischer.pa,
+Fahlman@CMU-CS-C, Greek@DEC-HUDSON, RAM@CMU-CS-C, GSB@MIT-MC
+
+A simple implementation example of displaced arrays: a displaced array
+keeps a pointer to the actual array that it is displaced to.  Accesses
+to such a displaced array must look down the chain of displacements to
+make a reference.  It is important that the behavior of this technique
+be preserved.  It becomes critical when, for instance, an array
+somewhere in the chain of displacements is handed to adjust-array and
+given a new displacement.  Accesses must then follow the new chain. Your
+mileage may vary, eg you can optimize this any way you please, most
+commonly by encaching information in the array "header" about the
+ultimate address and offset of the block of data being referenced.  A
+scheme to update the encached information is then called for (possibly
+for the whole chain of displaced arrays).
+
+adjust-array can alter the dimensionality and contents (or displacement)
+of an array.  It doesn't move elements around to preserve order.  It
+only copies elements if the array they are part of enlarges or shrinks*.
+Here is an outline of the cases adjust-array handles:
+
+If a displacement is given as an argument
+  then
+	set dimensions
+	set displacement else if the old array was displaced
+  then
+	copy the elements (shrink, enlarge or same size**)
+	set new dimensions else if new dimensions have same linear size as old
+  then
+	simply set dimensions else
+	; new dimensions with different linear size
+	copy elements to new size block.
+
+Bear in mind that initial-element, initial-contents, and displaced-to,
+are mutually exclusive.  Completely new contents may be specified by
+initial-contents.  Gaps in a newly enlarged array may be initialized
+with initial-element.
+
+[*Note: CLtL specifically does not specify when an error should be
+signalled if adjusting an array causes another array displaced to it to
+have invalid linear size.  This could be done at adjust-array time or
+aref time.  Seems to be your choice.]
+
+[**Note: this interpretation of the case where a displaced array loses
+its displacement is made arbitrarily. It is unclear from the text of
+CLtL whether the elements should be copied into a new block to remove
+the old displacement, or whether a blank storage block should be
+created.  The former seems somewhat more reasonable.]
+
+(ron)
+
+
+*start*
+04130 00024 USf
+Return-Path: <@SAIL.STANFORD.EDU:FAHLMAN@C.CS.CMU.EDU>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 19 APR 87 18:04:14 PDT
+Received: from C.CS.CMU.EDU by SAIL.STANFORD.EDU with TCP; 19 Apr 87  18:02:08 PDT
+Received: ID <FAHLMAN@C.CS.CMU.EDU>; Sun 19 Apr 87 21:03:10-EDT
+Date: Sun, 19 Apr 87 21:03 EDT
+Message-ID: <FAHLMAN.12295875812.BABYL@C.CS.CMU.EDU>
+Sender: FAHLMAN@C.CS.CMU.EDU
+From: "Scott E. Fahlman" <Fahlman@C.CS.CMU.EDU>
+To: CL-CLEANUP@SAIL.STANFORD.EDU
+Subject: Issue ADJUST-ARRAY-DISPLACEMENT
+
+
+[Note: some comments by Nick Gall on DISPLACED-ARRAY-P, a totally
+separate proposal on Steele's list, were mixed in with the discussion
+file Larry sent out, probably because Gall addressed several distinct
+issues in the same message.]
+
+Status: New proposal (discussed earlier on Common Lisp list).
+
+Issue: ADJUST-ARRAY-DISPLACEMENT
+Reference: Steele p.297
+Category: Clarification
+Edit history: Revision 1 by SEF, 18-Apr-87 (from Steele's list)
+
+Problem Description:
+
+The interaction of Adjust-Array and displacement is insufficiently
+specified in the case where the array being adjusted is displaced.
+
+Proposal: ADJUST-ARRAY-DISPLAYCEMENT:RULES
+
+Suppose we are adjusting array A, which is perhaps displaced
+to B before the Adjust-Array call and perhaps to C after the call.
+
+(1) A is not displaced before or after: The dimensions of A are altered,
+and the contents rearranged as appropriate.  Additional elements of A
+are taken from the :initial-element.  The use of :initial-contents
+causes all old contents to be discarded.
+
+(2) A is not displaced before, but is displaced to C after.  As
+specified in CLtL, none of the original contents of A appears in A
+afterwards; A now contains the contents of C, without any rearrangement
+of C.
+
+(3) A is displaced to B before the call, and is displaced to C after the
+call.  As in case (2), the contents of B do not appear in A afterward
+(unless such contents also happen to be in C).  If
+:displaced-index-offset is not specified in the Adjust-Array call, it
+defaults to zero; the old offset (into B) is not retained.
+
+(4) A is displaced to B before the call, but not displaced afterward.  A
+gets a new "data region", and contents of B are copied into it as
+appropriate to maintain the existing old contents; additional elements
+of A are taken from the :initial-element.  However, the use of
+:initial-contents causes all old contents to be discarded.
+
+Note that if array X is displaced to array Y, and array Y is displaced
+to array Z, and array Y is altered by Adjust-Array, array X must now
+refer to the adjusted contents of Y.  This means that an implementation
+may not collapse the chain to make X refer to Z directly and forget that
+the chain of reference passes through array Y.  (Cacheing techniques are
+of course permitted, as long as they preserve the semantics specified
+here and in CLtL.)
+
+If X is displaced to Y, it is an error to adjust Y in such a way that it
+no longer has enough elements to satisfy X.  This error may be signalled
+at the time of the adjustment, but this is not required.
+
+Rationale:
+
+This interaction must be clarified.  This set of rules was proposed some
+time ago, as a result of discussions on the Common Lisp mailing list,
+and this model has been adopted by many Common Lisp implementations.
+
+Current Practice:
+
+Many implementations currently follow the model proposed here.  Others
+may do something random.  There is no major competing alternative.
+
+Adoption cost:
+
+Some existing implementations may have to be changed, but adopting any
+other model would be worse.  Public-domain code implementing this model
+is available from CMU.
+
+Benefits:
+
+Clarification of a situation that is currently not addressed by the
+standard.
+
+Conversion Cost:
+
+This is a relatively uncommon situation, which is the reason it didn't
+occur to the original language designers to specify how it works.  Any
+user code that cares about this issue probably already follows the
+proposed model.
+
+Discussion:
+
+Discussed long ago on the Common Lisp mailing list.  This proposal
+attempts to capture the overall consensus that emerged at that time.
+
+*start*
+01487 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 21 APR 87 09:21:06 PDT
+Received: from SCRC-STONY-BROOK.ARPA by SAIL.STANFORD.EDU with TCP; 21 Apr 87  09:18:25 PDT
+Received: from EUPHRATES.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 120118; Mon 20-Apr-87 17:51:49 EDT
+Date: Mon, 20 Apr 87 17:51 EDT
+From: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: Issue ADJUST-ARRAY-DISPLACEMENT
+To: CL-Cleanup@SAIL.STANFORD.EDU
+In-Reply-To: <FAHLMAN.12295875812.BABYL@C.CS.CMU.EDU>
+Message-ID: <870420175130.6.MOON@EUPHRATES.SCRC.Symbolics.COM>
+
+Unlike many of the other issues being discussed, this is one on which
+I might be expected to have an opinion.
+
+Current practice: Symbolics implements what is proposed, except for
+
+    (4) A is displaced to B before the call, but not displaced afterward.  A
+    gets a new "data region", and contents of B are copied into it as
+    appropriate to maintain the existing old contents; additional elements
+    of A are taken from the :initial-element.
+
+We never copy the contents of B in this case; all elements are taken from
+the :initial-element.
+
+Either behavior seems equally justifiable to me.  One could say
+"adjust-array never stores into the array if it ends up displaced" or
+"adjust-array only preserves the elements of non-displaced arrays."  I
+have no information as to whether it matters to users.
+
+*start*
+04588 00024 USf
+Date: 29 May 87 21:13 PDT
+From: Masinter.pa
+To: CL-CLEANUP@SAIL.STANFORD.EDU
+cc: Masinter
+Subject: Issue ADJUST-ARRAY-DISPLACEMENT
+
+Status: Minor edits for presentation. No disagreement in committee. Ready for release? (use ballot).
+
+Issue:        ADJUST-ARRAY-DISPLACEMENT
+Reference:    Steele p.297
+Category:     Clarification
+Edit history: Revision 1 by SEF, 18-Apr-87 (from Steele's list)
+              Revision 2 by Masinter (minor)
+
+Problem Description:
+
+The interaction of Adjust-Array and displacement is insufficiently specified in the case where the array being adjusted is displaced.
+
+Proposal: ADJUST-ARRAY-DISPLAYCEMENT:RULES
+
+Suppose we are adjusting array A, which is perhaps displaced to B before the Adjust-Array call and perhaps to C after the call.
+
+(1) A is not displaced before or after: The dimensions of A are altered, and the contents rearranged as appropriate.  Additional elements of A are taken from the :initial-element.  The use of :initial-contents causes all old contents to be discarded.
+
+(2) A is not displaced before, but is displaced to C after.  As specified in CLtL, none of the original contents of A appears in A afterwards; A now contains the contents of C, without any rearrangement of C.
+
+(3) A is displaced to B before the call, and is displaced to C after the call.  As in case (2), the contents of B do not appear in A afterward (unless such contents also happen to be in C).  If :displaced-index-offset is not specified in the Adjust-Array call, it defaults to zero; the old offset (into B) is not retained.
+
+(4) A is displaced to B before the call, but not displaced afterward.  A gets a new "data region", and contents of B are copied into it as appropriate to maintain the existing old contents; additional elements of A are taken from the :initial-element.  However, the use of :initial-contents causes all old contents to be discarded.
+
+Note that if array X is displaced to array Y, and array Y is displaced to array Z, and array Y is altered by Adjust-Array, array X must now refer to the adjusted contents of Y.  This means that an implementation may not collapse the chain to make X refer to Z directly and forget that the chain of reference passes through array Y.  (Cacheing techniques are of course permitted, as long as they preserve the semantics specified here and in CLtL.)
+
+If X is displaced to Y, it is an error to adjust Y in such a way that it no longer has enough elements to satisfy X.  This error may be signalled at the time of the adjustment, but this is not required.
+
+Rationale:
+
+This interaction must be clarified.  This set of rules was proposed some time ago, as a result of discussions on the Common Lisp mailing list, and this model has been adopted by many Common Lisp implementations.
+
+Current Practice:
+
+Many implementations currently follow the model proposed here.  Others may do something random.  [See discussion below.]
+
+Adoption cost:
+
+Some existing implementations may have to be changed, but adopting any other model would be worse.  Public-domain code implementing this model is available from CMU.
+
+Benefits:
+
+Clarification of a situation that is currently not addressed by the standard.
+
+Conversion Cost:
+
+This is a relatively uncommon situation, which is the reason it didn't occur to the original language designers to specify how it works.  Any user code that cares about this issue probably already follows the proposed model.
+
+Discussion:
+
+Discussed long ago on the Common Lisp mailing list.  This proposal attempts to capture the overall consensus that emerged at that time.
+
+Moon: We [Symbolics] implement what is proposed, except for 
+
+    (4) A is displaced to B before the call, but not displaced afterward.  A
+    gets a new "data region", and contents of B are copied into it as
+    appropriate to maintain the existing old contents; additional elements
+    of A are taken from the :initial-element.
+
+We never copy the contents of B in this case; all elements are taken from the :initial-element.
+
+Either behavior seems equally justifiable to me.  One could say "adjust-array never stores into the array if it ends up displaced" or "adjust-array only preserves the elements of non-displaced arrays."  I have no information as to whether it matters to users.
+        TITAN          TITAN           
+TIMESROMAN 
+           ê              "              
+                            `              ˆ       +      m              Ö              {              ¨       
+       P              ã             :      ¥ zº*start*
+02771 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 01 JUN 87 22:10:47 PDT
+Received: from SCRC-STONY-BROOK.ARPA by SAIL.STANFORD.EDU with TCP; 1 Jun 87  22:09:03 PDT
+Received: from RIO-DE-JANEIRO.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 161319; Tue 2-Jun-87 01:08:02 EDT
+Date: Tue, 2 Jun 87 01:09 EDT
+From: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: Issue ADJUST-ARRAY-DISPLACEMENT
+To: Masinter.pa, Fahlman@C.CS.CMU.EDU
+cc: CL-CLEANUP@SAIL.STANFORD.EDU
+In-Reply-To: <870529-211354-1250@Xerox>
+Message-ID: <870602010958.1.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+
+    Date: 29 May 87 21:13 PDT
+    From: Masinter.pa@Xerox.COM
+
+    Issue:        ADJUST-ARRAY-DISPLACEMENT
+
+I'm happy with most of this clarification as far as it goes, but I have a
+few other things that I'd like to see cleaned up before it goes out...
+
+    ...
+    (4) A is displaced to B before the call, but not displaced afterward.  A
+    gets a new "data region", and contents of B are copied into it as
+    appropriate to maintain the existing old contents; additional elements
+    of A are taken from the :initial-element.  However, the use of
+    :initial-contents causes all old contents to be discarded.
+
+Hmm. I can almost get COPY-ARRAY out of this, couldn't I? Maybe...
+
+(DEFUN COPY-ARRAY (ARRAY)
+  (ADJUST-ARRAY (MAKE-ARRAY (ARRAY-DIMENSIONS ARRAY)
+			    :ELEMENT-TYPE (ARRAY-ELEMENT-TYPE ARRAY)
+			    :DISPLACED-TO ARRAY)
+		:DISPLACED-TO NIL))
+
+This isn't one of the things I necessarily think needs clarification. I just
+thought it was curious. The rest of this message is of more significant interest.
+
+    Note that if array X is displaced to array Y, and array Y is displaced
+    to array Z, and array Y is altered by Adjust-Array, array X must now
+    refer to the adjusted contents of Y. ...
+
+I'm happy with this statement, but it sounds like it follows from one or
+more of the four previous rules, and I'm not clear which. If it really
+redundant, perhaps you could make the reason more clear. If not, it
+shouldn't begin with "Note that...".
+
+As nearly as I can tell, the discussion of ADJUST-ARRAY both here and in
+CLtL does not say what happens if :DISPLACED-TO is omitted. Ie, is
+ (ADJUST-ARRAY (MAKE-ARRAY ... :DISPLACED-TO A))
+the same as 
+ (ADJUST-ARRAY (MAKE-ARRAY ... :DISPLACED-TO A) :DISPLACED-TO NIL)
+or the same as
+ (ADJUST-ARRAY (MAKE-ARRAY ... :DISPLACED-TO A) :DISPLACED-TO A)
+?
+
+The current style of wording looks like the sort of clever :ADJUSTABLE 
+wording that got us into such a frenzy. Even if there's intentional ambiguity,
+we should be clear about that fact. My guess, though, is that no ambiguity
+was intended here.
+
+*start*
+01483 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:FAHLMAN@C.CS.CMU.EDU>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 03 JUN 87 21:36:38 PDT
+Received: from C.CS.CMU.EDU by SAIL.STANFORD.EDU with TCP; 3 Jun 87  21:35:34 PDT
+Received: ID <FAHLMAN@C.CS.CMU.EDU>; Thu 4 Jun 87 00:34:58-EDT
+Date: Thu, 4 Jun 87 00:34 EDT
+Message-ID: <FAHLMAN.12307710848.BABYL@C.CS.CMU.EDU>
+Sender: FAHLMAN@C.CS.CMU.EDU
+From: "Scott E. Fahlman" <Fahlman@C.CS.CMU.EDU>
+To: CL-CLEANUP@SAIL.STANFORD.EDU
+Subject: Issue ADJUST-ARRAY-DISPLACEMENT
+In-reply-to: Msg of 30 May 1987  00:13-EDT from Masinter.pa at Xerox.COM
+
+
+I support this proposal and have no problem with releasing it as-is,
+except for the form in which Moon's comments are included at the end.
+As it stands, this is one of those proposals that seems to say, "Let's
+do A, but then again we might want to do B."
+
+Unless Moon wants to push the alternative he raises, we should either
+drop this comment or say something like the following:
+
+"Moon pointed out that the Symbolics system currently does ..., and that
+this is an equally viable alternative.  However, the committee has
+decided to stick with the proposal as described above."
+
+If Moon strongly favors the alternative he describes, I could support
+that as well.  I just think we need to pick one or the other.  This is
+one of those cases where a clear and definite stand by the
+cleanup committee would prevent the larger committee from getting bogged
+down in needless details.
+
+*start*
+05226 00024 USf
+Date:  5 Jun 87 21:48 PDT
+From: Masinter.pa
+To: CL-CLEANUP@SAIL.STANFORD.EDU
+cc: Masinter
+Subject: Issue ADJUST-ARRAY-DISPLACEMENT (Version 3)
+
+(This was prepared before Kent's angry note.   I'm a little reluctant to mail it out now, but I don't know what to do with it. I made the edits in response to Kent's question, as well as changing the case of the lisp words, changing revision to version, etc. I don't remember all of the edits, but I spent quite a while on it.)
+
+Rather than wait for some resolution of Kent's question about the omission of the :DISPLACED-TO argument, I took the liberty of guessing that adjusting a displaced-to array without setting the :displaced-to meant that the result was displaced to the same place. I inserted rule 3 and renumbered the rules.
+
+The previous version got lots of yes ballots. Any objections to this one?
+
+
+Issue:        ADJUST-ARRAY-DISPLACEMENT
+Reference:    ADJUST-ARRAY (Steele p.297)
+Category:     Clarification
+Edit history: Version 1 by Fahlman, 18-Apr-87 (from Steele's list)
+              Version 2 by Masinter
+              Version 3 by Masinter, 5-Jun-87 (respond to comments)
+
+Problem Description:
+
+The interaction of ADJUST-ARRAY and displacement is insufficiently specified in the case where the array being adjusted is displaced.
+
+Proposal: ADJUST-ARRAY-DISPLAYCEMENT:RULES
+
+Suppose we are adjusting array A, which is perhaps displaced to B before the ADJUST-ARRAY call and perhaps to C after the call.
+
+(1) A is not displaced before or after: The dimensions of A are altered, and the contents rearranged as appropriate.  Additional elements of A are taken from the :INITIAL-ELEMENT.  The use of :INITIAL-CONTENTS causes all old contents to be discarded.
+
+(2) A is not displaced before, but is displaced to C after.  As specified in CLtL, none of the original contents of A appears in A afterwards; A now contains the contents of C, without any rearrangement of C.
+
+(3) A is displaced to B before and after the call (A is displaced to B before the call, and the :DISPLACED-TO argument of ADJUST-ARRAY either is ommitted or is B.) The dimensions of A are altered, and the contents rearranged as appropriate. If :DISPLACED-INDEX-OFFSET is not specified in the ADJUST-ARRAY call, it defaults to zero; the old offset is not retained. 
+
+(4) A is displaced to B before the call, and is displaced to C after the call.  As in case (2), the contents of B do not appear in A afterward (unless such contents also happen to be in C).  If :DISPLACED-INDEX-OFFSET is not specified in the ADJUST-ARRAY call, it defaults to zero; the old offset (into B) is not retained.
+
+(5) A is displaced to B before the call, but not displaced afterward.  A gets a new "data region", and contents of B are copied into it as appropriate to maintain the existing old contents; additional elements of A are taken from the :INITIAL-ELEMENT.  However, the use of :INITIAL-CONTENTS causes all old contents to be discarded.
+
+If array X is displaced to array Y, and array Y is displaced to array Z, and array Y is altered by ADJUST-ARRAY, array X must now refer to the adjusted contents of Y.  This means that an implementation may not collapse the chain to make X refer to Z directly and forget that the chain of reference passes through array Y.  (Cacheing techniques are of course permitted, as long as they preserve the semantics specified here and in CLtL.)
+
+If X is displaced to Y, it is an error to adjust Y in such a way that it no longer has enough elements to satisfy X.  This error may be signalled at the time of the adjustment, but this is not required.
+
+Rationale:
+
+This interaction must be clarified.  This set of rules was proposed some time ago, as a result of discussions on the Common Lisp mailing list, and this model has been adopted by many Common Lisp implementations.
+
+Current Practice:
+
+Many implementations currently follow the model proposed here.  Others may do something random.  [See discussion below.]
+
+Adoption cost:
+
+Some existing implementations may have to be changed, but adopting any other model would be worse.  Public-domain code implementing this model is available from CMU.
+
+Benefits:
+
+Clarification of a situation that is currently not addressed by the standard.
+
+Conversion Cost:
+
+This is a relatively uncommon situation, which is the reason it didn't occur to the original language designers to specify how it works.  Any user code that cares about this issue probably already follows the proposed model.
+
+Discussion:
+
+The cleanup committee supports this clarification.
+
+Moon pointed out that the Symbolics system currently does this, except for case (5) above. The Symbolics system never copies the contents of B in this case; all elements are taken from the :initial-element. However, the behavior in the proposal seems as justifiable to him, and the cleanup committee decided to stick with the proposal as described above.
+        TITAN           TITAN          
+TIMESROMAN 
+          Y              "                                          ž              ˆ       +      Ñ              Ö              {              ¨       
+       P              ã       
+      —      # zº*start*
+02383 00024 USh
+Return-Path: <@SAIL.STANFORD.EDU:FAHLMAN@C.CS.CMU.EDU>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 07 JUN 87 16:31:24 PDT
+Received: from C.CS.CMU.EDU by SAIL.STANFORD.EDU with TCP; 7 Jun 87  16:30:29 PDT
+Received: ID <FAHLMAN@C.CS.CMU.EDU>; Sun 7 Jun 87 19:29:54-EDT
+Date: Sun, 7 Jun 87 19:29 EDT
+Message-ID: <FAHLMAN.12308703889.BABYL@C.CS.CMU.EDU>
+Sender: FAHLMAN@C.CS.CMU.EDU
+From: "Scott E. Fahlman" <Fahlman@C.CS.CMU.EDU>
+To: Masinter.pa
+Cc: CL-CLEANUP@SAIL.STANFORD.EDU
+Subject: Issue ADJUST-ARRAY-DISPLACEMENT (Version 3)
+In-reply-to: Msg of 6 Jun 1987  00:48-EDT from Masinter.pa at Xerox.COM
+
+
+    Rather than wait for some resolution of Kent's question about the
+    omission of the :DISPLACED-TO argument, I took the liberty of guessing
+    that adjusting a displaced-to array without setting the :displaced-to
+    meant that the result was displaced to the same place. I inserted rule 3
+    and renumbered the rules.
+
+The manual is pretty vague in this area, but my reading of
+ADJUST-ARRAY (which says that the :DISPLACED-TO argument is the same as
+in MAKE-ARRAY) is that if no :DISPLACED-TO argument is supplied, the
+resulting array is never displaced, even if it had been originally.
+That's what we implemented in Spice Lisp, and that's the interpretation
+that seems to be consistent with the rest of this proposal (e.g. the rule
+that if :DISPLACED-INDEX-ARG is not supplied, it defaults to zero rather
+than the old index).
+
+So I support the earlier version of the proposal, with the added
+clarification that if no :DISPLACED-TO argument is supplied in a call to
+ADJUST-ARRAY, the resulting array is not displaced, even if the original
+array had been displaced.  That is clear, simple, and sufficient in my
+view.
+
+It might be argued that a displaced array should remain displaced unless
+the user specifically specifies otherwise.  I can imagine some
+modularity arguments for such a view, though I don't think they are
+compelling.  If someone strongly prefers this interpretation, I wouldn't
+object and would even arrange to fix the CMU code so that we can still
+say that public-domain code is available.  However, this change will
+surprise some people and it should be clearly stated, not hidden in a
+parenthetical statement in point 3.  Also, we should probably go over
+the whole proposal to make it consistent with this change.
+
+-- Scott
+
+*start*
+02143 00024 USh
+Return-Path: <@SAIL.STANFORD.EDU:Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 10 JUN 87 21:28:48 PDT
+Received: from SCRC-STONY-BROOK.ARPA by SAIL.STANFORD.EDU with TCP; 10 Jun 87  21:27:33 PDT
+Received: from EUPHRATES.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 169942; Wed 10-Jun-87 22:40:50 EDT
+Date: Wed, 10 Jun 87 22:40 EDT
+From: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: Issue ADJUST-ARRAY-DISPLACEMENT (Version 3)
+To: CL-CLEANUP@SAIL.STANFORD.EDU
+In-Reply-To: <FAHLMAN.12308703889.BABYL@C.CS.CMU.EDU>
+Message-ID: <870610224048.0.MOON@EUPHRATES.SCRC.Symbolics.COM>
+
+    Date: Sun, 7 Jun 1987  19:29 EDT
+    From: "Scott E. Fahlman" <Fahlman@C.CS.CMU.EDU>
+
+
+	Rather than wait for some resolution of Kent's question about the
+	omission of the :DISPLACED-TO argument, I took the liberty of guessing
+	that adjusting a displaced-to array without setting the :displaced-to
+	meant that the result was displaced to the same place. I inserted rule 3
+	and renumbered the rules.
+
+    The manual is pretty vague in this area, but my reading of
+    ADJUST-ARRAY (which says that the :DISPLACED-TO argument is the same as
+    in MAKE-ARRAY) is that if no :DISPLACED-TO argument is supplied, the
+    resulting array is never displaced, even if it had been originally.
+    That's what we implemented in Spice Lisp, and that's the interpretation
+    that seems to be consistent with the rest of this proposal (e.g. the rule
+    that if :DISPLACED-INDEX-ARG is not supplied, it defaults to zero rather
+    than the old index).
+
+Scott, I think you're right.  Also I think the second paragraph on p.298
+can only be interpreted as saying that if you don't specify :DISPLACED-TO,
+it doesn't retain the old displacement.
+
+    So I support the earlier version of the proposal, with the added
+    clarification that if no :DISPLACED-TO argument is supplied in a call to
+    ADJUST-ARRAY, the resulting array is not displaced, even if the original
+    array had been displaced.  That is clear, simple, and sufficient in my
+    view.
+
+Agreed.
+
+*start*
+01918 00024 USa
+Return-Path: <@SAIL.STANFORD.EDU:Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 10 JUN 87 21:32:29 PDT
+Received: from SCRC-STONY-BROOK.ARPA by SAIL.STANFORD.EDU with TCP; 10 Jun 87  21:31:19 PDT
+Received: from EUPHRATES.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 169951; Wed 10-Jun-87 23:09:08 EDT
+Date: Wed, 10 Jun 87 23:09 EDT
+From: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: Issue ADJUST-ARRAY-DISPLACEMENT
+To: CL-CLEANUP@SAIL.STANFORD.EDU
+In-Reply-To: <FAHLMAN.12307710848.BABYL@C.CS.CMU.EDU>
+Message-ID: <870610230906.3.MOON@EUPHRATES.SCRC.Symbolics.COM>
+
+    Date: Thu, 4 Jun 1987  00:34 EDT
+    From: "Scott E. Fahlman" <Fahlman@C.CS.CMU.EDU>
+
+    I support this proposal and have no problem with releasing it as-is,
+    except for the form in which Moon's comments are included at the end.
+    As it stands, this is one of those proposals that seems to say, "Let's
+    do A, but then again we might want to do B."
+
+    Unless Moon wants to push the alternative he raises, we should either
+    drop this comment or say something like the following:
+
+    "Moon pointed out that the Symbolics system currently does ..., and that
+    this is an equally viable alternative.  However, the committee has
+    decided to stick with the proposal as described above."
+
+    If Moon strongly favors the alternative he describes, I could support
+    that as well.  I just think we need to pick one or the other.
+
+I don't strongly favor it.  I'm sure it was a case of our implementors doing
+the best they could to slash their way through the ambiguities of the Common
+Lisp book.  The way Larry dealt with this in version 3 of the proposal is
+fine with me.  Note, however, that I cannot support version 3 of the proposal
+because of the bug that was introduced in that version (discussed in
+separate mail).
+
+*start*
+00972 00024 USh
+Return-Path: <@SAIL.STANFORD.EDU:Masinter.pa@Xerox.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 11 JUN 87 16:20:22 PDT
+Received: from XEROX.COM by SAIL.STANFORD.EDU with TCP; 11 Jun 87  16:19:02 PDT
+Received: from Cabernet.ms by ArpaGateway.ms ; 11 JUN 87 12:47:34 PDT
+Date: 11 Jun 87 12:47 PDT
+From: Masinter.pa
+Subject: Re: Issue ADJUST-ARRAY-DISPLACEMENT
+In-reply-to: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>'s
+ message of Wed, 10 Jun 87 23:09 EDT
+In-reply-to:  "Scott E. Fahlman" <Fahlman@C.CS.CMU.EDU>'s message of
+ Sun, 7 Jun 87 19:29 EDT
+To: CL-CLEANUP@SAIL.STANFORD.EDU
+Message-ID: <870611-124734-1571@Xerox>
+
+I intend to revise and recirculate this issue before mailing to X3J13
+(unless someone else volunteers to do the revision first.) 
+
+Does anyone object to specifying that ADJUST-ARRAY, if no :DISPLACED-TO
+argument is given, will always result in a non-displaced array, even if
+the array was displaced before?
+
+
+
+
+*start*
+02137 00024 USh
+Return-Path: <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Received: from STONY-BROOK.SCRC.Symbolics.COM (SCRC-STONY-BROOK.ARPA) by Xerox.COM ; 11 JUN 87 17:19:38 PDT
+Received: from RIO-DE-JANEIRO.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 170782; Thu 11-Jun-87 20:17:58 EDT
+Date: Thu, 11 Jun 87 20:17 EDT
+From: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: ADJUST-ARRAY-DISPLACEMENT
+To: Masinter.PA
+cc: CL-Cleanup@SAIL.STANFORD.EDU
+In-Reply-To: <870611-124734-1571@Xerox>
+Message-ID: <870611201753.5.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+
+Unless there's a compelling reason not to, I think it's important to always
+make ``keyword NIL'' mean the same as not having supplied the keyword. There's
+only a few cases where we violate this and if anything we should be working
+on reducing the number of cases.
+
+I think :DISPLACED-TO NIL should copy into a new area and give back a 
+non-displaced array, so I agree that this should be the behavior in the
+case of omitting :DISPLACED-TO.
+
+Since we're guaranteeing that levels of array displacement will never
+be optimized out, it would seem to me reasonable to provide functions
+to ask an array whether it is displaced, and if so to what at what index.
+Perhaps:
+
+ARRAY-DISPLACED-TO array				[Function]
+ Returns the array to which the argument <array> is displaced, or
+ NIL if the argument <array> is not displaced.
+
+ARRAY-DISPLACED-INDEX-OFFSET array			[Function]
+ Returns the displaced-index-offset of the argument <array>, or
+ NIL if the argument <array> is not displaced. (If <array> has been
+ displaced to another array, but no displaced-index-offset was specified,
+ this function returns 0.)
+
+Example:
+ (ADJUST-ARRAY THE-ARRAY THE-NEW-DIMENSIONS
+   :DISPLACED-TO (ARRAY-DISPLACED-TO THE-ARRAY)
+   :DISPLACED-INDEX-OFFSET (ARRAY-DISPLACED-INDEX-OFFSET THE-ARRAY))
+
+These operations might also be of use to certain people wanting to write
+highly optimized array manipulation code that wanted to accept arguments
+which might be displaced arrays, but which didn't want to have to incur the
+displacement overhead internally.
+
+*start*
+02858 00024 USh
+Return-Path: <@SAIL.STANFORD.EDU:KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 14 JUN 87 11:37:25 PDT
+Received: from SCRC-STONY-BROOK.ARPA by SAIL.STANFORD.EDU with TCP; 14 Jun 87  11:36:04 PDT
+Received: from RIO-DE-JANEIRO.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 172424; Sun 14-Jun-87 14:28:35 EDT
+Date: Sun, 14 Jun 87 14:28 EDT
+From: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: ADJUST-ARRAY-DISPLACEMENT
+To: edsel!bhopal!jonl@navajo.stanford.edu
+cc: KMP@STONY-BROOK.SCRC.Symbolics.COM, CL-Cleanup@SAIL.STANFORD.EDU
+In-Reply-To: <8706130027.AA01339@bhopal.edsel.uucp>
+Message-ID: <870614142825.3.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+
+    Date: Fri, 12 Jun 87 17:27:22 PDT
+    From: edsel!bhopal!jonl@navajo.stanford.edu (Jon L White)
+
+    You suggest adding two new functions to Common Lisp:
+	    ARRAY-DISPLACED-TO array 		[function]
+	    ARRAY-DISPLACED-INDEX-OFFSET array	[Function]
+    Did you overlook the function specified in the 6-Dec-85 "Clarifications"?
+	    DISPLACED-ARRAY-P array 		[Function]
+    "which takes an array and returns NIL and 0 if it is not displaced or the
+    array displaced to and the displaced-index-offset if it is displaced."
+
+If you code up the same example as I sent in my last message using
+the function DISPLACED-ARRAY-P, you'll see that it's a lot more clumsy.
+To me, the presence of these two functions makes the need for 
+DISPLACED-ARRAY-P seem unnecessary while at the same time making 
+code that actually needs this information look a lot better.
+
+    Wouldn't it be much better to adopt the "Clarifications" approaches, where
+    appropriate, since some, if not several, implementations have already 
+    implemented them?
+
+I certainly admit that I didn't look in the clarifications before
+sending that message. I should have.
+
+Ultimately, however, the clarifications are just one person's opinion (albeit
+the opinion of one who is very highly respected). They still have to get voted
+on just as do anyone else's suggestions. And while I admit that we shouldn't
+try to gratuitously perturb things that people have already implemented where
+it is reasonable to avoid doing so, I don't think we are obliged to 
+unconditionally support an implementation's decision to introduce these 
+primitives `prematurely'.
+
+As it happens, I don't like functions with predicate-sounding names being
+used for non-predicate values, so I'm not sure that I would have really
+wanted to go with this clarification if I had a choice. eg, whenever I
+use DIGIT-CHAR-P for value, I do
+ (DEFUN DIGIT-WEIGHT (&REST ARGS) (APPLY #'DIGIT-CHAR-P ARGS))
+and use DIGIT-WEIGHT instead. I find that expressions like 
+ (+ (* VALUE RADIX) (DIGIT-CHAR-P CHAR))
+look really awful in practice and can't bring myself to write them.
+
+*start*
+01506 00024 USh
+Return-Path: <@SAIL.STANFORD.EDU:edsel!bhopal!jonl@navajo.stanford.edu>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 12 JUN 87 19:44:02 PDT
+Received: from NAVAJO.STANFORD.EDU by SAIL.STANFORD.EDU with TCP; 12 Jun 87  19:43:11 PDT
+Received: by navajo.stanford.edu; Fri, 12 Jun 87 19:40:39 PDT
+Received: from bhopal.edsel.uucp by edsel.uucp (3.2/SMI-2.0)
+	id AA01678; Fri, 12 Jun 87 17:25:25 PDT
+Received: by bhopal.edsel.uucp (3.2/SMI-3.2)
+	id AA01339; Fri, 12 Jun 87 17:27:22 PDT
+Date: Fri, 12 Jun 87 17:27:22 PDT
+From: edsel!bhopal!jonl@navajo.stanford.edu (Jon L White)
+Message-Id: <8706130027.AA01339@bhopal.edsel.uucp>
+To: navajo!KMP%STONY-BROOK.SCRC.Symbolics.COM@navajo.stanford.edu
+Cc: navajo!CL-Cleanup%SAIL.STANFORD.EDU@navajo.stanford.edu
+In-Reply-To: Kent M Pitman's message of Thu, 11 Jun 87 20:17 EDT <870611201753.5.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+Subject: ADJUST-ARRAY-DISPLACEMENT
+
+You suggest adding two new functions to Common Lisp:
+	ARRAY-DISPLACED-TO array 		[function]
+	ARRAY-DISPLACED-INDEX-OFFSET array	[Function]
+Did you overlook the function specified in the 6-Dec-85 "Clarifications"?
+	DISPLACED-ARRAY-P array 		[Function]
+"which takes an array and returns NIL and 0 if it is not displaced or the
+array displaced to and the displaced-index-offset if it is displaced."
+
+Wouldn't it be much better to adopt the "Clarifications" approaches, where
+appropriate, since some, if not several, implementations have already 
+implemented them?
+
+-- JonL --
+
+*start*
+01694 00024 US 
+Originator: Common-Lisp-mailer%SAIL.Stanford:EDU:Xerox
+Date: 17 Nov 87 16:55
+From: pyrnj!pyramid!bein%RUTGERS:EDU:Xerox
+Subject: fill-pointers and adjust-array
+To: common-lisp@sail.stanford.edu%RUTGERS:EDU:Xerox
+
+GVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGV
+From: David Bein <pyrnj!pyramid!bein@RUTGERS.EDU>
+Subject: fill-pointers and adjust-array
+To: "common-lisp@sail.stanford.edu"@RUTGERS.EDU
+Return-Path: <Common-Lisp-mailer@SAIL.Stanford.EDU>
+Redistributed: Xerox-Common-Lisp^.x
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 17 NOV 87 16:55:29 PST
+Received: from RUTGERS.EDU by SAIL.STANFORD.EDU with TCP; 17 Nov 87  16:09:23 PST
+Received: by RUTGERS.EDU (5.54/1.14) with UUCP 	id AA24830; Tue, 17 Nov 87 19:12:55 EST
+Received: from pyrnova.pyramid.COM (manpyrnova) by pyramid.UUCP (5.51/OSx4.0b-870424)	id AA27328; Tue, 17 Nov 87 15:34:47 PST
+Received: by pyrnova.pyramid.COM (5.51/OSx4.0b-870424)	id AA29596; Tue, 17 Nov 87 15:35:34 PST
+Original-Date: 17 Nov 87 15:30 PST
+Message-Id: <564190247/bein@pyrnova>
+GVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGV
+
+Regarding the last message, I think that ADJUST-ARRAY should have the
+following semantics for its :fill-pointer argument.
+
+(1) If :fill-pointer is NIL or not supplied, it defaults to the
+    current value of the vector's fill-pointer.
+(2) If :fill-pointer is T, then the fill-pointer is set to the
+    minimum of its current value or the length of the resulting
+    vector.
+(3) Otherwise, :fill-pointer should be a non-negative integer less than
+    or equal to the size of the resulting array.
+
+In all cases, an error occurs if the final value of the fill-pointer
+is out of bounds.
+
+--David
+
+
+*start*
+02030 00024 US 
+Originator: Common-Lisp-mailer%SAIL.Stanford:EDU:Xerox
+Date: 17 Nov 87 16:58
+From: pyrnj!pyramid!bein%RUTGERS:EDU:Xerox
+Subject: fill-pointers and adjust-array
+To: common-lisp@sail.stanford.edu%RUTGERS:EDU:Xerox
+
+GVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGV
+From: David Bein <pyrnj!pyramid!bein@RUTGERS.EDU>
+Subject: fill-pointers and adjust-array
+To: "common-lisp@sail.stanford.edu"@RUTGERS.EDU
+Return-Path: <Common-Lisp-mailer@SAIL.Stanford.EDU>
+Redistributed: Xerox-Common-Lisp^.x
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 17 NOV 87 16:55:42 PST
+Received: from RUTGERS.EDU by SAIL.STANFORD.EDU with TCP; 17 Nov 87  16:09:21 PST
+Received: by RUTGERS.EDU (5.54/1.14) with UUCP 	id AA24821; Tue, 17 Nov 87 19:12:44 EST
+Received: from pyrnova.pyramid.COM (manpyrnova) by pyramid.UUCP (5.51/OSx4.0b-870424)	id AA26981; Tue, 17 Nov 87 15:10:51 PST
+Received: by pyrnova.pyramid.COM (5.51/OSx4.0b-870424)	id AA28461; Tue, 17 Nov 87 15:11:38 PST
+Original-Date: 17 Nov 87 15:11 PST
+Message-Id: <564186732/bein@pyrnova>
+GVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGVGV
+
+  Does anyone have a clear idea (page 297 CLtL) of what is supposed
+to happen to the fill-pointer (this assumes the array is a vector)
+when none is specified in the argument list to ADJUST-ARRAY?
+
+  I could imagine:
+
+(1) Reset it to the new length of the array.
+(2) Reset it to 0.
+(3) Reset it to the minimum of the new length and the current value.
+(4) Not changing it.
+
+  I am somewhat uncomfortable with it changing and would prefer
+something in the spec which reads:
+
+	The :fill-pointer argument defaults to the current value of
+	the vector's fill-pointer. If the fill-pointer is out of bounds
+	after any adjustment, an error should be signaled.
+
+  With this there would be no fuzziness about the fill-pointer changing
+magically and it would be well defined in the same way it is in the
+other places where fill-pointers have special meaning.
+
+  Comments?
+
+--David
+
+p.s. Sorry if this has been answered sometime in the past.
+
+
+*start*
+05221 00024 USm
+Date: 23 Nov 87 12:00 PST
+From: Masinter.pa
+To: CL-CLEANUP@SAIL.STANFORD.EDU
+cc: Masinter
+Subject: Issue ADJUST-ARRAY-DISPLACEMENT (Version 4)
+
+
+We last discussed this issue in June. If anyone wants to review the mail, let me know.
+
+This version attempts to clarify that omitting :DISPLACED-TO is the same as  :DISPLACED-TO NIL (rather than defaulting to the original :DISPLACED-TO target, as I had assumed in a previous version.)
+
+Frankly, I've a growing enthusiasm for considering *removing* adjustable arrays from the standard given the amount of hair involved.  Maybe its because I've never been able to imagine a use....
+
+
+
+Issue:        ADJUST-ARRAY-DISPLACEMENT
+Reference:    ADJUST-ARRAY (Steele p.297)
+Category:     Clarification
+Edit history: Version 1 by Fahlman, 18-Apr-87 (from Steele's list)
+              Version 2 by Masinter
+              Version 3 by Masinter, 5-Jun-87 (respond to comments)
+              Version 4 by Masinter, 23-Nov-87
+
+Problem Description:
+
+The interaction of ADJUST-ARRAY and displaced arrays is insufficiently specified in the case where the array being adjusted is displaced.  
+
+Proposal: ADJUST-ARRAY-DISPLAYCEMENT:RULES
+
+Interaction of adjusting and displacement:
+
+Suppose we are adjusting array A, which is perhaps displaced to B before the ADJUST-ARRAY call and perhaps to C after the call.
+
+(1) A is not displaced before or after: The dimensions of A are altered, and the contents rearranged as appropriate.  Additional elements of A are taken from the :INITIAL-ELEMENT.  The use of :INITIAL-CONTENTS causes all old contents to be discarded.
+
+(2) A is not displaced before, but is displaced to C after.  As specified in CLtL, none of the original contents of A appears in A afterwards; A now contains the contents of C, without any rearrangement of C.
+
+(3) A is displaced to B before the call, and is displaced to C after the call.  (B and C may be the same.) As in case (2), the contents of B do not appear in A afterward (unless such contents also happen to be in C).  If :DISPLACED-INDEX-OFFSET is not specified in the ADJUST-ARRAY call, it defaults to zero; the old offset (into B) is not retained.
+
+(4) A is displaced to B before the call, but not displaced afterward.  A gets a new "data region", and contents of B are copied into it as appropriate to maintain the existing old contents; additional elements of A are taken from the :INITIAL-ELEMENT.  However, the use of :INITIAL-CONTENTS causes all old contents to be discarded.
+
+If array X is displaced to array Y, and array Y is displaced to array Z, and array Y is altered by ADJUST-ARRAY, array X must now refer to the adjusted contents of Y.  This means that an implementation may not collapse the chain to make X refer to Z directly and forget that the chain of reference passes through array Y.  (Cacheing techniques are of course permitted, as long as they preserve the semantics specified here and in CLtL.)
+
+If X is displaced to Y, it is an error to adjust Y in such a way that it no longer has enough elements to satisfy X.  This error may be signalled at the time of the adjustment, but this is not required.
+
+Note: Omitting the :DISPLACED-TO argument to ADJUST-ARRAY is equivalent to specifying :DISPLACED-TO NIL; in either case, the array is not displaced after the call and case (1) or (4) hold.
+
+Rationale:
+
+This interaction must be clarified.  This set of rules was proposed some time ago, as a result of discussions on the Common Lisp mailing list, and this model has been adopted by many Common Lisp implementations.
+
+Current Practice:
+
+Many implementations currently follow the model proposed here, although they differ in some detail. For example, Symbolics Common Lisp behaves as indicated  except for case (4); in that case, it never copies the contents of B, and all elements are taken from the :INITIAL-ELEMENT.
+
+Adoption cost:
+
+Some existing implementations may have to be changed, but adopting any other model would be worse.  Public-domain code implementing this model is available from CMU.
+
+Benefits:
+
+Clarification of a situation that is currently not addressed by the standard.
+
+Conversion Cost:
+
+This is a relatively uncommon situation, which is the reason it didn't occur to the original language designers to specify how it works.  Any user code that cares about this issue probably already follows the proposed model.
+
+Discussion:
+
+The cleanup committee supports this clarification.
+
+Some consideration was given to adding DISPLACED-ARRAY-P or ARRAY-DISPLACED-TO and ARRAY-DISPLACED-INDEX-OFFSET which would allow access to information as to whether an array was or was not displaced. However, these are not part of the current proposal.
+
+A similar issue arises with ADJUST-ARRAY and fill pointers, and will be the subject of a separate issue.
+
+
+
+        TITAN           TITAN           TITAN          
+TIMESROMAN 
+          
+TIMESROMAN 
+          v              "                                          Í              Ž       +      h              Ö                           ¨       
+       P              ã       
+       [                                          û             ´  zº*start*
+00980 00024 USm
+Return-Path: <CL-Cleanup-mailer@SAIL.Stanford.EDU>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 23 NOV 87 18:12:16 PST
+Received: from SCRC-STONY-BROOK.ARPA by SAIL.STANFORD.EDU with TCP; 23 Nov 87  18:10:53 PST
+Received: from EUPHRATES.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 287384; Mon 23-Nov-87 21:10:38 EST
+Date: Mon, 23 Nov 87 21:10 EST
+From: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: Issue ADJUST-ARRAY-DISPLACEMENT (Version 4)
+To: CL-CLEANUP@SAIL.STANFORD.EDU
+In-Reply-To: <871123-120102-2456@Xerox>
+Message-ID: <19871124021039.3.MOON@EUPHRATES.SCRC.Symbolics.COM>
+
+This looks fine.
+
+On the related fill-pointer issue that isn't written up yet, I assume
+what we're going to propose is that adjust-array cannot add or remove a
+fill-pointer, it can only change the fill-pointer's value.  That seems
+the consistent extension of what little CLtL says.
+
+*start*
+05162 00024 US 
+Date: 14 Feb 88 10:45 PST
+From: Masinter.pa
+Subject: Issue ADJUST-ARRAY-DISPLACEMENT (Version 4)
+To: X3J13@Sail.stanford.edu
+cc: Masinter
+reply-to: CL-CLEANUP@Sail.Stanford.EDU
+
+This issue has not been distributed to X3J13 before.
+
+Issue:        ADJUST-ARRAY-DISPLACEMENT
+Reference:    ADJUST-ARRAY (CLtL p.297)
+Category:     Clarification
+Edit history: Version 1 by Fahlman, 18-Apr-87 (from Steele's list)
+              Version 2 by Masinter
+              Version 3 by Masinter, 5-Jun-87 (respond to comments)
+              Version 4 by Masinter, 23-Nov-87
+
+Problem Description:
+
+The interaction of ADJUST-ARRAY and displaced arrays is insufficiently specified in the case where the array being adjusted is displaced.  
+
+Proposal: ADJUST-ARRAY-DISPLAYCEMENT:RULES
+
+Interaction of adjusting and displacement:
+
+Suppose we are adjusting array A, which is perhaps displaced to B before the ADJUST-ARRAY call and perhaps to C after the call.
+
+(1) A is not displaced before or after: The dimensions of A are altered, and the contents rearranged as appropriate.  Additional elements of A are taken from the :INITIAL-ELEMENT.  The use of :INITIAL-CONTENTS causes all old contents to be discarded.
+
+(2) A is not displaced before, but is displaced to C after.  As specified in CLtL, none of the original contents of A appears in A afterwards; A now contains the contents of C, without any rearrangement of C.
+
+(3) A is displaced to B before the call, and is displaced to C after the call.  (B and C may be the same.) As in case (2), the contents of B do not appear in A afterward (unless such contents also happen to be in C).  If :DISPLACED-INDEX-OFFSET is not specified in the ADJUST-ARRAY call, it defaults to zero; the old offset (into B) is not retained.
+
+(4) A is displaced to B before the call, but not displaced afterward.  A gets a new "data region", and contents of B are copied into it as appropriate to maintain the existing old contents; additional elements of A are taken from the :INITIAL-ELEMENT.  However, the use of :INITIAL-CONTENTS causes all old contents to be discarded.
+
+If array X is displaced to array Y, and array Y is displaced to array Z, and array Y is altered by ADJUST-ARRAY, array X must now refer to the adjusted contents of Y.  This means that an implementation may not collapse the chain to make X refer to Z directly and forget that the chain of reference passes through array Y.  (Cacheing techniques are of course permitted, as long as they preserve the semantics specified here and in CLtL.)
+
+If X is displaced to Y, it is an error to adjust Y in such a way that it no longer has enough elements to satisfy X.  This error may be signalled at the time of the adjustment, but this is not required.
+
+Note: Omitting the :DISPLACED-TO argument to ADJUST-ARRAY is equivalent to specifying :DISPLACED-TO NIL; in either case, the array is not displaced after the call and case (1) or (4) hold.
+
+Rationale:
+
+This interaction must be clarified.  This set of rules was proposed some time ago, as a result of discussions on the Common Lisp mailing list, and this model has been adopted by many Common Lisp implementations.
+
+Current Practice:
+
+Many implementations currently follow the model proposed here, although they differ in some detail. For example, Symbolics Common Lisp behaves as indicated  except for case (4); in that case, it never copies the contents of B, and all elements are taken from the :INITIAL-ELEMENT.
+
+Cost to implementors:
+
+Some existing implementations may have to be changed, but adopting any other model would be worse.  Public-domain code implementing this model is available from CMU.
+
+Cost to users:
+
+This is a relatively uncommon situation, which is the reason it didn't occur to the original language designers to specify how it works.  Any user code that cares about this issue probably already follows the proposed model.
+
+Benefits:
+
+Clarification of a situation that is currently not addressed by the standard.
+
+Discussion:
+
+The cleanup committee supports this clarification.
+
+Some consideration was given to adding DISPLACED-ARRAY-P or ARRAY-DISPLACED-TO and ARRAY-DISPLACED-INDEX-OFFSET which would allow access to information as to whether an array was or was not displaced. However, these are not part of the current proposal.
+
+A similar issue arises with ADJUST-ARRAY and fill pointers, and will be the subject of a separate issue.
+     (LIST ((PAGE NIL (PAPERSIZE Letter FOLIOINFO (ARABIC "" "") STARTINGPAGE# 1) (0 0 612 792) ((TEXT NIL NIL (72 72 468 648) NIL))) (PAGE NIL (PAPERSIZE Letter FOLIOINFO (ARABIC "" "") STARTINGPAGE# NIL) (0 0 612 792) ((TEXT NIL NIL (72 72 468 648) NIL))) (PAGE NIL (PAPERSIZE Letter FOLIOINFO (ARABIC "" "") STARTINGPAGE# NIL) (0 0 612 792) ((TEXT NIL NIL (72 72 468 648) NIL)))))        TITAN 
+          TITAN 
+         
+TIMESROMAN 
+          
+TIMESROMAN 
+           a              
+       '       8              "                                          Í              Ž       +      h              Ö                           ¨              ã       
+       P       
+      œ      ' zº

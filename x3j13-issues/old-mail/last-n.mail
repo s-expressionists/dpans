@@ -1,0 +1,486 @@
+*start*
+02107 00024 US 
+Return-Path: <CL-Cleanup-mailer@SAIL.Stanford.EDU>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 04 DEC 87 17:27:23 PST
+Received: from SCRC-STONY-BROOK.ARPA by SAIL.STANFORD.EDU with TCP; 4 Dec 87  15:35:28 PST
+Received: from EUPHRATES.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 295702; Fri 4-Dec-87 18:35:08 EST
+Date: Fri, 4 Dec 87 18:35 EST
+From: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: Issue: LAST-N (Version 1)
+To: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+cc: CL-Cleanup@SAIL.STANFORD.EDU
+In-Reply-To: <871204164910.9.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+Message-ID: <19871204233526.5.MOON@EUPHRATES.SCRC.Symbolics.COM>
+
+    Date: Fri, 4 Dec 87 16:49 EST
+    From: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+
+    Issue:        LAST-N
+    References:   LAST (p267)
+    Category:     ENHANCEMENT
+    Edit history: 04-Dec-87, Version 1 by Pitman
+    Proposal (LAST-N:ALLOW-OPTIONAL-ARGUMENT):
+
+      Allow LAST to take an optional argument N, saying how many cells to return.
+
+You should say explicitly that the default for N is 1.
+
+The following two paragraphs cannot be correct.  For example, think about
+(last '(a)), which you are saying returns nil.
+
+      If N is equal to the number of cons cells in the list L, then the atom which
+      terminates the list L is returned.
+
+      If N is greater than the number of cons cells in the list L, then it is an
+      error if the list is not a proper list. If in this case the list is a proper
+      list, then L is returned.
+
+I think what you really mean is
+
+      If N is zero, then the atom that terminates the list L is returned.
+      If N is greater than or equal to the number of cons cells in 
+      the list L, then the result is L.
+
+This correction makes it consistent with your examples.
+
+With these corrections, I don't oppose the proposal.  I'm not strongly in
+favor of it, since I put less priority on enhancements than on correcting
+mistakes in what we've got already.  I'll favor it if others do.
+
+*start*
+00683 00024 US 
+Return-Path: <CL-Cleanup-mailer@SAIL.Stanford.EDU>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 04 DEC 87 18:16:15 PST
+Received: from XEROX.COM by SAIL.STANFORD.EDU with TCP; 4 Dec 87  17:28:54 PST
+Received: from Cabernet.ms by ArpaGateway.ms ; 04 DEC 87 15:35:33 PST
+Date: 4 Dec 87 15:35 PST
+From: Daniels.pa
+Subject: Re: Issue: LAST-N (Version 1)
+In-reply-to: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>'s message of
+ Fri, 4 Dec 87 16:49 EST
+To: KMP@STONY-BROOK.SCRC.Symbolics.COM
+cc: CL-Cleanup@SAIL.Stanford.EDU
+Message-ID: <871204-153533-228@Xerox>
+
+I don't much care. It basically looks OK.
+
+		-- Andy. --
+
+*start*
+00781 00024 US 
+Return-Path: <CL-Cleanup-mailer@SAIL.Stanford.EDU>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 04 DEC 87 15:17:43 PST
+Received: from C.CS.CMU.EDU by SAIL.STANFORD.EDU with TCP; 4 Dec 87  14:49:42 PST
+Received: ID <FAHLMAN@C.CS.CMU.EDU>; Fri 4 Dec 87 17:49:16-EST
+Date: Fri, 4 Dec 87 17:49 EST
+Message-ID: <FAHLMAN.12355882409.BABYL@C.CS.CMU.EDU>
+Sender: FAHLMAN@C.CS.CMU.EDU
+From: "Scott E. Fahlman" <Fahlman@C.CS.CMU.EDU>
+To: Kent M Pitman <KMP@SCRC-STONY-BROOK.ARPA>
+Cc: CL-Cleanup@SAIL.STANFORD.EDU
+Subject: Issue: LAST-N (Version 1)
+In-reply-to: Msg of 4 Dec 1987  16:49-EST from Kent M Pitman <KMP at STONY-BROOK.SCRC.Symbolics.COM>
+
+
+Seems harmless enough...  No strong opinion one way or the other.
+
+-- Scott
+
+*start*
+03210 00024 USa
+Return-Path: <CL-Cleanup-mailer@SAIL.Stanford.EDU>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 04 DEC 87 15:17:39 PST
+Received: from SCRC-STONY-BROOK.ARPA by SAIL.STANFORD.EDU with TCP; 4 Dec 87  14:30:43 PST
+Received: from RIO-DE-JANEIRO.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 295555; Fri 4-Dec-87 16:49:13 EST
+Date: Fri, 4 Dec 87 16:49 EST
+From: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: Issue: LAST-N (Version 1)
+To: CL-Cleanup@SAIL.Stanford.EDU
+cc: KMP@STONY-BROOK.SCRC.Symbolics.COM
+Message-ID: <871204164910.9.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+
+Issue:        LAST-N
+References:   LAST (p267)
+Category:     ENHANCEMENT
+Edit history: 04-Dec-87, Version 1 by Pitman
+Status:	      For Internal Discussion
+
+Problem Description:
+
+  People always ask why LAST returns a cons and not an element.
+
+  BUTLAST takes an argument N but LAST does not.
+
+Proposal (LAST-N:ALLOW-OPTIONAL-ARGUMENT):
+
+  Allow LAST to take an optional argument N, saying how many cells to return.
+
+  It is an error if N is negative or L is circular.
+
+  If N is equal to the number of cons cells in the list L, then the atom which
+  terminates the list L is returned.
+
+  If N is greater than the number of cons cells in the list L, then it is an
+  error if the list is not a proper list. If in this case the list is a proper
+  list, then L is returned.
+
+Test Cases:
+
+ (LAST    '(A B C) 0) => ()
+ (BUTLAST '(A B C) 0) => (A B C)
+
+ (LAST    '(A B C) 1) => (C)
+ (BUTLAST '(A B C) 1) => (A B)
+
+ (LAST    '(A B C) 2) => (B C)
+ (BUTLAST '(A B C) 2) => (A)
+
+ (LAST    '(A B C) 3) => (A B C)
+ (BUTLAST '(A B C) 3) => ()
+
+ (LAST    '(A B C) 4) => (A B C)
+ (BUTLAST '(A B C) 4) => ()
+
+ (LAST    '(A B C))   => (C)
+ (BUTLAST '(A B C))   => (A B)
+
+ (LAST '(A . B) 0)    => B
+ (LAST '(A . B) 1)    => (A . B)
+ (LAST '(A . B) 2)    is an error.
+
+Rationale:
+
+  BUTLAST and LAST would select complementary parts of a list in general.
+  That is (EQUAL L (APPEND (BUTLAST L N) (LAST L N))) would be T for N >= 0
+  and L being a proper list.
+
+  This would make it more obvious why LAST should return a list and not
+  an element. ie, it would return the "last N elements" where N=1 by default.
+
+Current Practice:
+
+  Probably nobody does this.
+
+Adoption Cost:
+
+  Very slight. The following code would suffice:
+
+  (DEFUN LAST (LIST &OPTIONAL (N 1))
+    (CHECK-TYPE N (INTEGER 0))
+    (DO ((L LIST (CDR L))
+	 (R LIST)
+	 (I 0 (+ I 1)))
+	((ATOM L) R)
+      (IF (>= I N) (POP R))))
+
+  Some implementations might want to provide compiler optimizations for
+  the N=1 case.
+
+Benefits:
+
+  This utility is probably needed often enough to warrant its inclusion.
+  It's present (as a separate function called NLEFT) in Symbolics Common
+  Lisp and Interlisp.
+
+Conversion Cost:
+
+  None. This is an upward compatible extension.
+
+Aesthetics:
+
+  This would make things a little prettier.
+
+Discussion:
+
+  This suggestion came up recently on a Symbolics design discussion list.
+  Symbolics is contemplating offering it as an extension, but it seemed like
+  the rest of the CL community might want to adopt it, too.  Pitman thinks
+  it's a nice idea.
+
+*start*
+00914 00024 US 
+Return-Path: <CL-Cleanup-mailer@SAIL.Stanford.EDU>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 14 JAN 88 20:55:45 PST
+Received: from Xerox.COM by SAIL.Stanford.EDU with TCP; 14 Jan 88  20:45:30 PST
+Received: from Cabernet.ms by ArpaGateway.ms ; 14 JAN 88 20:45:06 PST
+Date: 14 Jan 88 20:44 PST
+From: Masinter.pa
+Subject: Re: Issue: LAST-N (Version 1)
+In-reply-to: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>'s message of
+ Fri, 4 Dec 87 16:49 EST
+To: KMP@STONY-BROOK.SCRC.Symbolics.COM
+cc: CL-Cleanup@SAIL.Stanford.EDU
+Message-ID: <880114-204506-4881@Xerox>
+
+For the record, I'm opposed to this proposal. Its a random addition that I can't
+imagine using more than once every 2 years. 
+
+Implementationally it turns a simple primitive LAST into a complex one. Of
+course you can optimize it, but that makes the implementation even more complex.
+
+
+*start*
+03419 00024 USf
+Return-Path: <CL-Cleanup-mailer@SAIL.Stanford.EDU>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 12 MAR 88 18:10:19 PST
+Received: from STONY-BROOK.SCRC.Symbolics.COM (SCRC-STONY-BROOK.ARPA) by SAIL.Stanford.EDU with TCP; 12 Mar 88  18:07:58 PST
+Received: from RIO-DE-JANEIRO.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 361856; Sat 12-Mar-88 21:08:14 EST
+Date: Sat, 12 Mar 88 21:07 EST
+From: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: Issue: LAST-N (Version 2)
+To: CL-Cleanup@SAIL.Stanford.EDU
+cc: KMP@STONY-BROOK.SCRC.Symbolics.COM
+In-Reply-To: <871204164910.9.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+Message-ID: <880312210753.0.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+
+Issue:        LAST-N
+References:   LAST (p267)
+Category:     ENHANCEMENT
+Edit history: 04-Dec-87, Version 1 by Pitman,
+	      12-Mar-88, Version 2 by Pitman
+Status:	      For Internal Discussion
+
+Problem Description:
+
+  People always ask why LAST returns a cons and not an element.
+
+  BUTLAST takes an argument N but LAST does not.
+
+Proposal (LAST-N:ALLOW-OPTIONAL-ARGUMENT):
+
+  Allow LAST to take an optional argument N, saying how many cells to return.
+  The default for N would be 1.
+
+  It is an error if N is negative or L is circular.
+
+  If N is zero, then the atom that terminates the list L is returned.
+
+  If N is greater than or equal to the number of cons cells in the list
+  L, then the result is L.
+
+Test Cases:
+
+ (LAST    '(A B C) 0) => ()
+ (BUTLAST '(A B C) 0) => (A B C)
+
+ (LAST    '(A B C) 1) => (C)
+ (BUTLAST '(A B C) 1) => (A B)
+
+ (LAST    '(A B C) 2) => (B C)
+ (BUTLAST '(A B C) 2) => (A)
+
+ (LAST    '(A B C) 3) => (A B C)
+ (BUTLAST '(A B C) 3) => ()
+
+ (LAST    '(A B C) 4) => (A B C)
+ (BUTLAST '(A B C) 4) => ()
+
+ (LAST    '(A B C))   => (C)
+ (BUTLAST '(A B C))   => (A B)
+
+ (LAST '(A . B) 0)    => B
+ (LAST '(A . B) 1)    => (A . B)
+ (LAST '(A . B) 2)    => (A . B)
+
+Rationale:
+
+  BUTLAST and LAST would select complementary parts of a list in general.
+  That is (EQUAL L (APPEND (BUTLAST L N) (LAST L N))) would be T for N >= 0
+  and L being a proper list.
+
+  This would make it more obvious why LAST should return a list and not
+  an element. ie, it would return the "last N elements" where N=1 by default.
+
+Current Practice:
+
+  Probably nobody does this.
+
+Adoption Cost:
+
+  Very slight. The following code would suffice:
+
+  (DEFUN LAST (LIST &OPTIONAL (N 1))
+    (CHECK-TYPE N (INTEGER 0))
+    (DO ((L LIST (CDR L))
+	 (R LIST)
+	 (I 0 (+ I 1)))
+	((ATOM L) R)
+      (IF (>= I N) (POP R))))
+
+  Some implementations might want to provide compiler optimizations for
+  the N=1 case.
+
+Benefits:
+
+  This utility is probably needed often enough to warrant its inclusion.
+  It's present (as a separate function called NLEFT) in Symbolics Common
+  Lisp and Interlisp.
+
+Conversion Cost:
+
+  None. This is an upward compatible extension.
+
+Aesthetics:
+
+  This would make things a little prettier.
+
+Discussion:
+
+  This suggestion came up recently on a Symbolics design discussion list.
+  Symbolics is contemplating offering it as an extension, but it seemed like
+  the rest of the CL community might want to adopt it, too.  Pitman thinks
+  it's a nice idea.
+
+  Masinter opposes this extension as gratuitous.
+
+  Moon and Daniels think this is very low priority but have expressed a
+  lack of major objection to this proposal.
+
+*start*
+01042 00024 US 
+Return-Path: <CL-Cleanup-mailer@SAIL.Stanford.EDU>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 23 MAR 88 11:19:51 PST
+Received: from STONY-BROOK.SCRC.Symbolics.COM (SCRC-STONY-BROOK.ARPA) by SAIL.Stanford.EDU with TCP; 23 Mar 88  11:17:16 PST
+Received: from EUPHRATES.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 368759; Wed 23-Mar-88 14:17:52 EST
+Date: Wed, 23 Mar 88 14:17 EST
+From: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: Issue: LAST-N (Version 2)
+To: CL-Cleanup@SAIL.STANFORD.EDU
+In-Reply-To: <880312210753.0.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+Message-ID: <19880323191752.1.MOON@EUPHRATES.SCRC.Symbolics.COM>
+
+I support LAST-N:ALLOW-OPTIONAL-ARGUMENT on the basis that
+  "This would make it more obvious why LAST should return a list and not
+  an element. ie, it would return the "last N elements" where N=1 by default."
+
+I certainly support releasing it to X3J13 and letting them decide what they
+think of it.
+
+*start*
+03144 00024 USm
+Date:  8 Jun 88 19:57 PDT
+From: Masinter.pa
+Subject: Issue: LAST-N (Version 2)
+To: x3j13@SAIL.Stanford.EDU
+cc: masinter
+reply-to: cl-cleanup@Sail.stanford.edu
+line-fold: NO
+
+
+Issue:        LAST-N
+References:   LAST (p267)
+Category:     ENHANCEMENT
+Edit history: 04-Dec-87, Version 1 by Pitman
+	      12-Mar-88, Version 2 by Pitman
+
+Problem Description:
+
+  People always ask why LAST returns a cons and not an element.
+
+  BUTLAST takes an argument N but LAST does not.
+
+Proposal (LAST-N:ALLOW-OPTIONAL-ARGUMENT):
+
+  Allow LAST to take an optional argument N, saying how many cells to return.
+  The default for N would be 1.
+
+  It is an error if N is negative or L is circular.
+
+  If N is zero, then the atom that terminates the list L is returned.
+
+  If N is greater than or equal to the number of cons cells in the list
+  L, then the result is L.
+
+Test Cases:
+
+ (LAST    '(A B C) 0) => ()
+ (BUTLAST '(A B C) 0) => (A B C)
+
+ (LAST    '(A B C) 1) => (C)
+ (BUTLAST '(A B C) 1) => (A B)
+
+ (LAST    '(A B C) 2) => (B C)
+ (BUTLAST '(A B C) 2) => (A)
+
+ (LAST    '(A B C) 3) => (A B C)
+ (BUTLAST '(A B C) 3) => ()
+
+ (LAST    '(A B C) 4) => (A B C)
+ (BUTLAST '(A B C) 4) => ()
+
+ (LAST    '(A B C))   => (C)
+ (BUTLAST '(A B C))   => (A B)
+
+ (LAST '(A . B) 0)    => B
+ (LAST '(A . B) 1)    => (A . B)
+ (LAST '(A . B) 2)    => (A . B)
+
+Rationale:
+
+  BUTLAST and LAST would select complementary parts of a list in general.
+  That is (EQUAL L (APPEND (BUTLAST L N) (LAST L N))) would be T for N >= 0
+  and L being a proper list.
+
+  This would make it more obvious why LAST should return a list and not
+  an element. ie, it would return the "last N elements" where N=1 by default.
+
+Current Practice:
+
+  Probably nobody does this.
+
+Adoption Cost:
+
+  Very slight. The following code would suffice:
+
+  (DEFUN LAST (LIST &OPTIONAL (N 1))
+    (CHECK-TYPE N (INTEGER 0))
+    (DO ((L LIST (CDR L))
+	 (R LIST)
+	 (I 0 (+ I 1)))
+	((ATOM L) R)
+      (IF (>= I N) (POP R))))
+
+  Some implementations might want to provide compiler optimizations for
+  the N=1 case.
+
+Benefits:
+
+  This utility is probably needed often enough to warrant its inclusion.
+  It's present (as a separate function called NLEFT) in Symbolics Common
+  Lisp and Interlisp.
+
+Conversion Cost:
+
+  None. This is an upward compatible extension.
+
+Aesthetics:
+
+  This would make things a little prettier.
+
+Discussion:
+
+  This suggestion came up recently on a Symbolics design discussion list.
+  Symbolics is contemplating offering it as an extension, but it seemed like
+  the rest of the CL community might want to adopt it, too.  Pitman thinks
+  it's a nice idea.
+
+  Masinter opposes this extension as gratuitous.
+
+  Moon and Daniels think this is very low priority but have expressed a
+  lack of major objection to this proposal.
+
+
+        TITAN 
+         TITAN 
+          
+TIMESROMAN 
+           °                                                        F              t       +      P             Ð             L                           3       
+       ª              2              .             Ÿ             
+Ô zº

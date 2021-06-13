@@ -1,0 +1,151 @@
+*start*
+04983 00024 US 
+Return-Path: <CL-Cleanup-mailer@SAIL.Stanford.EDU>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 24 NOV 87 12:45:49 PST
+Received: from SCRC-STONY-BROOK.ARPA by SAIL.STANFORD.EDU with TCP; 24 Nov 87  12:43:49 PST
+Received: from RIO-DE-JANEIRO.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 288190; Tue 24-Nov-87 15:43:30 EST
+Date: Tue, 24 Nov 87 15:43 EST
+From: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: Issue: KEYWORD-KEYWORDS (Version 1)
+To: CL-Cleanup@SAIL.STANFORD.EDU
+cc: KMP@STONY-BROOK.SCRC.Symbolics.COM
+Message-ID: <871124154316.0.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+
+I'm not passionate about the following proposal, so don't panic if you
+don't happen to like it. I'm not prepared to fight to the death on it.
+But it is a serious proposal and I wanted to at least get it off my desk
+and into the official record...
+
+----------
+Issue:        KEYWORD-KEYWORDS
+References:   LAMBDA (p59), DEFUN (p67), DEFMACRO (p145), FLET (p113),
+	      MACROLET (p113), DEFSETF (p102), FUNCTION declaration (p159),
+	      :CONSTRUCTOR option to DEFSTRUCT (pp315-316).
+Category:     CHANGE
+Edit history: 24-Nov-87, Version 1 by Pitman
+Status:	      For Internal Discussion
+
+Problem Description:
+
+  Anyone who shadows LOAD, COMPILE, or EVAL is obliged to shadow 
+  EVAL-WHEN (although in practice many people forget and this crops up
+  as a bug later on). This issue comes up a lot in embedded systems,
+  such as Scheme which use stylized loaders, compilers, or evaluators.
+
+  The lambda-list keywords are not symbols on the keyword package.
+  KEYWORDP is not true of them. Names that begin with & are generally
+  not usable as variables because many compilers worry that names
+  which begin with & but are not on LAMBDA-LIST-KEYWORDS might be
+  unsupported `keywords' or mis-spellings of supported `keywords'.
+
+Proposal (LAMBDA-LIST-KEYWORDS:KEYWORD):
+
+  Change EVAL-WHEN to use :EVAL, :LOAD, and :COMPILE rather than
+  EVAL, LOAD, and COMPILE.
+
+  Change LAMBDA and the various macros which use &OPTIONAL, &REST, &AUX,
+  &BODY, &WHOLE, &ENVIRONMENT, &KEY, and &ALLOW-OTHER-KEYS to :OPTIONAL
+  to use :OPTIONAL, :REST, :AUX, :BODY, :WHOLE, :ENVIRONMENT, :KEY, and
+  :ALLOW-OTHER-KEYS instead.
+
+  eg,
+      (DEFUN FOO (W :OPTIONAL (X 3) (Y 4) :REST Z :KEY A B C)
+        ...)
+
+Rationale:
+
+  Symbols in the keyword package are already unavailable as variable names
+  because they must be bound to themselves.
+
+  This change would make the term keyword would be used to denote one fewer
+  concept in the language.
+
+Current Practice:
+
+  No one does this.
+
+Adoption Cost:
+
+  Recognizing these ":" names instead of "&" names would be trivial, though
+  would involve numerous small changes throughout most systems, including
+  changes to the parts of the system which are written in Lisp and which use
+  the old keywords in their definitions.
+
+  The `keywords' now in use could continue to be supported by any vendors
+  for a while. Such a deviation would technically make an implementation not
+  conform to the standard, but in practice would not be likely to cause any
+  problems if phased out within a reasonable period of time.
+
+Benefits:
+
+  This would make shadowing of EVAL, COMPILE, and LOAD not have a surprising
+  effect on EVAL-WHEN.
+
+  Although this would not completely fix uses of the word keyword throughout
+  the langauge, it would make the use of the term `keyword' considerably more
+  regular.
+
+  The "&" character is freed for possible other uses. There is currently an
+  occassional desire to use it as a readmacro character, but the need to have
+  access to these keywords tends to make that impractical because no one wants
+  to write: (defun foo (x \&optional y) ...).
+
+Non-Benefits:
+
+  The change is cosmetic. It arguably adds no power to the language and might
+  therefore be accused of being gratuitous.
+
+Conversion Cost:
+
+  Users would have to change a lot of code in a relatively superficial way,
+  but probably a trivial Query Replace operation would suffice with high
+  reliability.
+
+Aesthetics:
+
+  Usage of the term `keyword' is simplified, arguably improving learnability
+  and simplifying some documentation.
+
+  People might differ on whether they think programs will look better.
+
+Discussion:
+
+  Pitman wanted this change back when CLtL was not yet published but
+  suggested it "too late" for it to be considered. People ask about this 
+  issue from time to time, and this is the appropriate time for it to be
+  reconsidered, even if only to be found to be a gratuitous change. Pitman
+  thinks the change would be nice, but is sensitive to the fact that some
+  may balk at the cost of the number of trivial changes it would require.
+
+  Less extreme variations of this proposal might include accepting :keywords
+  in addition to rather than instead of &keywords and/or allowing EVAL-WHEN
+  to use STRING-EQUAL rather than EQL to find its `keywords'.
+
+*start*
+01168 00024 US 
+Return-Path: <CL-Cleanup-mailer@SAIL.Stanford.EDU>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 24 NOV 87 19:22:28 PST
+Received: from C.CS.CMU.EDU by SAIL.STANFORD.EDU with TCP; 24 Nov 87  19:20:36 PST
+Received: ID <FAHLMAN@C.CS.CMU.EDU>; Tue 24 Nov 87 22:19:53-EST
+Date: Tue, 24 Nov 87 22:19 EST
+Message-ID: <FAHLMAN.12353310227.BABYL@C.CS.CMU.EDU>
+Sender: FAHLMAN@C.CS.CMU.EDU
+From: "Scott E. Fahlman" <Fahlman@C.CS.CMU.EDU>
+To: Kent M Pitman <KMP@SCRC-STONY-BROOK.ARPA>
+Cc: CL-Cleanup@SAIL.STANFORD.EDU
+Subject: Issue: KEYWORD-KEYWORDS (Version 1)
+In-reply-to: Msg of 24 Nov 1987  15:43-EST from Kent M Pitman <KMP at STONY-BROOK.SCRC.Symbolics.COM>
+
+
+If we were doing a new language from scratch, I think that both
+EVAL-WHEN and the lambda-list format would be done very differently from
+the way they were done in Common Lisp, causing this whole issue to
+disappear.  As it is, I think that it would be a big mistake to totally
+change the look of the language and the syntax used by practically
+*every* Common Lisp program in existence just to achieve the modest
+cosmetic benefits you cite.
+
+-- Scott
+

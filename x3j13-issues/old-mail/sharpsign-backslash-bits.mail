@@ -1,0 +1,157 @@
+*start*
+02020 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:KMP@YUKON.SCRC.Symbolics.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 27 FEB 87 16:53:21 PST
+Received: from SCRC-YUKON.ARPA by SAIL.STANFORD.EDU with TCP; 27 Feb 87  16:51:39 PST
+Received: from RIO-DE-JANEIRO.SCRC.Symbolics.COM by YUKON.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 171Date: Fri, 27 Feb 87 19:51 EST
+From: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: SHARPSIGN-BACKSLASH-BITS
+To: CL-Cleanup@SAIL.STANFORD.EDU
+cc: KMP@STONY-BROOK.SCRC.Symbolics.COM
+Message-ID: <870227195124.0.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+
+Issue:        SHARPSIGN-BACKSLASH-BITS
+References:   #\ (p354)
+Category:     CLARIFICATION
+Edit history: Revision 1 by KMP 02/27/87
+Problem Description:
+
+  The description of names for characters that has bits gives examples without
+  clearly specifying the meaning of the bit names.
+
+Proposal (SHARPSIGN-BACKSLASH-BITS:SHORT-AND-LONG):
+
+  It should be clearly stated at the appropriate point (currently on p354)
+  that the names "C" and "CONTROL" mean control, "M" and "META" mean meta,
+  "S" and "SUPER" mean "SUPER", and "H" and "HYPER" mean hyper. It should
+  further specified that these can be mixed and matched, as in "C-META-X".
+
+Rationale:
+
+  We give examples of both styles, so both styles should be well-defined.
+  If these are not going to be well-defined, there's no point in our giving
+  examples of them.
+
+Current Practice:
+
+  Most implementations support both short and long names to back up the bit
+  names that they allow.
+
+  Some implementations accept only the short name. Others only the long name.
+
+Adoption Cost:
+
+  The cost of this change is very small.
+
+Benefits:
+
+  If an input syntax is going to reliably exist, we need to say so.
+
+Conversion Cost:
+
+  User code is not likely to be adversely affected. Most users will likely
+  perceive this as a bug fix.
+
+Aesthetics:
+
+  This doesn't much affect aesthetics one way or the other.
+
+Discussion:
+
+  KMP thinks this is a good idea.
+
+*start*
+02291 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 02 MAR 87 21:46:09 PST
+Received: from SCRC-STONY-BROOK.ARPA by SAIL.STANFORD.EDU with TCP; 2 Mar 87  21:43:46 PST
+Received: from EUPHRATES.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 82Date: Tue, 3 Mar 87 00:42 EST
+From: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: SHARPSIGN-BACKSLASH-BITS
+To: CL-Cleanup@SAIL.STANFORD.EDU
+In-Reply-To: <FAHLMAN.12282824063.BABYL@C.CS.CMU.EDU>
+Message-ID: <870303004240.3.MOON@EUPHRATES.SCRC.Symbolics.COM>
+
+    Date: Sun, 1 Mar 1987  01:07 EST
+    From: "Scott E. Fahlman" <Fahlman@C.CS.CMU.EDU>
+
+    I support this proposal.
+
+So do I.
+
+    I think that we should seriously consider flushing both the bit and the
+    font attribute characters as part of the language spec.  
+
+Of course if we did that, the SHARPSIGN-BACKSLASH-BITS proposal would be
+superseded, so you can't consistently support both.  That's okay, nobody
+is asking you to be consistent.
+
+Removing bits and fonts wouldn't bother Symbolics.  We don't use fonts,
+and we wouldn't mind calling the bits feature part of our extensions to
+Common Lisp rather than part of standard Common Lisp.  However, it would
+be a pity if all the people who have meta keys didn't get together and
+agree on how they will be handled.  I assume Common Lisp would not be
+changed in a way that made it impossible to continue to support the bits
+facility, for example, MAKE-CHAR would not be changed to add an optional
+second argument that wasn't the bits.
+
+Scott, perhaps you should write a formal cleanup proposal for this.  Or
+is not time yet.
+
+							     These would be
+    replaced by a character standard that would allow for both extended
+    character sets and for implementation-specific character attributes --
+    maybe fonts and bits, maybe something else, but unportable in any event.
+    Any such wholesale re-thinking of characters must be coordinated with
+    the Kanji standard from Japan, so it may not happen soon.  KMP's
+    proposal is a useful patch in the meantime.
+
+I'm more concerned that adding a new thing (character sets) be done
+thoughtfully than I am about removing an old thing (fonts).
+
+*start*
+01359 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:FAHLMAN@C.CS.CMU.EDU>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 28 FEB 87 22:08:51 PST
+Received: from C.CS.CMU.EDU by SAIL.STANFORD.EDU with TCP; 28 Feb 87  22:07:00 PST
+Received: ID <FAHLMAN@C.CS.CMU.EDU>; Sun 1 Mar 87 01:07:47-EST
+Date: Sun, 1 Mar 87 01:07 EST
+Message-ID: <FAHLMAN.12282824063.BABYL@C.CS.CMU.EDU>
+Sender: FAHLMAN@C.CS.CMU.EDU
+From: "Scott E. Fahlman" <Fahlman@C.CS.CMU.EDU>
+To: Kent M Pitman <KMP@SCRC-STONY-BROOK.ARPA>
+Cc: CL-Cleanup@SAIL.STANFORD.EDU
+Subject: SHARPSIGN-BACKSLASH-BITS
+In-reply-to: Msg of 27 Feb 1987  19:51-EST from Kent M Pitman <KMP at STONY-BROOK.SCRC.Symbolics.COM>
+
+
+I support this proposal.
+
+I think that we should seriously consider flushing both the bit and the
+font attribute characters as part of the language spec.  These would be
+replaced by a character standard that would allow for both extended
+character sets and for implementation-specific character attributes --
+maybe fonts and bits, maybe something else, but unportable in any event.
+Any such wholesale re-thinking of characters must be coordinated with
+the Kanji standard from Japan, so it may not happen soon.  KMP's
+proposal is a useful patch in the meantime.
+
+Spice Lisp currently accepts both short and long names, with the obvious
+mapping, so we already comply with this proposal.
+
+*start*
+00628 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:gls@Think.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 03 MAR 87 10:06:35 PST
+Received: from THINK.COM by SAIL.STANFORD.EDU with TCP; 3 Mar 87  10:02:33 PST
+Received: from boethius by Think.COM via CHAOS; Tue, 3 Mar 87 12:56:59 EST
+Date: Tue, 3 Mar 87 12:59 EST
+From: Guy Steele <gls@Think.COM>
+Subject: SHARPSIGN-BACKSLASH-BITS
+To: KMP@stony-brook.scrc.symbolics.com, CL-Cleanup@sail.stanford.edu
+Cc: gls@think.com
+In-Reply-To: <870227195124.0.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+Message-Id: <870303125900.6.GLS@BOETHIUS.THINK.COM>
+
+I support this proposal.
+

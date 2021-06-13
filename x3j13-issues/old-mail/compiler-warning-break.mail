@@ -1,0 +1,734 @@
+*start*
+02546 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:KMP@YUKON.SCRC.Symbolics.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 27 FEB 87 15:23:04 PST
+Received: from SCRC-YUKON.ARPA by SAIL.STANFORD.EDU with TCP; 27 Feb 87  15:21:30 PST
+Received: from RIO-DE-JANEIRO.SCRC.Symbolics.COM by YUKON.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 171Date: Fri, 27 Feb 87 18:21 EST
+From: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: COMPILER-WARNING-BREAK
+To: CL-Cleanup@SAIL.STANFORD.EDU
+cc: KMP@STONY-BROOK.SCRC.Symbolics.COM
+Message-ID: <870227182114.6.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+
+Issue:        COMPILER-WARNING-BREAK
+References:   COMPILE (p438), COMPILE-FILE (p439)
+Category:     CLARIFICATION/CHANGE
+Edit history: Revision 1 by KMP 02/27/87
+Problem Description:
+
+  The description of the COMPILE and COMPILE-FILE functions does
+  not say whether *BREAK-ON-WARNINGS* affects warnings output
+  by the compiler. If this is to be allowed, it should be an
+  explicitly expressed part of the contract.
+
+Proposal (COMPILER-WARNING-BREAK:YES):
+
+  The definitions of COMPILE and COMPILE-FILE should state that
+  these functions are required to break on warnings if 
+  *BREAK-ON-WARNINGS* is true (just as occurs for calls to WARN).
+
+  Note: User interface commands provided by particular vendor
+  implementations which implicitly call COMPILE or COMPILE-FILE
+  could bind *BREAK-ON-WARNINGS* back to NIL if they felt it
+  important to not break for some reason relating to cultural
+  compatibility. This would not interfere with the proposed new
+  semantics for the functions COMPILE and COMPILE-FILE.
+
+Rationale:
+
+  *BREAK-ON-WARNINGS* is defined to cause the debugger to be
+  entered when warnings occur. If the compiler is permitted to
+  warn (separate ballot item), the effect of this variable on
+  compiler warnings should be nailed down.
+
+Current Practice:
+
+  I would guess that some compilers respect *BREAK-ON-WARNINGS* 
+  and others probably do not.
+
+Adoption Cost:
+
+  I assume this is easy to arrange for in all implementations.
+
+Benefits:
+
+  This would make the language definition more consistent by
+  making it less subject to special cases.
+
+Conversion Cost:
+
+  Probably little or no user code would be affected by this 
+  change.
+
+Aesthetics:
+
+  Most users will probably perceive this change as a simplification
+  because it will allow the kind of warning that comes from WARN
+  and the kind of warning that comes from compilation to be 
+  conceptually grouped.
+
+Discussion:
+
+  KMP supports this change.
+
+*start*
+01471 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:Masinter.pa@Xerox.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 02 APR 87 19:45:34 PST
+Received: from XEROX.COM by SAIL.STANFORD.EDU with TCP; 2 Apr 87  19:43:05 PST
+Received: from Cabernet.ms by ArpaGateway.ms ; 02 APR 87 19:13:54 PST
+Date: 2 Apr 87 17:56 PST
+From: Masinter.pa
+Subject: compiler-warning-stream
+From: (Patrick H Dussud <DUSSUD%Jenner@ti-csl.csnet>)
+To: cl-cleanup@sail.stanford.edu
+Message-ID: <870402-191354-1170@Xerox>
+
+
+     ----- Begin Forwarded Messages -----
+
+Return-Path: <DUSSUD%Jenner%ti-csl.csnet@RELAY.CS.NET>
+Received: from RELAY.CS.NET by Xerox.COM ; 02 APR 87 11:34:26 PST
+Received: from relay2.cs.net by RELAY.CS.NET id ab23724; 2 Apr 87 14:27 EST
+Received: from ti-csl by RELAY.CS.NET id aj01125; 2 Apr 87 14:19 EST
+Received: from Jenner (jenner.ARPA) by tilde id AA22003; Thu, 2 Apr 87 12:46:12 cst
+Message-Id: <2753376503-1199148@Jenner>
+Date: Thu, 2 Apr 87 12:48:23 CST
+From: Patrick H Dussud <DUSSUD%Jenner%ti-csl.csnet@RELAY.CS.NET>
+To: Larry Masinter <Masinter.PA>
+Subject: output from the compiler(compiler-warning-stream)
+
+Larry,
+
+I think the proposal is sound, however as a corollary, dribble ought to
+specify that *error-output* will also be rebound, so someone can do a
+dribble to a log file, invoke his top-level build function ,walk away
+and all the compiler, loader ...  messages will go to the log file.
+
+
+Patrick.
+
+
+
+     ----- End Forwarded Messages -----
+
+*start*
+02866 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:Masinter.pa@Xerox.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 07 APR 87 15:10:29 PDT
+Received: from XEROX.COM by SAIL.STANFORD.EDU with TCP; 7 Apr 87  15:06:33 PDT
+Received: from Cabernet.ms by ArpaGateway.ms ; 07 APR 87 14:57:40 PDT
+Date: 7 Apr 87 14:58 PDT
+From: Masinter.pa
+Subject: Issue COMPILER-WARNING-BREAK (Revision 2)
+To: CL-CLEANUP@sail.stanford.edu
+Message-ID: <870407-145740-2499@Xerox>
+
+
+My summary message was wrong: COMPILER-WARNING-BREAK is NOT RELEASED.
+
+Status:       Not released. Questions on interaction with condition
+proposal.
+			Defer to error/signal/condition committee?
+
+Issue:        COMPILER-WARNING-BREAK
+References:   COMPILE (p438), COMPILE-FILE (p439)
+Category:     CLARIFICATION/CHANGE
+Edit history: Revision 1 by KMP 02/27/87
+			Revision 2 by cleanup committee 15-Mar-87 14:25:03
+
+
+Problem Description:
+
+The description of the COMPILE and COMPILE-FILE functions does not say
+whether *BREAK-ON-WARNINGS* affects warnings output by the compiler. If
+this is to be allowed, it should be an explicitly expressed part of the
+contract.
+
+Proposal (COMPILER-WARNING-BREAK:YES):
+
+The definitions of COMPILE and COMPILE-FILE should state that these
+functions are required to break on warnings if *BREAK-ON-WARNINGS* is
+true (just as if it calls WARN).
+
+Note: User interface commands provided by particular vendor
+implementations which implicitly call COMPILE or COMPILE-FILE could bind
+*BREAK-ON-WARNINGS* back to NIL if they felt it important to not break
+for some reason relating to cultural compatibility. This would not
+interfere with the proposed new semantics for the functions COMPILE and
+COMPILE-FILE.
+
+Rationale:
+
+*BREAK-ON-WARNINGS* is defined to cause the debugger to be entered when
+warnings occur. If the compiler is permitted to warn (separate ballot
+item), the effect of this variable on compiler warnings should be nailed
+down.
+
+Current Practice:
+
+I would guess that some compilers respect *BREAK-ON-WARNINGS* and others
+probably do not.
+
+Adoption Cost:
+
+I assume this is easy to arrange for in all implementations.
+
+Cost of not adopting this change:
+
+Implementations that don't adopt this change will be awkward to use.
+
+Benefits:
+
+This would make the language definition more consistent by making it
+less subject to special cases.
+
+Conversion Cost:
+
+Probably little or no user code would be affected by this change.
+
+Aesthetics:
+
+Most users will probably perceive this change as a simplification
+because it will allow the kind of warning that comes from WARN and the
+kind of warning that comes from compilation to be conceptually grouped.
+
+Discussion:
+
+KMP supports this change.
+   
+Some confusion about differences between compiler warnings and other
+kinds of warnings.
+Should there be a separate compiler-break-on-warnings? 
+Is this an environment issue?
+
+*start*
+02780 00024 USf
+Date:  5 Jun 87 23:06 PDT
+From: Masinter.pa
+Subject: Issue COMPILER-WARNING-BREAK (Version 3)
+To: Masinter
+
+
+Status:       Not released. 
+
+
+Issue:        COMPILER-WARNING-BREAK
+References:   COMPILE (p438), COMPILE-FILE (p439)
+Category:     CLARIFICATION/CHANGE
+Edit history: Version 1 by Pitman 02/27/87
+              Version 2 by cleanup committee 15-Mar-87 14:25:03
+              Version 3 by Masinter  5-Jun-87
+
+Problem Description:
+
+The description of the COMPILE and COMPILE-FILE functions does not say whether *BREAK-ON-WARNINGS* affects warnings output by the compiler. If this is to be allowed, it should be an explicitly expressed part of the contract.
+
+Proposal (COMPILER-WARNING-BREAK:YES):
+
+The definitions of COMPILE and COMPILE-FILE should state that these functions are required to break on warnings if *BREAK-ON-WARNINGS* is true (just as if it calls WARN).
+
+Note: User interface commands provided by particular vendor implementations which implicitly call COMPILE or COMPILE-FILE could bind *BREAK-ON-WARNINGS* back to NIL if they felt it important to not break for some reason relating to cultural compatibility. This would not interfere with the proposed new semantics for the functions COMPILE and COMPILE-FILE.
+
+Rationale:
+
+*BREAK-ON-WARNINGS* is defined to cause the debugger to be entered when warnings occur. If the compiler is permitted to warn (separate ballot item), the effect of this variable on compiler warnings should be nailed down.
+
+Current Practice:
+
+Some compilers respect *BREAK-ON-WARNINGS* and others probably do not.
+
+Adoption Cost:
+
+Those compilers which do not use WARN directly but some other mechanism might have to be edited, but it would not be a major change.
+
+Cost of not adopting this change:
+
+Applications which want to programmatically deal with compiler interactions would have 
+
+Benefits:
+
+This would make the language definition more consistent by making it
+less subject to special cases.
+
+Conversion Cost:
+
+Probably little or no user code would be affected by this change.
+
+Aesthetics:
+
+Most users will probably perceive this change as a simplification
+because it will allow the kind of warning that comes from WARN and the
+kind of warning that comes from compilation to be conceptually grouped.
+
+Discussion:
+
+KMP supports this change.
+   
+Some confusion about differences between compiler warnings and other
+kinds of warnings.
+Should there be a separate compiler-break-on-warnings? 
+Is this an environment issue?
+        TITAN          TITAN           
+TIMESROMAN 
+           ç                            $                            å              „       '                    ﬂ              I              á       "       Z       
+      s      	ß z∫*start*
+03353 00024 USf
+Date: 14 Nov 87 16:15 PST
+From: Masinter.pa
+Subject: Issue COMPILER-WARNING-BREAK (Version 3)
+To: cl-cleanup@Sail.stanford.edu
+cc: Masinter.pa
+
+In reviewing (and preparing hardcopies) of open issues, I discovered a version 3 of this proposal that was never mailed. The notes say that this issue is awaiting the error proposal, but frankly, I'm no longer sure what interaction we might expect with the error proposal.
+
+
+
+
+
+Issue:        COMPILER-WARNING-BREAK
+References:   COMPILE (p438), COMPILE-FILE (p439)
+Category:     CLARIFICATION/CHANGE
+Edit history: Version 1 by Pitman 02/27/87
+              Version 2 by cleanup committee 15-Mar-87 14:25:03
+              Version 3 by Masinter  5-Jun-87
+
+Problem Description:
+
+The description of the COMPILE and COMPILE-FILE functions does not say whether *BREAK-ON-WARNINGS* affects warnings output by the compiler. If this is to be allowed, it should be an explicitly expressed part of the contract.
+
+Proposal (COMPILER-WARNING-BREAK:YES):
+
+The definitions of COMPILE and COMPILE-FILE should state that these functions are required to break on warnings if *BREAK-ON-WARNINGS* is true (just as if it calls WARN).
+
+Note: User interface commands provided by particular vendor implementations which implicitly call COMPILE or COMPILE-FILE could bind *BREAK-ON-WARNINGS* back to NIL if they felt it important to not break for some reason relating to cultural compatibility. This would not interfere with the proposed new semantics for the functions COMPILE and COMPILE-FILE.
+
+Rationale:
+
+*BREAK-ON-WARNINGS* is defined to cause the debugger to be entered when warnings occur. If the compiler is permitted to warn (separate ballot item), the effect of this variable on compiler warnings should be nailed down.
+
+Current Practice:
+
+Some compilers respect *BREAK-ON-WARNINGS* and others probably do not.
+
+Adoption Cost:
+
+Those compilers which do not use WARN directly but some other mechanism might have to be edited, but it would not be a major change.
+
+Cost of not adopting this change:
+
+Applications which want to programmatically deal with compiler interactions would have 
+
+Benefits:
+
+This would make the language definition more consistent by making it less subject to special cases.
+
+Conversion Cost:
+
+Probably little or no user code would be affected by this change.
+
+Aesthetics:
+
+Most users will probably perceive this change as a simplification because it will allow the kind of warning that comes from WARN and the kind of warning that comes from compilation to be conceptually grouped.
+
+Discussion:
+
+*BREAK-ON-WARNINGS* and the compiler are part of the environment rather than the language.    
+
+We considered but rejected the notion of a separate *compiler-break-on-warnings*. It is possible that with the adoption of a signal/error system that the *BREAK-ON-WARNINGS* mechanism could be replaced in its entirity by a more structured signal/handler structure, making this proposal moot.
+
+
+        TITAN           TITAN          
+TIMESROMAN 
+          
+TIMESROMAN 
+          £                                          $                            å              „       '                    ﬂ              I              á       "       Z       
+       f              D              ”             Ü             {  z∫*start*
+03310 00024 US 
+Return-Path: <CL-Cleanup-mailer@SAIL.Stanford.EDU>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 14 NOV 87 16:17:12 PST
+Received: from XEROX.COM by SAIL.STANFORD.EDU with TCP; 14 Nov 87  16:15:55 PST
+Received: from Cabernet.ms by ArpaGateway.ms ; 14 NOV 87 16:15:39 PST
+Date: 14 Nov 87 16:15 PST
+From: Masinter.pa
+Subject: Issue COMPILER-WARNING-BREAK (Version 3)
+To: cl-cleanup@Sail.stanford.edu
+cc: Masinter.pa
+Message-ID: <871114-161539-3514@Xerox>
+
+In reviewing (and preparing hardcopies) of open issues, I discovered a
+version 3 of this proposal that was never mailed. The notes say that
+this issue is awaiting the error proposal, but frankly, I'm no longer
+sure what interaction we might expect with the error proposal.
+
+
+
+
+!
+Issue:        COMPILER-WARNING-BREAK
+References:   COMPILE (p438), COMPILE-FILE (p439)
+Category:     CLARIFICATION/CHANGE
+Edit history: Version 1 by Pitman 02/27/87
+              Version 2 by cleanup committee 15-Mar-87 14:25:03
+              Version 3 by Masinter  5-Jun-87
+
+Problem Description:
+
+The description of the COMPILE and COMPILE-FILE functions does not say
+whether *BREAK-ON-WARNINGS* affects warnings output by the compiler. If
+this is to be allowed, it should be an explicitly expressed part of the
+contract.
+
+Proposal (COMPILER-WARNING-BREAK:YES):
+
+The definitions of COMPILE and COMPILE-FILE should state that these
+functions are required to break on warnings if *BREAK-ON-WARNINGS* is
+true (just as if it calls WARN).
+
+Note: User interface commands provided by particular vendor
+implementations which implicitly call COMPILE or COMPILE-FILE could bind
+*BREAK-ON-WARNINGS* back to NIL if they felt it important to not break
+for some reason relating to cultural compatibility. This would not
+interfere with the proposed new semantics for the functions COMPILE and
+COMPILE-FILE.
+
+Rationale:
+
+*BREAK-ON-WARNINGS* is defined to cause the debugger to be entered when
+warnings occur. If the compiler is permitted to warn (separate ballot
+item), the effect of this variable on compiler warnings should be nailed
+down.
+
+Current Practice:
+
+Some compilers respect *BREAK-ON-WARNINGS* and others probably do not.
+
+Adoption Cost:
+
+Those compilers which do not use WARN directly but some other mechanism
+might have to be edited, but it would not be a major change.
+
+Cost of not adopting this change:
+
+Applications which want to programmatically deal with compiler
+interactions would have 
+
+Benefits:
+
+This would make the language definition more consistent by making it
+less subject to special cases.
+
+Conversion Cost:
+
+Probably little or no user code would be affected by this change.
+
+Aesthetics:
+
+Most users will probably perceive this change as a simplification
+because it will allow the kind of warning that comes from WARN and the
+kind of warning that comes from compilation to be conceptually grouped.
+
+Discussion:
+
+*BREAK-ON-WARNINGS* and the compiler are part of the environment rather
+than the language.    
+
+We considered but rejected the notion of a separate
+*compiler-break-on-warnings*. It is possible that with the adoption of a
+signal/error system that the *BREAK-ON-WARNINGS* mechanism could be
+replaced in its entirity by a more structured signal/handler structure,
+making this proposal moot.
+
+
+*start*
+00272 00024 US 
+Date: Mon, 16 Nov 87 11:57:41 PST
+From: Pavel.pa
+Subject: Re: Issue COMPILER-WARNING-BREAK (Version 3)
+In-reply-to: <871114-161539-3514@Xerox>
+To: Masinter
+
+The section ``Cost of not adopting this change'' contains only a partial sentence.
+
+	Pavel
+*start*
+03174 00024 USm
+Date: 23 Nov 87 12:51 PST
+From: Masinter.pa
+Subject: Issue COMPILER-WARNING-BREAK (Version 4)
+To: cl-cleanup@Sail.stanford.edu
+cc: Masinter.pa
+
+Version 3 had an incomplete sentence under "cost of not adopting this change". I removed it, and put the negation in the Benefits section.
+
+
+
+Issue:        COMPILER-WARNING-BREAK
+References:   COMPILE (p438), COMPILE-FILE (p439)
+Category:     CLARIFICATION/CHANGE
+Edit history: Version 1 by Pitman 02/27/87
+              Version 2 by cleanup committee 15-Mar-87 14:25:03
+              Version 3 by Masinter  5-Jun-87
+              Version 4 by Masinter 23-Nov-87
+
+Problem Description:
+
+The description of the COMPILE and COMPILE-FILE functions does not say whether *BREAK-ON-WARNINGS* affects warnings output by the compiler. If this is to be allowed, it should be an explicitly expressed part of the contract.
+
+Proposal (COMPILER-WARNING-BREAK:YES):
+
+The definitions of COMPILE and COMPILE-FILE should state that these functions are required to break on warnings if *BREAK-ON-WARNINGS* is true (just as if it calls WARN).
+
+Note: User interface commands provided by particular vendor implementations which implicitly call COMPILE or COMPILE-FILE could bind *BREAK-ON-WARNINGS* back to NIL if they felt it important to not break for some reason relating to cultural compatibility. This would not interfere with the proposed new semantics for the functions COMPILE and COMPILE-FILE.
+
+Rationale:
+
+*BREAK-ON-WARNINGS* is defined to cause the debugger to be entered when warnings occur. If the compiler is permitted to warn (separate ballot item), the effect of this variable on compiler warnings should be nailed down.
+
+Current Practice:
+
+Some compilers respect *BREAK-ON-WARNINGS* and others probably do not.
+
+Adoption Cost:
+
+Those compilers which do not use WARN directly but some other mechanism might have to be edited, but it would not be a major change.
+
+Conversion Cost:
+
+Probably little or no user code would be affected by this change.
+
+Benefits:
+
+This would make the language definition more consistent by making it less subject to special cases. Portable programs can be assured of consistent behavior when dealing with the compiler.
+
+Aesthetics:
+
+Most users will probably perceive this change as a simplification because it will allow the kind of warning that comes from WARN and the kind of warning that comes from compilation to be conceptually grouped.
+
+Discussion:
+
+*BREAK-ON-WARNINGS* and the compiler are part of the environment rather than the language.    
+
+We considered but rejected the notion of a separate *COMPILER-BREAK-ON-WARNINGS*. It is possible that with the adoption of a signal/error system that the *BREAK-ON-WARNINGS* mechanism could be replaced in its entirity by a more structured signal/handler structure, making this proposal moot.
+        TITAN          TITAN           
+TIMESROMAN 
+           ê       N       A                            $                            ∫              „       '                    ﬂ              I              á              D       
+       æ              ”             Ö      
+˚ z∫*start*
+00697 00024 US 
+Return-Path: <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Received: from STONY-BROOK.SCRC.Symbolics.COM (SCRC-STONY-BROOK.ARPA) by Xerox.COM ; 23 NOV 87 18:02:24 PST
+Received: from EUPHRATES.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 287374; Mon 23-Nov-87 21:02:17 EST
+Date: Mon, 23 Nov 87 21:02 EST
+From: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: Issue COMPILER-WARNING-BREAK (Version 4)
+To: Masinter.pa
+cc: cl-cleanup@SAIL.STANFORD.EDU
+In-Reply-To: <871123-125202-2581@Xerox>
+Message-ID: <19871124020219.2.MOON@EUPHRATES.SCRC.Symbolics.COM>
+Line-fold: No
+
+I can't get excited about this issue, but the writeup is fine.
+
+*start*
+03079 00024 US 
+Date: 14 Feb 88 11:13 PST
+From: Masinter.pa
+Subject: Issue COMPILER-WARNING-BREAK (Version 4)
+To: X3J13@Sail.stanford.edu
+cc: Masinter.pa
+reply-to: CL-CLEANUP@Sail.stanford.edu
+
+This issue has not been distributed to X3J13 before.
+
+
+Issue:        COMPILER-WARNING-BREAK
+References:   COMPILE (p438), COMPILE-FILE (p439)
+Category:     CLARIFICATION/CHANGE
+Edit history: Version 1 by Pitman 02/27/87
+              Version 2 by cleanup committee 15-Mar-87 14:25:03
+              Version 3 by Masinter  5-Jun-87
+              Version 4 by Masinter 23-Nov-87
+
+Problem Description:
+
+The description of the COMPILE and COMPILE-FILE functions does not say whether *BREAK-ON-WARNINGS* affects warnings output by the compiler. If this is to be allowed, it should be an explicitly expressed part of the contract.
+
+Proposal (COMPILER-WARNING-BREAK:YES):
+
+The definitions of COMPILE and COMPILE-FILE should state that these functions are required to break on warnings if *BREAK-ON-WARNINGS* is true (just as if it calls WARN).
+
+Note: User interface commands provided by particular vendor implementations which implicitly call COMPILE or COMPILE-FILE could bind *BREAK-ON-WARNINGS* back to NIL if they felt it important to not break for some reason relating to cultural compatibility. This would not interfere with the proposed new semantics for the functions COMPILE and COMPILE-FILE.
+
+Rationale:
+
+*BREAK-ON-WARNINGS* is defined to cause the debugger to be entered when warnings occur. If the compiler is permitted to warn (separate ballot item), the effect of this variable on compiler warnings should be nailed down.
+
+Current Practice:
+
+Some compilers respect *BREAK-ON-WARNINGS* and others probably do not.
+
+Adoption Cost:
+
+Those compilers which do not use WARN directly but some other mechanism might have to be edited, but it would not be a major change.
+
+Conversion Cost:
+
+Probably little or no user code would be affected by this change.
+
+Benefits:
+
+This would make the language definition more consistent by making it less subject to special cases. Portable programs can be assured of consistent behavior when dealing with the compiler.
+
+Aesthetics:
+
+Most users will probably perceive this change as a simplification because it will allow the kind of warning that comes from WARN and the kind of warning that comes from compilation to be conceptually grouped.
+
+Discussion:
+
+*BREAK-ON-WARNINGS* and the compiler are part of the environment rather than the language.    
+
+We considered but rejected the notion of a separate *COMPILER-BREAK-ON-WARNINGS*. It is possible that with the adoption of a signal/error system that the *BREAK-ON-WARNINGS* mechanism could be replaced in its entirity by a more structured signal/handler structure, making this proposal moot.
+        TITAN 
+         TITAN 
+           Í                            $                            ∫              „       '                    ﬂ              I              á              D       
+       æ              ”             Ö      
+∆ z∫*start*
+02303 00024 USa
+Return-Path: <CL-Cleanup-mailer@SAIL.Stanford.EDU>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 23 FEB 88 11:36:40 PST
+Received: from hudson.dec.com by SAIL.Stanford.EDU with TCP; 23 Feb 88  11:15:33 PST
+Date: 23 Feb 88 14:06:00 EDT
+From: "AITG::VANROGGEN" <vanroggen%aitg.decnet@hudson.dec.com>
+Subject: compiler-warning-break
+To: "cl-cleanup" <cl-cleanup@sail.stanford.edu>
+cc: vanroggen@hudson.dec.com 
+Reply-To: "AITG::VANROGGEN" <vanroggen%aitg.decnet@hudson.dec.com>
+
+The proposal COMPILER-WARNING-BREAK:YES leaves a lot of issues unresolved.
+As it stands we must oppose the proposal.
+
+The principal problem is that it isn't clear what warnings are.
+Currently VAX LISP distinguishes between two different kinds of
+``error conditions'': ones signalled during compilation
+with ERROR, CERROR, WARN, and the like, and ones detected by the
+compiler from examination of the source code being compiled.
+
+The former arise in cases like
+  (EVAL-WHEN (COMPILE) (PRINT (+ 3 'A)))
+or when READ encounters an error while reading a form from the file.
+However, when this happens during a COMPILE-FILE, we try to continue
+with the compilation, so as to maximize the usefulness and information
+generated by the compiler.  During COMPILE, the normal error signalling
+and handling is in effect, so *BREAK-ON-WARNINGS* would indeed control
+``breaking'' upon WARN.
+
+The latter arise when the compiler is compiling a form like
+  (SEARCH X)
+or
+  (LET 3 (F))
+Then we also distinguish these cases by how serious they are.  In
+particular there are ``errors'' and ``warnings''.  However, detecting
+these anomalies is expected of the compiler, and thus they are not
+treated as ``errors'' or ``warnings'' in the sense of the lisp
+functions ERROR or WARN.  It doesn't make sense to ``break'' and
+go into the debugger if the compiler happens to see a variable that
+was bound but was unused (with no IGNORE declaration).
+
+So it isn't clear from the proposal which of these cases are being
+addressed.  If it's really more to control what happens when one
+does a COMPILE, then the proposal should be changed to say that
+COMPILE-FILE is not specified as proposed, and what conditions should
+be reported as being ``warnings'' should be specified.
+
+			---Walter
+------
+
+*start*
+01594 00024 US 
+Return-Path: <CL-Cleanup-mailer@SAIL.Stanford.EDU>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 04 MAR 88 09:44:15 PST
+Received: from Xerox.COM by SAIL.Stanford.EDU with TCP; 4 Mar 88  09:40:17 PST
+Received: from Cabernet.ms by ArpaGateway.ms ; 04 MAR 88 09:41:04 PST
+Date: 4 Mar 88 09:40 PST
+From: Masinter.pa
+Subject: Re: compiler-warning-break
+In-reply-to: "AITG::VANROGGEN" <vanroggen%aitg.decnet@hudson.dec.com>'s message
+ of 23 Feb 88 14:06:00 EDT
+To: vanroggen%aitg.decnet@hudson.dec.com
+cc: cl-cleanup@Sail.stanford.edu
+Message-ID: <880304-094104-8049@Xerox>
+
+Am I correct in reading your message ("As it stands we must oppose the
+proposal"), that you feel the proposal writeup is unclear, and that you would
+prefer to have a greater distinction between those errors for which
+*break-on-warnings* have effect and those it does not?
+
+(Your example,   (EVAL-WHEN (COMPILE) (PRINT (+ 3 'A)))
+, by the way, is not affected by *break-on-warnings*.)
+
+My impression of the original intent is that the proposal writer very much
+wanted *break-on-warnings* to cause a break "if the compiler happens to see a
+variable that was bound but was unused", or other such anomolies.
+
+However, this proposal was made before there had been more work on the signal
+system. It might be more useful to arrive at a way that environment programs can
+consistently interact with the compiler using well-defined signals rather than
+the cruder *break-on-warnings* mechanism (which may well be obsolete.)
+
+Do you think such a proposal be more suitable?
+
+*start*
+02387 00024 US 
+Return-Path: <CL-Cleanup-mailer@SAIL.Stanford.EDU>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU by Xerox.COM ; 07 MAR 88 06:39:45 PST
+Received: from hudson.dec.com by SAIL.Stanford.EDU with TCP; 7 Mar 88  06:36:51 PST
+Date: 7 Mar 88 09:27:00 EDT
+From: "AITG::VANROGGEN" <vanroggen%aitg.decnet@hudson.dec.com>
+Subject: compiler-warning-break
+To: "cl-cleanup" <cl-cleanup@sail.stanford.edu>
+cc: vanroggen@hudson.dec.com 
+Reply-To: "AITG::VANROGGEN" <vanroggen%aitg.decnet@hudson.dec.com>
+
+  From: Masinter.pa@Xerox.COM Message-ID: <880304-094104-8049@Xerox>
+  
+  Am I correct in reading your message ("As it stands we must oppose the
+  proposal"), that you feel the proposal writeup is unclear, and that you would
+  prefer to have a greater distinction between those errors for which
+  *break-on-warnings* have effect and those it does not?
+
+Yes, not only a greater distinction, but some definition as to when and
+how this could be used.  What kinds of conditions must be "warned"?
+Are "potential errors" detected by the compiler real "errors"?  Is there
+a difference in such behavior between COMPILE and COMPILE-FILE?
+  
+  (Your example,   (EVAL-WHEN (COMPILE) (PRINT (+ 3 'A)))
+  , by the way, is not affected by *break-on-warnings*.)
+
+You're right. (Unless an implementation decided to WARN when an arithmetic
+operation got illegal arguments, I suppose.)  However the point of the
+example was to distinguish run-time signalled conditions from conditions
+detected by the compiler in examining source code.
+  
+  My impression of the original intent is that the proposal writer very much
+  wanted *break-on-warnings* to cause a break "if the compiler happens to see a
+  variable that was bound but was unused", or other such anomolies.
+
+  However, this proposal was made before there had been more work on the signal
+  system. It might be more useful to arrive at a way that environment programs can
+  consistently interact with the compiler using well-defined signals rather than
+  the cruder *break-on-warnings* mechanism (which may well be obsolete.)
+  
+  Do you think such a proposal be more suitable?
+
+Yes, I think deciding on an error system and deciding what conditions are
+signalled by the compiler should precede decisions on such minor things
+as what *BREAK-ON-WARNINGS* means in a few particular situations.
+
+			---Walter
+------
+

@@ -1,0 +1,304 @@
+*start*
+05961 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 11 MAR 87 12:01:11 PST
+Received: from SCRC-STONY-BROOK.ARPA by SAIL.STANFORD.EDU with TCP; 11 Mar 87  10:52:20 PST
+Received: from RIO-DE-JANEIRO.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 90602; Wed 11-Mar-87 13:50:50 EST
+Date: Wed, 11 Mar 87 13:50 EST
+From: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: PROMPT-FOR
+To: CL-Cleanup@SAIL.STANFORD.EDU
+cc: KMP@STONY-BROOK.SCRC.Symbolics.COM, Pavel.PA
+Message-ID: <870311135002.5.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+
+Issue:        PROMPT-FOR
+References:   None
+Category:     ENHANCEMENT
+Edit history: Revision 1 by KMP 03/11/87
+Problem Description:
+
+  Common Lisp has no reader function which reads an object
+  of a given type. Such a thing can more or less be written
+  in user code, but it's done often enough to warrant 
+  consideration for entry into the system.
+
+Proposal (PROMPT-FOR:OK)
+
+  Introduce a new function PROMPT-FOR with the following syntax:
+
+   (PROMPT-FOR typespec &optional format-string &rest format-arguments)
+
+  This function would prompt for an object for which
+  (TYPEP object 'typespec) was true. Prompting would begin on
+  a fresh line. The FORMAT-STRING and FORMAT-ARGUMENTS would
+  be used to do prompting; if not supplied, the default prompt
+  would be something like "Enter an expression of type <typespec>: ". 
+  The expression would be parsed by READ and checked to assure that
+  it was of the appropriate type. If it was not of the appropriate
+  type, the system would indicate the problem and ask the user for
+  a correction. The entire interaction would take place on the
+  stream in *QUERY-IO*.
+
+Rationale:
+
+  1. This is a common idiom that many programs would have use for.
+     It would be useful to standardize on a common interface.
+     The need will be all the more compelling if and when the
+     new error system is approved.
+
+  2. Currently, this function could be written a user program:
+     (DEFUN PROMPT-FOR (TYPESPEC &OPTIONAL FORMAT-STRING 
+			&REST FORMAT-ARGUMENTS)
+       (FLET ((GET-INPUT ()
+		(FRESH-LINE *QUERY-IO*)
+		(COND ((NOT FORMAT-STRING)
+		       (FORMAT *QUERY-IO* 
+			       "Enter an expression of type ~S: "
+			       TYPESPEC))
+		      (T
+		       (APPLY #'FORMAT *QUERY-IO* FORMAT-STRING 
+			      FORMAT-ARGUMENTS)))
+		(READ *QUERY-IO*)))
+	 (DO ((FORM (GET-INPUT) (GET-INPUT)))
+	     ((TYPEP FORM TYPESPEC) FORM)
+	   (FORMAT *QUERY-IO* "~&The object ~S is not acceptable.~%"
+		   FORM))))
+     However, such an implementation is at a severe disadvantage
+     because:
+
+     a. The prompt and the call to READ are not closely coupled.
+        If the user clears the screen in the middle of the READ
+        -- an operation allowed by many rubout processors, there
+	is no way to know that a prompt should have been 
+        redisplayed. By coupling prompting and reading into a 
+        single component supplied by the system, prompting can
+	be accomplished using primitives that are beyond the
+        scope of the current spec.
+
+     b. On Lisp Machines, for example, this type check could be
+        accomplished from within the rubout handler, allowing the
+	user to rub back into the expression to correct it rather
+	than requiring that he be reprompted. In other 
+	implementations, such might not be possible, but it still
+	might be desirable to stuff the input buffer with the 
+	offending expression on subsequent calls to READ so that
+	it could be easily edited. That cannot currently be done
+	from user code.
+
+Current Practice:
+
+  There is no current practice. This would extend Common Lisp in
+  a new direction. Several implementations probably already provide 
+  private extensions of a similar kind.
+
+Adoption Cost:
+
+  Negligible. The code above would be adequate to satisfy the 
+  proposed definition. Any additional work would be to integrate it
+  better into a particular environment and is not rightly a cost 
+  attributable to the change.
+
+Benefits:
+
+  A common idiom would have a standardized calling interface.
+
+  Some programs would have more useful prompting and error
+  recovery behaviors.
+
+  The emerging Error System compounds the need for this because
+  many kinds of error recovery strategies involve prompting for
+  corrected data and verifying that the values read are of some
+  particular type. As such, this primitive will probably eventually
+  be in your Common Lisp either privately as an internal part of
+  the error system or publicly. Since it is useful for a wider
+  variety of things, it would seem worth making it standard.
+
+Conversion Cost:
+
+  No user code would have to be modified (other than code which 
+  assumed that the new name was available for private use -- 
+  something which is trivially detectable and fixable in most 
+  editing environments).
+
+Aesthetics:
+
+  There are those who believe that any new feature adds complexity.
+  I think, however, that if such new features offer significant new
+  expressional power, as this one does, the complexity is paid for 
+  many times over.
+
+Discussion:
+
+  KMP made this proposal, so he supports it.
+
+  In notes made by Pavel Curtis on the emerging error system, he
+  complained that the READ-TYPED-OBJECT primitive used in many of
+  the examples was not defined in the proposal. He didn't complain
+  similarly for other more whimsical things not defined. KMP took
+  this as implicit support for the idea that some sort of facility
+  like this might be welcomed by the Xerox crowd.
+
+  Symbolics has recently introduced an extension called ACCEPT 
+  which does something similar, but uses stylized readers on a 
+  per-type basis. It should be clear that this proposal intends 
+  to propose that READ be used in all cases. The Symbolics ACCEPT 
+  primitive is very useful but requires more baggage than I think
+  CL would be willing to accept at this time.
+
+*start*
+02466 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:Moon@YUKON.SCRC.Symbolics.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 12 MAR 87 09:14:52 PST
+Received: from SCRC-YUKON.ARPA by SAIL.STANFORD.EDU with TCP; 11 Mar 87  13:41:02 PST
+Received: from EUPHRATES.SCRC.Symbolics.COM by YUKON.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 177254; Wed 11-Mar-87 15:59:56 EST
+Date: Wed, 11 Mar 87 15:59 EST
+From: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: PROMPT-FOR
+To: CL-Cleanup@SAIL.STANFORD.EDU
+In-Reply-To: <870311135002.5.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+Message-ID: <870311155942.3.MOON@EUPHRATES.SCRC.Symbolics.COM>
+
+    Date: Wed, 11 Mar 87 13:50 EST
+    From: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+
+    Issue:        PROMPT-FOR
+    ....
+    Symbolics has recently introduced an extension called ACCEPT 
+    which does something similar, but uses stylized readers on a 
+    per-type basis. It should be clear that this proposal intends 
+    to propose that READ be used in all cases.
+
+I disagree with that part of your proposal.  I don't think it's
+appropriate to standardize on something that requires the user input in
+response to the prompt to be entered in an inferior syntax.  Suppose,
+for example, that you are asking the user to enter a pathname.  I think
+the user expects to type just the pathname in its host-specific syntax,
+not #P"pathname" (in Symbolics systems), or #pathname (in LMI systems),
+or #S(pathname ...), etc.  Since the type of object being entered is
+known, the syntax that allows READ to distinguish it from other types
+of objects is unnecessary baggage.  I don't see why the syntax of the
+user input should be standardized at all, just as Common Lisp doesn't
+standardize on whether the user input comes from a keyboard, a mouse,
+voice recognition, or a ouija board.
+
+Instead, I think you should propose to standardize the program interface,
+through which the program specifies what type of input it wants and
+how it will prompt for it, but say that how this interacts with the
+user is up to individual system environments.
+
+Since there is some possibility of a subset of Symbolics' ACCEPT
+being proposed as a standard, you might want to make your proposal be
+more compatible with it.  That would mostly involve accepting keyword
+arguments, for expandability, and changing the way the prompt is
+specified.  Otherwise we could end up with two incompatible standards
+for no good reason.
+
+*start*
+01231 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:FAHLMAN@C.CS.CMU.EDU>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 12 MAR 87 09:15:31 PST
+Received: from C.CS.CMU.EDU by SAIL.STANFORD.EDU with TCP; 11 Mar 87  20:10:27 PST
+Received: ID <FAHLMAN@C.CS.CMU.EDU>; Wed 11 Mar 87 23:11:09-EST
+Date: Wed, 11 Mar 87 23:11 EST
+Message-ID: <FAHLMAN.12285686411.BABYL@C.CS.CMU.EDU>
+Sender: FAHLMAN@C.CS.CMU.EDU
+From: "Scott E. Fahlman" <Fahlman@C.CS.CMU.EDU>
+To: CL-Cleanup@SAIL.STANFORD.EDU
+Subject: PROMPT-FOR
+In-reply-to: Msg of 11 Mar 1987  15:59-EST from David A. Moon <Moon at STONY-BROOK.SCRC.Symbolics.COM>
+
+
+I agree with Moon that what we should standardize on is a programmer's
+interface to a query-the-user function.  The style of interaction with
+the user should be left up to the implementation.  For example, in
+Hemlock this is currently done by prompting and accepting input in the
+echo area.  In other systems it might be a pop-up query window.  If the
+item being prompted for is part of a finite set (e.g. files or legal
+continuations), some systems might offer to show the user his options.
+And so on.
+
+I agree with the goal of the proposal, but would have to oppose it in
+its present restrictive form.
+
+-- Scott
+
+*start*
+01479 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 12 MAR 87 09:16:07 PST
+Received: from SCRC-STONY-BROOK.ARPA by SAIL.STANFORD.EDU with TCP; 11 Mar 87  23:26:00 PST
+Received: from RIO-DE-JANEIRO.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 91176; Wed 11-Mar-87 20:45:37 EST
+Date: Wed, 11 Mar 87 20:44 EST
+From: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: PROMPT-FOR
+To: Pavel.PA
+cc: KMP@STONY-BROOK.SCRC.Symbolics.COM, CL-Cleanup@SAIL.STANFORD.EDU
+In-Reply-To: <870311-160709-1493@Xerox>
+Message-ID: <870311204444.2.KMP@RIO-DE-JANEIRO.SCRC.Symbolics.COM>
+
+Thanks for your comments. The format of your reply was fine and I'm sure
+no one thinks you were butting in; I cc'd you exactly so you'd get a
+chance to reply if I'd misrepresented you and/or you didn't like the
+particulars of this proposal.
+
+Moon had some useful (critical) comments about this, too.
+
+I'd expected some people not to agree with the first cut at this, and
+am not adamant about ramming this one down anyone's throat if they're
+not strongly behind it. My guess is, though, that something in this
+area would be worthwhile -- I think it's just a matter of finding the
+right interface.
+
+I doubt I'll find the time to pursue it further before the weekend, so
+maybe we can talk about it at the Palo Alto meeting (and/or at the Mike
+Jacobs PACE dance on Saturday).
+ -kmp
+
+*start*
+02077 00024 US 
+Return-Path: <@SAIL.STANFORD.EDU:Pavel.pa@Xerox.COM>
+Received: from SAIL.STANFORD.EDU by Xerox.COM ; 12 MAR 87 09:30:01 PST
+Received: from XEROX.COM by SAIL.STANFORD.EDU with TCP; 12 Mar 87  09:24:44 PST
+Received: from Cabernet.ms by ArpaGateway.ms ; 11 MAR 87 16:07:09 PST
+Date: 11 Mar 87 16:06 PST
+From: Pavel.pa
+Subject: Re: PROMPT-FOR
+In-reply-to: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>'s
+ message of Wed, 11 Mar 87 13:50 EST
+To: KMP@STONY-BROOK.SCRC.Symbolics.COM
+cc: CL-Cleanup@SAIL.STANFORD.EDU, Pavel.PA
+Message-ID: <870311-160709-1493@Xerox>
+
+Excuse me if I use the wrong format for this message; I'm not familiar
+with any structures that you folks may have set up for comments.
+
+KMP said in a recent note:
+
+  In notes made by Pavel Curtis on the emerging error system, he
+  complained that the READ-TYPED-OBJECT primitive used in many of
+  the examples was not defined in the proposal. He didn't complain
+  similarly for other more whimsical things not defined. KMP took
+  this as implicit support for the idea that some sort of facility
+  like this might be welcomed by the Xerox crowd.
+
+While I did, indeed, complain that READ-TYPED-OBJECT was undefined in
+the proposal, I certainly never intended to give any support, implicit
+or otherwise, to the inclusion of such a facility in Common Lisp.  In
+fact, wandering the halls here, the general opinion is that it doesn't
+sound like a particularly appropriate facility for the standard.  The
+arguments given by KMP in his proposal don't sound very convincing to my
+ears, at least.  For example, he states,
+
+  I think, however, that if such new features offer significant new
+  expressional power, as this one does, the complexity is paid for 
+  many times over.
+
+I certainly wouldn't agree that PROMPT-FOR represents ``significant new
+expressional power'', especially given the ease with which the portable
+imlementation can be written.
+
+I don't mean to butt in on your discussion, but I felt that I should
+clear up an apparent misconception about my opinion on the issue.
+
+	Pavel
+
