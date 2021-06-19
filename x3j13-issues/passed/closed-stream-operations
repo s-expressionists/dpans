@@ -127,7 +127,7 @@ Discussion:
  work on closed streams.
 
  The functions in STREAM-INFO:ONE-DIMENSIONAL-FUNCTIONS should
- not be requred to work on closed streams.
+ not be required to work on closed streams.
 
 
 
