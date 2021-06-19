@@ -22,7 +22,7 @@ Occasionally one would like to define a macro which is expanded only
 "in the compiler", but which would not normally affect the actions of
 the interpreter.  For example, the OSS/Generator proposal has several
 functions for which it would like to specify some alternative source
-code sequences for the compiler to compiler, rather than just
+code sequences for the compiler to compile, rather than just
 compiling a closed-call to the function.
 
 Also, it is occasionally desirable for a macro expansion to be
