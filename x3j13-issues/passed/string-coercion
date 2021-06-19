@@ -8,7 +8,6 @@ References:     Strings (pp299-304),
                 STRING-NOT-EQUAL (p302), STRING-TRIM (p302), STRING-LEFT-TRIM (p302),
                 STRING-RIGHT-TRIM (p302), STRING-UPCASE (p303), STRING-DOWNCASE (p303),
                 and STRING-CAPITALIZE (p303).
-Related issues: none
 Category:       CLARIFICATION
 Edit history:   Version 1, 9-May-89 by Moon
                 Version 2, 9-May-89 by Pitman (editorial changes)
@@ -92,4 +91,3 @@ Esthetics:
 Discussion:
 
   None.
-

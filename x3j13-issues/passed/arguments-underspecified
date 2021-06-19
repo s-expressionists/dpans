@@ -19,7 +19,7 @@ MAKE-HASH-TABLE, MAKE-SEQUENCE, MAKE-STRING, NTHCDR, and PARSE-INTEGER
 are not clear about the types of the arguments supplied to these 
 constructs.
  
-Proposal (ARGUMENTS-UNDERSPECIFIED:SPECIFY)
+Proposal (ARGUMENTS-UNDERSPECIFIED:SPECIFY):
  
 Clarify that the arguments for the listed constructs are as follows:
  
@@ -57,6 +57,7 @@ Cost to Implementors:
 None, since this is consistent with current practice.
  
 Cost to Users:
+
 None, since this is consistent with current practice.
  
 Benefits:

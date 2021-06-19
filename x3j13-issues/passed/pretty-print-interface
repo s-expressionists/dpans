@@ -19,6 +19,7 @@ Edit history:	Version 1, 24-Feb-89 by Steele
 		Version 5, 20-Jul-89 by Waters et al
 
 Problem description:
+
  At present, Common Lisp provides no specification whatsoever of how
 pretty-printing is to be accomplished, and no way for the user to control
 it.  In particular, there is no protocol by which a user can write a
@@ -60,14 +61,18 @@ The function FORMAT is extended so that it can accept a function instead of
 a FORMAT string.  (This change is also made in the other functions that
 accept FORMAT strings such as ERROR and WARN.)
 
-Examples:	See attached document.
+Examples:
+
+ See attached document.
 
 Rationale:
+
  There ought to be a good user interface to the pretty printer.
 This is the only proposal for which there is a portable implementation
 that has seen extensive use and is being made freely available.
 
 Current practice:
+
  XP son of PP son of GPRINT son of #PRINT is the latest in a line of pretty
 printers that goes back 13 years.  All of these printers use essentially
 the same basic algorithm and conceptual interface.  Further, except for
@@ -81,7 +86,9 @@ various generations of Symbolics Lisp for upwards of 5 years.
 (See Waters R.C., "User Format Control in a Lisp Prettyprinter", ACM TOPLAS,
 5(4):513--531, October 1983.)
 
-Cost to Implementors:  A fair amount of effort (several man-weeks at most).
+Cost to Implementors:
+
+  A fair amount of effort (several man-weeks at most).
  Source code for XP is available to all comers from Dick Waters.  It has
 been arranged with MIT for anyone who wants to to get a non-exclusive
 royalty-free license for XP from MIT.  The system is documented in great
@@ -90,15 +97,25 @@ detail in:
   Artificial Intelligence Laboratory Technical Memo 1102a,
   Massachusetts Institute of Technology, Cambridge MA, July 1989.
 
-Cost to Users:  None (I think).  This is an upward-compatible extension.
- Cost of non-adoption:  Continued inability for user print-functions
+Cost to Users:
+
+  None (I think).  This is an upward-compatible extension.
+
+Cost of non-adoption:
+
+  Continued inability for user print-functions
 to interact with the pretty-printer in a useful and portable manner.
 
-Performance impact:  XP is claimed to be quite fast.
+Performance impact:
 
-Benefits:  User control of pretty-printing in a portable manner.
+  XP is claimed to be quite fast.
+
+Benefits:
+
+ User control of pretty-printing in a portable manner.
 
 Aesthetics:
+
  Using ~<...~:> may strike some as uncomfortably close in the syntactic
 space of FORMAT directives to the existing ~<...~>.  However, it is very
 unlikely that both of these directives (pretty-print logical block and

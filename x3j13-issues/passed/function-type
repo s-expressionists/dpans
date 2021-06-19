@@ -32,7 +32,7 @@ Problem Description:
  A consequence of the p47 confusion is that (FUNCTIONP x) cannot portably
  be relied upon to be equivalent to (TYPEP x 'FUNCTION).
 
-Proposal FUNCTION-TYPE:X3J13-MARCH-88
+Proposal FUNCTION-TYPE:X3J13-MARCH-88:
 
 This proposal is basically the STRICT-REDEFINITION proposal of version 9
 of this issue, correcting a few typos, changing section 2E as
@@ -40,8 +40,8 @@ agreed upon at X3J13 March 1988, allowing symbols but not lists to
 be FUNCALLed or APPLYed, and relaxing some SYMBOL-FUNCTION/FBOUNDP
 requirements.
 
- 1.  Redefine the type FUNCTION so that it can be used for discrimination
-     as well as declaration.
+ 1. Redefine the type FUNCTION so that it can be used for discrimination
+    as well as declaration.
 
     1a. The types CONS, SYMBOL, ARRAY, NUMBER, CHARACTER, and FUNCTION
         are pairwise disjoint.  In particular, a list may not be used
@@ -150,7 +150,7 @@ Current Practice:
  In some implementations, (TYPEP x 'FUNCTION) is true only for values
    returned by FUNCTION.
 
- Implementations vary on what my go into the function cell, depending on
+ Implementations vary on what may go into the function cell, depending on
  how much error checking they want to have to do at function call time, and
  depending on whether they store other kinds of information (such as special
  form information) in the function cell.

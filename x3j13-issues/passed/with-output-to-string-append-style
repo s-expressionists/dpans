@@ -34,6 +34,7 @@ on CLtL p331 by:
 
 
 Test Case: 
+
     (let ((str (make-array 4 :element-type 'string-char :fill-pointer 0)))
       (with-output-to-string (s str) (princ "You Luz, Bunkie!" s))
       str)

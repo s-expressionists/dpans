@@ -37,7 +37,7 @@ Are all subforms in a macro call guaranteed to be evaluated in order, or only th
 
 The same question arises for other forms which manipulate generalized variables, e.g., PUSHNEW, INCF, DECF, and those defined with DEFINE-MODIFY-MACRO.
 
-Proposal: PUSH-EVALUATION-ORDER:ITEM-FIRST
+Proposal PUSH-EVALUATION-ORDER:ITEM-FIRST:
 
 This proposal is hard to state, although the intent is fairly clear: evalution proceeds from left to right whenever possible. The left-to-right rule does not remove the obligation on writers of macros and define-setf-method  to ensure left-to-right order, however. 
 

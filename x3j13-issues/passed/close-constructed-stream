@@ -50,7 +50,7 @@ It "is an error" to call CLOSE on a constructed stream. CLOSE might signal an
 error, or the result of CLOSE could cause the constituent streams to be closed,
 etc, but the effect is implementation-dependent.
 
-Proposal: (CLOSE-CONSTRUCTED-STREAM:SIGNALS-ERROR)
+Proposal (CLOSE-CONSTRUCTED-STREAM:SIGNALS-ERROR):
 
 Calling CLOSE on a constructed stream signals an error.
 
@@ -68,7 +68,7 @@ The "links" to the constituents may be broken; if the proposal in STREAM-ACCESS
 passes, the results of the accessor functions there are unspecified after the
 call to CLOSE.)
 
-Proposal: (CLOSE-CONSTRUCTED-STREAM:CLOSE-CONSTITUENTS)
+Proposal (CLOSE-CONSTRUCTED-STREAM:CLOSE-CONSTITUENTS):
 
 CLOSE first closes its argument; it then operates recursively on the constituents
 of composite streams.

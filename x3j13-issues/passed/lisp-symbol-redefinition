@@ -30,7 +30,7 @@ functions in the Lisp package.
 CLtL only says that special forms can not be redefined. But this doesn't 
 solve the general problem of redefining system functions.
  
-Proposal LISP-SYMBOL-REDEFINITION:MAR89-X3J13
+Proposal LISP-SYMBOL-REDEFINITION:MAR89-X3J13:
 
 Except where explicitly allowed, the consequences are undefined if any of the
 following actions are performed on symbols exported from the COMMON-LISP

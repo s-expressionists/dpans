@@ -4,7 +4,7 @@ References:     MAPCAR, MAPLIST, ... (p128);
 	        DOLIST (p126); MAPHASH (p285); 
 	        DO-SYMBOLS, DO-EXTERNAL-SYMBOLS, DO-ALL-SYMBOLS (pp187-188);
 	        All functions using :TEST	      
-Related-Issues: REMF-DESTRUCTION-UNSPECIFIED.
+Related-Issues: REMF-DESTRUCTION-UNSPECIFIED
 Category:       CLARIFICATION
 Edit history:   07-Mar-88, Version 1 by Pitman
 	        09-Jun-88, Version 2 by Pitman

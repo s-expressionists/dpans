@@ -16,7 +16,7 @@ Problem Description:
   finding that the `helpful' argument supplied in some previous call will
   be harmful to them.
 
-Proposal (GENSYM-NAME-STICKINESS:LIKE-TEFLON)
+Proposal (GENSYM-NAME-STICKINESS:LIKE-TEFLON):
 
   Define that if an optional argument [either a string or a number] is
   given to GENSYM, it does NOT have a side-effect on GENSYM's internal state.

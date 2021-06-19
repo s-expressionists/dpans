@@ -10,11 +10,13 @@ Edit history: 8-JAN-89, Version 1 by Masinter
  
  
  
-Problem: Is it legal for an implementation to produce unsolicited output,
+Problem description:
+
+Is it legal for an implementation to produce unsolicited output,
 e.g., GC notifications, autoload heralds, and progress messages from
 COMPILE-FILE or LOAD?
  
-Proposal: UNSOLICITED-MESSAGES:NOT-TO-SYSTEM-USER-STREAMS
+Proposal UNSOLICITED-MESSAGES:NOT-TO-SYSTEM-USER-STREAMS:
  
 No output may be produced
 by functions other than that specified in the standard or due to the
@@ -61,4 +63,4 @@ Aesthetics:
  
 None.
  
-Discussion:
+

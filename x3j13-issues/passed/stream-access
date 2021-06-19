@@ -106,12 +106,12 @@ Stream Informational Functions:
       an error if the argument is not of type TWO-WAY-STREAM.
 
 
-Proposal: STREAM-ACCESS:ADD-TYPES-ACCESSORS
+Proposal STREAM-ACCESS:ADD-TYPES-ACCESSORS:
 
 Identical to ADD-TYPES-PREDICATES-ACCESSORS except to leave out the 
 stream type predicates.
 
-Proposal: STREAM-ACCESS:ADD-PREDICATES-ACCESSORS
+Proposal STREAM-ACCESS:ADD-PREDICATES-ACCESSORS:
 
 Identical to ADD-TYPES-PREDICATES-ACCESSORS except to not
 identify new data types. The accessors act as if the types were specified

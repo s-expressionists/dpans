@@ -58,7 +58,7 @@ Problem Description:
   suggesting that it is an implication, but similar language is used for
   equivalences in other parts of CLtL.
 
-Proposal (ADJUST-ARRAY-NOT-ADJUSTABLE:IMPLICIT-COPY)
+Proposal (ADJUST-ARRAY-NOT-ADJUSTABLE:IMPLICIT-COPY):
 
   1. If MAKE-ARRAY is called with the :ADJUSTABLE, :FILL-POINTER, 
   and :DISPLACED-TO arguments each either unspecified or false, the

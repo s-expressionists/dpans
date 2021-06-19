@@ -89,5 +89,3 @@ Esthetics:
   issue SETF-OF-APPLY for one particular case (AREF) where it
   seems like a good idea to specify that the SETF place must be
   implemented as a SETF function.
-
-Discussion:

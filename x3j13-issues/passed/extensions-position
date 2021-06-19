@@ -27,7 +27,7 @@ example, it is common practice to redefine some kinds of system functions
 in Genera -- to extend the system in interesting ways, to fix bugs, etc.
  
  
-Proposal (EXTENSIONS-POSITION:DOCUMENTATION)
+Proposal (EXTENSIONS-POSITION:DOCUMENTATION):
  
 The standard document should define a language extension to be
 any implementation-supplied tool that isn't explicitly defined
@@ -49,7 +49,7 @@ In places where the standard says that "an implementation may be extended",
 this implies that a conforming, but probably non-portable, program can
 be written using the implementation's extension.
 
-Proposal (EXTENSIONS-POSITION:DISABLE)
+Proposal (EXTENSIONS-POSITION:DISABLE):
 
 Same as EXTENSIONS-POSITION:DOCUMENTATION except that
 an implementation is required to have a way to disable its extensions, so
@@ -70,7 +70,7 @@ any situation that "is an error" (either explicitly or implicitly) is a
 potential area for extension.
  
  
-Adoption Cost:
+Cost to Implementors:
  
 Vendors will have to improve their documentation
 to list all their extensions.  Vendors will have to go through their
@@ -92,6 +92,7 @@ Aesthetics:
 None.
  
 Discussion:
+
 Masinter says:
 It seems to be a constraint on "documentation" rather than "implementation"
 if you turn the accidental behavior of (CAR T) into a "feature" of your
