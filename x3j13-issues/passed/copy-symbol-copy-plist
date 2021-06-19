@@ -13,7 +13,7 @@ symbol's property list.  However, there are several ways in which a list
 may be copied, most notably COPY-LIST and COPY-TREE, and the description
 doesn't say which mechanism should be used.
 
-Proposal (COPY-SYMBOL-COPY-PLIST:COPY-LIST)
+Proposal (COPY-SYMBOL-COPY-PLIST:COPY-LIST):
 
 Clarify that when COPY-SYMBOL copies the property list of the symbol, it
 is as if (COPY-LIST (SYMBOL-PLIST sym)) were used as the new symbol's

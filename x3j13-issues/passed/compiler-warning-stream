@@ -14,7 +14,7 @@ Problem Description:
 
 The description of the COMPILE and COMPILE-FILE functions does not explicitly permit them to print warnings. If this is to be allowed, it should be an explicitly expressed part of the contract.
 
-Proposal (COMPILER-WARNING-STREAM:ERROR-OUTPUT)
+Proposal (COMPILER-WARNING-STREAM:ERROR-OUTPUT):
 
 COMPILE and COMPILE-FILE are permitted to output warnings; warnings should go to the stream that is the value of *ERROR-OUTPUT*.
 

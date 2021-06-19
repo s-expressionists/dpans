@@ -27,7 +27,7 @@ p.378, supplies a NIL to GET-MACRO-CHARACTER, and is clearly intending
 to access the standard readtable values.
 
 
-Proposal (GET-MACRO-CHARACTER-READTABLE:NIL-STANDARD)
+Proposal (GET-MACRO-CHARACTER-READTABLE:NIL-STANDARD):
 
 Specify that a NIL readtable argument to GET-DISPATCH-MACRO-CHARACTER
 and to GET-MACRO-CHARACTER mean the same thing it does for COPY-READTABLE,

@@ -44,7 +44,7 @@ giving a total of eight]; so even though one knows that an implementation
 is IEEE compatible, it still makes sense to ask what conditions are 
 supportable as floating-point traps.
 
-Proposal (FLOATING-POINT-CONDITION-NAMES:X3J13-NOV-89)
+Proposal (FLOATING-POINT-CONDITION-NAMES:X3J13-NOV-89):
 
   1. Add FLOATING-POINT-INVALID-OPERATION and FLOATING-POINT-INEXACT
      as conditions which are sub-conditions of ARITHMETIC-ERROR.
@@ -54,7 +54,7 @@ point trap, then whenever that particular situation arises the
 system will arrange to signal the Lisp condition FOO.  The means for
 enabling and disabling traps is not addressed in this proposal.
 
-Proposal (FLOATING-POINT-CONDITION-NAMES:ADD-MINIMAL-IEEE)
+Proposal (FLOATING-POINT-CONDITION-NAMES:ADD-MINIMAL-IEEE):
 
   1. Add FLOATING-POINT-INVALID-OPERATION and FLOATING-POINT-INEXACT
      as conditions which are sub-conditions of ARITHMETIC-ERROR.

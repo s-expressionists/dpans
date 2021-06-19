@@ -35,7 +35,7 @@ However, the specification is less clear about computations involved
 in "evaluation" of the subforms, and other computations that are implicit
 in the notion of "doing an access" or "doing a store".
 
-Proposal:	SETF-SUB-METHODS:DELAYED-ACCESS-STORES
+Proposal SETF-SUB-METHODS:DELAYED-ACCESS-STORES:
 
 This proposal specifies more explicilty the behavior of SETF in the case  
 of access forms whose sub-forms are permitted to be generalized variable 

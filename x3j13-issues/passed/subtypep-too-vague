@@ -58,7 +58,7 @@ and some observations about its consequences.  This version eliminates
 the requirement to signal an error.
 
 
-Proposal: SUBTYPEP-TOO-VAGUE:CLARIFY-MORE
+Proposal SUBTYPEP-TOO-VAGUE:CLARIFY-MORE:
 
 A type specifier "involves" a word like SATISFIES, MEMBER, NOT, etc.
 if it either contains it directly as a type specifier, 

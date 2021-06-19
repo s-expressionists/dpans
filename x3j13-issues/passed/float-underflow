@@ -75,7 +75,9 @@ Proposal (FLOAT-UNDERFLOW:ADD-CONTROLS):
   5. Clarify that a floating point computation that overflows should signal
   an error of type FLOATING-POINT-OVERFLOW.
 
-Example: (not portable of course)
+Example: 
+
+  (not portable of course)
 
   (expt 0.1 40) => FLOATING-POINT-UNDERFLOW error
   

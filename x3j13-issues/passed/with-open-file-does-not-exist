@@ -6,6 +6,7 @@ Category:      Clarify
 Edit history:  17-Mar-89, Version 1
 
 Problem description:
+
 The documentation for WITH-OPEN-FILE (p 422) says:
   "WITH-OPEN-FILE evaluates the Forms of the body (an implict PROGN)
 with the variable Stream bound to a stream that reads or writes the
@@ -16,11 +17,13 @@ used as keyword arguments to the function OPEN."
 "that reads or writes the file" named by Filename.
   Is the body evaluated? What is Stream bound to?
 
-Proposal: WITH-OPEN-FILE-DOES-NOT-EXIST:DONT-EVALUATE
+Proposal WITH-OPEN-FILE-DOES-NOT-EXIST:DONT-EVALUATE:
+
   If the result of OPEN does not return a stream (eg returns NIL)
 Then the body of WITH-OPEN-FILE is not evaluated, NIL is returned.
 
 Rationale:
+
   The contract that "the body is evaluated with ... bound to a stream"
 is maintained in the sense of a vacuous evalation.
   The alternatives are:
@@ -30,17 +33,20 @@ is maintained in the sense of a vacuous evalation.
   The test for (STREAMP Stream) is probably done anyway,
     since the UNWIND-PROTECT cleanup form can't call CLOSE on NIL.
 
-Proposal: WITH-OPEN-FILE-DOES-NOT-EXIST:STREAM-IS-NIL
+Proposal WITH-OPEN-FILE-DOES-NOT-EXIST:STREAM-IS-NIL:
+
   Clarify the documentation to explain that:
     Stream is bound to the value returned by OPEN.
     Users of :if-does-not-exist NIL should check for a valid stream.
 
 Rationale:
+
   This simple to implement, no extra testing is done.
   Users who use :if-does-not-exist NIL  can wrap their body forms
 with (when (STREAMP Stream) ...)
 
 Examples:
+
 1. (WITH-OPEN-FILE (foo "no-such-file" :IF-DOES-NOT-EXIST nil)
 	(READ foo) t)
    DONT-EVALUATE: => NIL, no I/O is done, do not read from *standard-input*
@@ -52,24 +58,29 @@ Examples:
    STREAM-IS-NIL: => T, creates a string and writes to it.
 
 Current practice:
+
     Symbolics and Lucid apparently implement STREAM-IS-NIL.
 
 Cost to Implementors:
+
     STREAM-IS-NIL: no cost.
     DONT-EVALUATE:
         Trivial? to test for :if-does-not-exist NIL and supply a 
         test for (STREAMP Stream) in that case [or in every case].
 
 Cost to Users:
+
     DONT-EVALUATE: System tests for (STREAMP Stream), possibly extraneously.
     STREAM-IS-NIL: User must write a test for (STREAMP Stream).
   Probably no portable code uses :if-does-not-exist NIL without
   testing explicitly for (STREAMP Stream).
 
 Cost of non-adoption:
+
     The current situation is non-intuitive and/or confusing.
 
 Benefits:
+
     Users would know if the STREAMP test has been done or whether 
 they must supply it.
 

@@ -7,7 +7,7 @@ Related Issues: Issue DEFINE-OPTIMIZER
                 Issue EVAL-WHEN-NON-TOP-LEVEL
 References:     CLtL p. 151, p. 152
 Category:       ADDITION
-Edit-History:   28-Jun-89, Version 1 by JonL White and Steve Haflich
+Edit History:   28-Jun-89, Version 1 by JonL White and Steve Haflich
                 12-Jul-89, Version 2 by Loosemore
                 24-Oct-89, Version 3 by Loosemore
                 19-Oct-90, Version 4 by Loosemore
@@ -40,7 +40,7 @@ that at least covers this capability.
 
 
 
-Proposal: (DEFINE-COMPILER-MACRO:X3J13-NOV89):
+Proposal (DEFINE-COMPILER-MACRO:X3J13-NOV89):
 
 Add the concept of "compiler macros" to the language, along with the
 defining macro DEFINE-COMPILER-MACRO and accessor function
@@ -178,7 +178,7 @@ COMPILER-MACRO-FUNCTION.
 
 
 
-Proposal: (DEFINE-COMPILER-MACRO:NEW-FACILITY):
+Proposal (DEFINE-COMPILER-MACRO:NEW-FACILITY):
 
 Introduce a new facility by additions as follows:
 

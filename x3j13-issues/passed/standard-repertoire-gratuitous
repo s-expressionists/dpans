@@ -4,7 +4,8 @@ References:	Character Committee Report, 7/25/89, Proposals 2.2.1 and 2.4.3
 Category:	Change
 Edit history:	Version 1, 1/3/90 by Kim A. Barrett
 
-Problem Description
+Problem Description:
+
   The Character Committee Report Proposal 2.2.1 (passed 3/89) requires
   implementations to support and document a STANDARD character subrepertoire,
   whose elements are the specified set of characters.  This set of characters
@@ -17,27 +18,34 @@ Problem Description
   type STANDARD is equivelent to the type STANDARD-CHAR.
 
 Proposal (STANDARD-REPERTOIRE-GRATUITOUS:RENAME):
+
   Change the name of the STANDARD character subrepertoire required by
   Character Proposal 2.2.1 to be STANDARD-CHAR.
 
 Rationale:
+
   This removes the duplication.
 
 Current Practice:
+
   Probably none.
 
 Cost to Implementors:
+
   Probably none.
 
 Cost to Users:
+
   Probably none.
 
 Benefits:
+
   Eliminates possible confusion when a person reading some code sees
     (TYPEP foo 'STANDARD)
   and wonders "STANDARD what?  Transmission?"
 
 Discussion:
+
   Pitman and Barrett support this proposal (RENAME).
 
   There was initally some concern that STANDARD-CHAR might not be a valid

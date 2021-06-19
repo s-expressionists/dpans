@@ -1,7 +1,7 @@
 Status:	Passed (as amended) Jan 89 X3J13
 Issue:          DEFSTRUCT-REDEFINITION
 References:     DEFSTRUCT (CLtL pp 305-320)
-Related-issues: DEFSTRUCT-ACCESS-FUNCTIONS-INLINE
+Related issues: DEFSTRUCT-ACCESS-FUNCTIONS-INLINE
 Category:       CLARIFICATION
 Edit history:   Version 1 by Skona Brittain 07/26/88
 		Version 2 by Larry Masinter  7-Jan-89
@@ -14,7 +14,7 @@ it legal to redefine a DEFSTRUCT? What happens to DEFSTRUCTS that :INCLUDE
 the one defined. What things might be "wired in" in compiled code that
 refered to the previous DEFSTRUCT?
 
-Proposal: (DEFSTRUCT-REDEFINITION:ERROR):
+Proposal (DEFSTRUCT-REDEFINITION:ERROR):
 
 The results of redefining a DEFSTRUCT structure are undefined.
 

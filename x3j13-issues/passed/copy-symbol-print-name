@@ -11,7 +11,7 @@ The description of COPY-SYMBOL states that it "returns a new uninterned
 symbol with the same print name as sym (its first argument)". The words
 "the same as" are not defined in CLtL. Do they mean EQ, EQUAL, ...?
  
-Proposal (COPY-SYMBOL-PRINT-NAME:EQUAL)
+Proposal (COPY-SYMBOL-PRINT-NAME:EQUAL):
  
 The description of COPY-SYMBOL should read as follows:
 "COPY-SYMBOL returns an uninterned
@@ -39,16 +39,11 @@ to return EQ strings.
 In this case, the strings aren't EQ even though the string characters are
 shared. (Think of it as strings displaced to a shared area.)
  
- 
-Adoption Cost:
- 
-?
- 
 Benefits:
  
 Less ambiguity in the specification, and potentially more portable code.
  
-Conversion Cost:
+Cost to Implementors:
  
 ?
  

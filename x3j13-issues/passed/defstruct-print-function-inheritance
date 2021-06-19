@@ -18,7 +18,7 @@ ambiguity, existing implementations have gone both ways, and users
 cannot depend on either #S syntax or the parent type's :PRINT-FUNCTION
 being used.
 
-Proposal: DEFSTRUCT-PRINT-FUNCTION-INHERITANCE:YES
+Proposal (DEFSTRUCT-PRINT-FUNCTION-INHERITANCE:YES):
 
 Clarify that defstruct types which :INCLUDE another type but do not
 specify an explicit :PRINT-FUNCTION inherit the structure print

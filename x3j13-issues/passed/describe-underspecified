@@ -31,7 +31,7 @@ Problem description:
  *STANDARD-OUTPUT* around the call to DESCRIBE.  This is a nuisance, and is
  also potentially a bad idea in implementations which have interrupts and such.
 
-Proposal DESCRIBE-UNDERSPECIFIED:DESCRIBE-OBJECT:
+Proposal (DESCRIBE-UNDERSPECIFIED:DESCRIBE-OBJECT):
 
  Remove the section of 88-002R which specifies that DESCRIBE is a generic
  function.  Modify DESCRIBE to accept an optional second stream argument, which

@@ -1,6 +1,6 @@
 Status: passed, 1988 (not sure which meeting)
 Issue:        ADJUST-ARRAY-DISPLACEMENT
-Reference:    ADJUST-ARRAY (CLtL p.297)
+References:   ADJUST-ARRAY (CLtL p.297)
 Category:     Clarification
 Edit history: Version 1 by Fahlman, 18-Apr-87 (from Steele's list)
               Version 2 by Masinter
@@ -11,7 +11,7 @@ Problem Description:
 
 The interaction of ADJUST-ARRAY and displaced arrays is insufficiently specified in the case where the array being adjusted is displaced.  
 
-Proposal: ADJUST-ARRAY-DISPLAYCEMENT:RULES
+Proposal (ADJUST-ARRAY-DISPLAYCEMENT:RULES):
 
 Interaction of adjusting and displacement:
 

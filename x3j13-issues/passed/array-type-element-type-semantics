@@ -84,7 +84,7 @@ Problem description:
  as to cause little or no confusion.
 
 
-Proposal: (ARRAY-TYPE-ELEMENT-TYPE-SEMANTICS:UNIFY-UPGRADING)
+Proposal (ARRAY-TYPE-ELEMENT-TYPE-SEMANTICS:UNIFY-UPGRADING):
 
  Short Summary:
 
