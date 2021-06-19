@@ -6,7 +6,7 @@ References:   File System Interface (pp409-427)
 Category:     CHANGE
 Edit history: 27-Dec-88, Version 1 by Pitman
 			17-Mar-89, Version 2 by Masinter (as amended)
-Subsumes:     Issue PATHNAME-TYPE-UNSPECIFIC
+Related Issues: PATHNAME-TYPE-UNSPECIFIC (Subsumed by this issue)
 
 Problem Description:
 

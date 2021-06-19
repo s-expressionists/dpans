@@ -39,7 +39,7 @@ It is now more useful to declare that variables have a value which
 is of type FUNCTION, since the type FUNCTION has a more well-specified
 meaning.
 
-Proposal (DECLARE-FUNCTION-AMBIGUITY:DELETE-FTYPE-ABBREVIATION)
+Proposal (DECLARE-FUNCTION-AMBIGUITY:DELETE-FTYPE-ABBREVIATION):
 
 The declaration (FUNCTION name argtypes valtypes) is no longer permitted
 to be an abbreviation for (FTYPE (FUNCTION argtypes valtypes) name).

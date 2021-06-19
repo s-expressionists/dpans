@@ -36,22 +36,29 @@ Current practice:
    Symbolics Common Lisp returns 1.
 
 Cost to Implementors:  
+
    Pretty small (one-line fix).
 
 Cost to Users:  
+
    None.
 
 Cost of non-adoption:  
+
    Continued embarassment for Steele.
 
 Performance impact:  
+
     Negligible.
 
 Benefits:  
+
     Correct handling of a seldom-used boundary case.
 
 Esthetics:  
+
     Mild improvement.
 
 Discussion:  
+
     Mentioned in Steele's December 1985 "clarifications".

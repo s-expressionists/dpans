@@ -1,6 +1,6 @@
 Status: Passed, 1988? (not sure which meeting)
 Issue:        FLET-IMPLICIT-BLOCK
-Reference:    CLtL p. 113, 67
+References:    CLtL p. 113, 67
 Category:     OMISSION 
 Edit history: Version 2 by cleanup committee 15-Mar-87 15:13:33
               Version 3 by Masinter (reformatting) 7-Apr-87 17:49:12 
@@ -22,7 +22,7 @@ Test case:
 
 will return (3 4) if FLET-IMPLICIT-BLOCK:YES is adopted, and would return 4 in an implementation that did not add an implicit block around FLET.
 
-Proposal: FLET-IMPLICIT-BLOCK:YES
+Proposal FLET-IMPLICIT-BLOCK:YES:
 
 Each function created by FLET and LABELS and each macro created by DEFMACRO and MACROLET has an implicit block around the body.  The name of this block is that same as the (lexical) name of the function or macro.  Similarly, the body code in DEFSETF, DEFINE-SETF-METHOD, and DEFTYPE is surrounded by a block with the same name as the accessor or type.
 

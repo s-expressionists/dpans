@@ -34,7 +34,7 @@ CLtL p14 and p34 disagree about BIGNUM. One says that
  FIXNUM and BIGNUM are an exhaustive partition of the
 integer space, the other says they might not be!
 
-Proposal: FIXNUM-NONPORTABLE:TIGHTEN-DEFINITION
+Proposal FIXNUM-NONPORTABLE:TIGHTEN-DEFINITION:
 
 (1) Change the description of the type FIXNUM to reflect that it is
  required to be a supertype of (SIGNED-BYTE 16).

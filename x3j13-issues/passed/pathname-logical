@@ -9,7 +9,7 @@ References:     Pathnames (pp410-413)
                 TRUENAME (p.413), MERGE-PATHNAMES (p.415), 
                 MAKE-PATHNAME (p.416), and PARSE-NAMESTRING (p.414).
 Related issues: PATHNAME-CANONICAL-TYPE, PATHNAME-COMPONENT-VALUES, 
-                PATHNAME-SUBDIRECTORY-LIST, and PATHNAME-WILD
+                PATHNAME-SUBDIRECTORY-LIST, PATHNAME-WILD
 Category:       ADDITION
 Edit history:   Version 1, 11-May-89, by Moon
                 Version 2, 18-May-89, by Moon

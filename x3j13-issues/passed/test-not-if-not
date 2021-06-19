@@ -27,7 +27,7 @@ References:     Functions offering a :TEST-NOT keyword:
                  NSUBSTITUTE-IF-NOT (p256), POSITION-IF-NOT (p257),
                  RASSOC-IF-NOT (p281), REMOVE-IF-NOT (p253),
                  SUBST-IF-NOT (p273), SUBSTITUTE-IF-NOT (p255);
-Related Issue:  FUNCTION-COMPOSITION
+Related Issues: FUNCTION-COMPOSITION
 Category:       CHANGE
 Edit history:   02-Oct-88, Version 1 by Pitman (just FLUSH-ALL)
                 05-Oct-88, Version 2 by Pitman (add option FLUSH-TEST-NOT)

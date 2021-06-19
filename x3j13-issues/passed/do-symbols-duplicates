@@ -10,7 +10,7 @@ Problem Description:
 
 CLtL specifies that DO-SYMBOLS executes the body once for each symbol accessible in the package.  It does not say whether it is permissible for the body to be executed more than once for some accessible symbols. The term "accessible" is defined on page 172 to include symbols inherited from other packages (not including any symbols that may be shadowed).  It is very expensive in some implementations to eliminate duplications that occur because the same symbol is inherited from multiple packages.
 
-Proposal: DO-SYMBOLS-DUPLICATES:ALLOWED
+Proposal DO-SYMBOLS-DUPLICATES:ALLOWED:
 
 Add to the specification of DO-SYMBOLS a note that it may execute the body more than once for some symbols.
 

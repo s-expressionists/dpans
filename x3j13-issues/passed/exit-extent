@@ -11,8 +11,8 @@ References:    CATCH, THROW (p 142),
                Catch is disestablished just before the values 
                are returned (CLtL p.139).
              
-Related issues: UNWIND-PROTECT-NON-LOCAL-EXIT is superseded
-                by this one.
+Related issues: UNWIND-PROTECT-NON-LOCAL-EXIT (is superseded
+                by this one)
 
 Category:      CLARIFICATION
 
