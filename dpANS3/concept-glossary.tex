@@ -1556,7 +1556,7 @@ The following are abbreviations used in the glossary:
  
 \gentry{dynamic variable} \Noun\
   a \term{variable} the \term{binding} for which is in the \term{dynamic environment}.
-  \Seemisc{special}.
+  See the \term{declaration} \declref{special}.
 
 \indextab{E}
 
@@ -2368,8 +2368,8 @@ The following are abbreviations used in the glossary:
       that is defined by the \term{implementation} 
       to be an \term{I/O customization variable}.
 
-\showthree{Standardized I/O Customization Variables}{
-*debug-io*&*error-io*&query-io*\cr
+\displaythree{Standardized I/O Customization Variables}{
+*debug-io*&*error-output*&*query-io*\cr
 *standard-input*&*standard-output*&*trace-output*\cr
 }
 
@@ -2541,7 +2541,7 @@ The following are abbreviations used in the glossary:
 \gentry{internal time unit} \Noun\ 
   a unit of time equal to $1/n$ of a second, 
   for some \term{implementation-defined} \term{integer} value of $n$.
-  \Seevar{internal-time-units-per-second}.
+  See the \term{constant variable} \conref{internal-time-units-per-second}.
 
 \gentry{interned} \Adjective\ \Traditional\ 
   1. (of a \term{symbol}) \term{accessible}\meaning{3} in
@@ -3515,7 +3515,7 @@ do-all-symbols&dolist&\cr
 
 \gentry{pretty printing stream} \Noun\ 
   a \term{stream} that does pretty printing.  Such streams are created by
-  \thefunction{pprint-logical-block} as a link between the output stream 
+  \themacro{pprint-logical-block} as a link between the output stream 
   and the logical block.
 
 \gentry{primary method} \Noun\ 
@@ -3912,7 +3912,7 @@ continue&store-value&\cr
   1. (of \term{code})
      processed in a \term{lexical environment} where the the highest
      \declref{safety} level (\f{3}) was in effect. 
-     \Seemisc{optimize}.
+     See the \term{declaration} \declref{optimize}.
   2. (of a \term{call}) a \term{safe call}.
 
 \gentry{safe call} \Noun\
