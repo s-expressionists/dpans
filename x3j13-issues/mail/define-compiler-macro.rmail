@@ -1,0 +1,1404 @@
+BABYL OPTIONS:
+Version: 5
+Labels:
+Note:   This is the header of an rmail file.
+Note:   If you are seeing it in rmail,
+Note:    it means the file has no messages in it.
+
+1,,
+Summary-line: 12-Jul      RPG@SAIL.Stanford.EDU  #re: issue DEFINE-COMPILER-MACRO
+Received: from Xerox.COM by pooh.parc.xerox.com with SMTP
+	(5.61+/IDA-1.2.8/gandalf) id AA16792; Wed, 12 Jul 89 10:34:37 PDT
+Received: from Semillon.ms by ArpaGateway.ms ; 12 JUL 89 10:31:29 PDT
+Return-Path: <X3J13-mailer@SAIL.Stanford.EDU>
+Received: from SAIL.Stanford.EDU ([36.86.0.194]) by Xerox.COM ; 12 JUL 89
+ 09:57:56 PDT
+Message-Id: <RrXSX@SAIL.Stanford.EDU>
+Date: 12 Jul 89 09:44 PDT
+From: Dick Gabriel <RPG@SAIL.Stanford.EDU>
+Subject: re: issue DEFINE-COMPILER-MACRO
+To: sandra%defun@CS.UTAH.EDU, jonl@LUCID.COM, smh@franz.com
+Cc: x3j13@SAIL.Stanford.EDU
+
+*** EOOH ***
+Date: 12 Jul 89 09:44 PDT
+From: Dick Gabriel <RPG@SAIL.Stanford.EDU>
+Subject: re: issue DEFINE-COMPILER-MACRO
+To: sandra%defun@CS.UTAH.EDU, jonl@LUCID.COM, smh@franz.com
+Cc: x3j13@SAIL.Stanford.EDU
+
+[In reply to message from sandra%defun@cs.utah.edu sent Tue, 11 Jul 89 14:03:02 MDT.]
+
+My take on this is that it is unspecified whether the function or the
+compiler macro will be used by the compiler if a compiler macro is
+present. This oversight(?) was what caused me to favor the proposal. I was
+worried that people would ignore maintaining either the function or the
+compiler macro once both were working. This way, no programmer can ever be
+sure which will be used in a porting situation, so both must always be
+maintained.
+
+			-rpg-
+
+
+
+1,,
+Summary-line: 12-Jul      RPG@SAIL.Stanford.EDU  #re: issue DEFINE-COMPILER-MACRO, version 2    
+Received: from Xerox.COM by pooh.parc.xerox.com with SMTP
+	(5.61+/IDA-1.2.8/gandalf) id AA17354; Wed, 12 Jul 89 13:08:07 PDT
+Received: from Semillon.ms by ArpaGateway.ms ; 12 JUL 89 10:50:45 PDT
+Return-Path: <X3J13-mailer@SAIL.Stanford.EDU>
+Received: from SAIL.Stanford.EDU ([36.86.0.194]) by Xerox.COM ; 12 JUL 89
+ 10:26:01 PDT
+Message-Id: <jrXeM@SAIL.Stanford.EDU>
+Date: 12 Jul 89 10:03 PDT
+From: Dick Gabriel <RPG@SAIL.Stanford.EDU>
+Subject: re: issue DEFINE-COMPILER-MACRO, version 2    
+To: sandra%defun@CS.UTAH.EDU, x3j13@SAIL.Stanford.EDU
+
+*** EOOH ***
+Date: 12 Jul 89 10:03 PDT
+From: Dick Gabriel <RPG@SAIL.Stanford.EDU>
+Subject: re: issue DEFINE-COMPILER-MACRO, version 2    
+To: sandra%defun@CS.UTAH.EDU, x3j13@SAIL.Stanford.EDU
+
+[In reply to message from sandra%defun@cs.utah.edu sent Wed, 12 Jul 89 10:19:53 MDT.]
+
+I don't believe this is a fair copy. I believe it was left unspecified
+whether the compiler would expand any compiler macros.  I recall that the
+reason for this apparently strange behavior was so that the compiler could
+determine whether the SIZE attribute overruled the use of too-large code.
+Possibly this interpretation is pedantically valid in your rewrite because
+the compiler must expand the macro, but it might discard the expansion.
+
+The provision I do remember was that if the compiler expanded any compiler
+macros, it would expand them all.  This was included to allow compiler
+macros to communicate among themselves.  This issue was the crucial one for
+me, so patching it over like this is not acceptable. If you want to change
+the proposal, I think a cleanup is in order.
+
+			-rpg-
+
+
+
+1,,
+Summary-line: 12-Jul   sandra%defun@cs.utah.edu  #re: issue DEFINE-COMPILER-MACRO, version 2    
+Received: from Xerox.COM by pooh.parc.xerox.com with SMTP
+	(5.61+/IDA-1.2.8/gandalf) id AA17360; Wed, 12 Jul 89 13:08:32 PDT
+Received: from Semillon.ms by ArpaGateway.ms ; 12 JUL 89 10:53:52 PDT
+Return-Path: <X3J13-mailer@SAIL.Stanford.EDU>
+Received: from SAIL.Stanford.EDU ([36.86.0.194]) by Xerox.COM ; 12 JUL 89
+ 10:35:29 PDT
+Received: from cs.utah.edu by SAIL.Stanford.EDU with TCP; 12 Jul 89
+ 10:24:15 PDT
+Received: from defun.utah.edu by cs.utah.edu (5.61/utah-2.1-cs)
+ 	id AA02553; Wed, 12 Jul 89 11:24:44 -0600
+Received: by defun.utah.edu (5.61/utah-2.0-leaf)
+ 	id AA06070; Wed, 12 Jul 89 11:24:41 -0600
+From: sandra%defun@cs.utah.edu (Sandra J Loosemore)
+Message-Id: <8907121724.AA06070@defun.utah.edu>
+Date: Wed, 12 Jul 89 11:24:40 MDT
+Subject: re: issue DEFINE-COMPILER-MACRO, version 2    
+To: Dick Gabriel <RPG@SAIL.Stanford.EDU>
+Cc: x3j13@SAIL.Stanford.EDU
+In-Reply-To: Dick Gabriel <RPG@SAIL.Stanford.EDU>, 12 Jul 89  1003 PDT
+
+*** EOOH ***
+From: sandra%defun@cs.utah.edu (Sandra J Loosemore)
+Date: Wed, 12 Jul 89 11:24:40 MDT
+Subject: re: issue DEFINE-COMPILER-MACRO, version 2    
+To: Dick Gabriel <RPG@SAIL.Stanford.EDU>
+Cc: x3j13@SAIL.Stanford.EDU
+In-Reply-To: Dick Gabriel <RPG@SAIL.Stanford.EDU>, 12 Jul 89  1003 PDT
+
+> Date: 12 Jul 89  1003 PDT
+> From: Dick Gabriel <RPG@SAIL.Stanford.EDU>
+> 
+> I don't believe this is a fair copy. I believe it was left unspecified
+> whether the compiler would expand any compiler macros.  I recall that the
+> reason for this apparently strange behavior was so that the compiler could
+> determine whether the SIZE attribute overruled the use of too-large code.
+> Possibly this interpretation is pedantically valid in your rewrite because
+> the compiler must expand the macro, but it might discard the expansion.
+
+Perhaps I wasn't clear enough when I mailed this out.  Version 2 was
+not a "rewrite".  I retyped the hardcopy of version 1 that was
+distributed at the meeting and added the amendments that were in
+Mary's minutes.  I did not make any additional changes or
+interpolations of my own other than fixing a few typos, as I noted.
+
+I don't remember if the other points you mentioned were discussed at
+the meeting or not.  They weren't recorded in the minutes, anyway. 
+
+-Sandra
+-------
+
+
+
+1,,
+Summary-line: 12-Jul   sandra%defun@cs.utah.edu  #Re: issue COMPILED-FUNCTION-REQUIREMENTS
+Received: from Xerox.COM by pooh.parc.xerox.com with SMTP
+	(5.61+/IDA-1.2.8/gandalf) id AA17362; Wed, 12 Jul 89 13:08:47 PDT
+Received: from Semillon.ms by ArpaGateway.ms ; 12 JUL 89 11:07:51 PDT
+Return-Path: <CL-Compiler-mailer@SAIL.Stanford.EDU>
+Received: from SAIL.Stanford.EDU ([36.86.0.194]) by Xerox.COM ; 12 JUL 89
+ 10:54:35 PDT
+Received: from cs.utah.edu by SAIL.Stanford.EDU with TCP; 12 Jul 89
+ 10:46:21 PDT
+Received: from defun.utah.edu by cs.utah.edu (5.61/utah-2.1-cs)
+ 	id AA03735; Wed, 12 Jul 89 11:46:47 -0600
+Received: by defun.utah.edu (5.61/utah-2.0-leaf)
+ 	id AA06085; Wed, 12 Jul 89 11:46:45 -0600
+From: sandra%defun@cs.utah.edu (Sandra J Loosemore)
+Message-Id: <8907121746.AA06085@defun.utah.edu>
+Date: Wed, 12 Jul 89 11:46:43 MDT
+Subject: Re: issue COMPILED-FUNCTION-REQUIREMENTS
+To: <masinter@pooh.parc.xerox.com>
+Cc: sandra%defun@cs.utah.edu, cl-editorial@sail.stanford.edu,
+        cl-compiler@sail.stanford.edu
+In-Reply-To: <masinter@arisia.Xerox.COM>, Wed, 12 Jul 89 00:08:26 PDT
+
+*** EOOH ***
+From: sandra%defun@cs.utah.edu (Sandra J Loosemore)
+Date: Wed, 12 Jul 89 11:46:43 MDT
+Subject: Re: issue COMPILED-FUNCTION-REQUIREMENTS
+To: <masinter@pooh.parc.xerox.com>
+Cc: sandra%defun@cs.utah.edu, cl-editorial@sail.stanford.edu,
+        cl-compiler@sail.stanford.edu
+In-Reply-To: <masinter@arisia.Xerox.COM>, Wed, 12 Jul 89 00:08:26 PDT
+
+> Date: Wed, 12 Jul 89 00:08:26 PDT
+> From: <masinter@arisia.Xerox.COM>
+> 
+> I intended to vote on a proposal that COMPILE must produce a COMPILED-FUNCTION,
+> and that it isn't an error to pass COMPILE a function defined in a non-null
+> lexical environment.
+> 
+> In fact, I believe this was explicitly discussed at the meeting. 
+
+I remember that it was discussed, with lots of argumentation on both
+sides, but I don't recall that a consensus was ever reached.  I
+suspect that many people on both sides of the issue thought the
+proposal resolved this whichever way they wanted it, but the actual
+language we voted on says nothing specific.  I don't have a record
+that we agreed to further "editorial" clarifications in either my
+notes or Mary's minutes.
+
+> Maybe we have to re-clarify again at another meeting, but it seems like
+> a not to difficult burden to all valid common lisp implementations that
+> their function "COMPILE" actually work on all things that are called
+> FUNCTION (especially since there isn't a good way, given a function object,
+> to decide whether it might be "defined in a non-null lexical environment".)
+
+Yes, there is such a way.  See the cleanup issue FUNCTION-DEFINITION. 
+
+-Sandra
+-------
+
+
+
+1,,
+Summary-line: 24-Oct   sandra%defun@cs.utah.edu  #issue DEFINE-COMPILER-MACRO, version 3
+Received: from Xerox.COM by pooh.parc.xerox.com with SMTP
+	(5.61+/IDA-1.2.8/gandalf) id AA13894; Tue, 24 Oct 89 17:57:29 PDT
+Received: from Salvador.ms by ArpaGateway.ms ; 24 OCT 89 17:38:12 PDT
+Return-Path: <X3J13-mailer@SAIL.Stanford.EDU>
+Received: from SAIL.Stanford.EDU ([36.86.0.194]) by Xerox.COM ; 24 OCT 89
+ 12:58:23 PDT
+Received: from cs.utah.edu by SAIL.Stanford.EDU with TCP; 24 Oct 89
+ 12:50:22 PDT
+Received: from defun.utah.edu by cs.utah.edu (5.61/utah-2.4-cs)
+ 	id AA18622; Tue, 24 Oct 89 13:50:04 -0600
+Received: by defun.utah.edu (5.61/utah-2.3-leaf)
+ 	id AA08819; Tue, 24 Oct 89 13:49:58 -0600
+From: sandra%defun@cs.utah.edu (Sandra J Loosemore)
+Message-Id: <8910241949.AA08819@defun.utah.edu>
+Date: Tue, 24 Oct 89 13:49:56 MDT
+Subject: issue DEFINE-COMPILER-MACRO, version 3
+To: x3j13@sail.stanford.edu
+
+*** EOOH ***
+From: sandra%defun@cs.utah.edu (Sandra J Loosemore)
+Date: Tue, 24 Oct 89 13:49:56 MDT
+Subject: issue DEFINE-COMPILER-MACRO, version 3
+To: x3j13@sail.stanford.edu
+
+We passed version 2 (proposal NEW-FACILITY) of this issue at the June
+meeting.  Since then there has been some confusion about what exactly
+was voted on, and some additional suggestions for changes to this
+feature.
+
+This writeup includes the unchanged proposal NEW-FACILITY and a new
+proposal, FIX-BUGS, that is a list of amendments to NEW-FACILITY.  I
+thought this organization would make it easier to understand what the
+differences are and why.  We might want to consider voting on the
+items separately.
+
+Forum:		Cleanup
+Issue:		DEFINE-COMPILER-MACRO
+Related Issues: Issue DEFINE-OPTIMIZER
+		Issue SYNTACTIC-ENVIRONMENT-ACCESS
+		Issue LISP-SYMBOL-REDEFINITION
+References:	CLtL p. 151, p. 152
+Category:	ADDITION
+Edit-History:   28-Jun-89, Version 1 by JonL White and Steve Haflich
+		12-Jul-89, Version 2 by Loosemore
+                24-Oct-89, Version 3 by Loosemore
+Status:		Version 2 (proposal NEW-FACILITY) passed at June 89 meeting
+
+
+Problem Description:
+
+Occasionally one would like to define a macro which is expanded only
+"in the compiler", but which would not normally affect the actions of
+the interpreter.  For example, the OSS/Generator proposal has several
+functions for which it would like to specify some alternative source
+code sequences for the compiler to compiler, rather than just
+compiling a closed-call to the function.
+
+Also, it is occasionally desirable for a macro expansion to be
+different based on the various compiler optimization qualities (e.g.,
+SPEED, SAFETY, and so on); but if the expansion is for the interpreter
+rather than the compiler, then such variation based on compiler
+optimizers is not needed.
+
+So-called "compiler optimizers" are just a special case of macro-like
+expansions, which are limited to being done "in the compiler" and
+which are generally required to produce semantically equivalent code
+to replace an apparent function call.  There is a need for a facility
+that at least covers this capability.
+
+
+Proposal: (DEFINE-COMPILER-MACRO:NEW-FACILITY):
+
+Introduce a new facility by additions as follows:
+
+Macro:
+
+DEFINE-COMPILER-MACRO name lambda-list {doc-string} {declarations}* {form}*
+
+  This is just like DEFMACRO except the definition isn't stored in the
+  symbol function cell of 'name', and isn't seen by MACROEXPAND-1 (but
+  is seen by COMPILER-MACROEXPAND-1 -- see below).  Like DEFMACRO, the
+  lambdalist may include &ENVIRONMENT and &WHOLE.  The definition is
+  "global"; there is no explicit provision for defining local compiler
+  macros in the way that MACROLET defines local macros.
+
+  A toplevel call to DEFINE-COMPILER-MACRO in a file being compiled by
+  COMPILE-FILE has an effect on the compilation environment similar to
+  what a call to DEFMACRO would have, except it is noticed as a
+  "compiler macro".
+
+
+Function:
+
+COMPILER-MACRO-FUNCTION name &OPTIONAL env
+
+  If 'name' is a symbol that has been defined as a compiler macro, then
+  calling COMPILER-MACRO-FUNCTION on it returns the macro expansion
+  function; otherwise it returns NIL.  'name' must be a symbol.  The
+  local lexical environment may override a global definition for 'name'
+  by defining a local function or local macro (such as by FLET,
+  MACROLET, etc.), in which case NIL is returned; the optional argument
+  'env' is provided so that clients may pass in &environment objects for
+  this purpose.
+
+  SETF may be used with COMPILER-MACRO-FUNCTION to install a function as
+  the expansion function for the compiler macro 'name', analogously to
+  using SETF on MACRO-FUNCTION.  SETF'ing to NIL removes any existing
+  compiler macro definition.  Like MACRO-FUNCTION, the SETF value (if not
+  NIL) must be a function of two arguments:  the entire macro call, and 
+  the environment.  The second argument to COMPILER-MACRO-FUNCTION must
+  be omitted when it is SETFed.
+
+
+Functions:
+
+COMPILER-MACROEXPAND form &OPTIONAL env
+COMPILER-MACROEXPAND-1 form &OPTIONAL env
+
+  This is just like MACROEXPAND and MACROEXPAND-1 (see CLtL p.151)
+  except that the expander function is obtained as if by a call to
+  COMPILER-MACRO-FUNCTION on the CAR of 'form' rather than by a call to
+  MACRO-FUNCTION.  There are three cases wherein no expansion happens:
+  
+    (1) There is no compiler macro definition for the CAR of 'form';
+    (2) There is such a definition but there is also a NOTINLINE
+        declaration, either globally or in the lexical environment 'env';
+    (3) A global compiler macro definition is shadowed by a local
+        function or macro definition (such as by FLET, LABELS, or MACROLET).
+  
+  Note that if there is no expansion, the original form is returned as
+  the first value, and NIL as the second value.
+  
+  When COMPILER-MACROEXPAND-1 discovers that there is to be an expansion
+  it does it by calling the function in *MACROEXPAND-HOOK* (see CltL p.152).
+
+
+The purpose of this facility is to permit selective source-code
+transformations based on whether the compiler is processing the code.
+When the compiler is about to compile a nonatomic form, it first calls
+COMPILER-MACROEXPAND-1 repeatedly until there is no more expansion
+(there might not be any to begin with).  Then it continues its
+remaining processing, which may include calling MACROEXPAND-1 etc.
+
+The compiler is required to expand compiler macros; it is unspecified
+whether the interpreter does so.  The intention is that only the
+compiler will do so, but the range of possible "compiled-only"
+implementation strategies precludes any firm specification.
+
+Note that a compiler macro may decline to provide any expansion merely
+by returning the original form; this is useful when using the facility
+to put "compiler optimizers" on various function names.  For example,
+here is a compiler macro that "optimizes" the 0- and 1-argument cases of
+a function called PLUS:
+
+    (define-compiler-macro plus (&whole form &rest args)
+	(case (length args)
+	    (0 0)
+	    (1 (car args))
+	    (t form)))
+
+The issue LISP-SYMBOL-REDEFINITION precludes user definition of any
+compiler macros for symbols external in the Lisp package that have a
+definition as a function, macro, or special form.
+
+Note that compiler macros do not appear in information returned by
+FUNCTION-INFORMATION; they are global, and their interaction
+with other lexical and global definitions can be reconstructed by
+COMPILER-MACRO-FUNCTION.  It is up to code-walking programs to decide
+whether to invoke compiler macro expansion.
+
+
+  Rationale:
+
+  Many implementations have it.  Many users have requested a way to add
+  source-code "optimizers" to the compiler.
+
+  Other than INLINE declarations for functions there is no other way to
+  customize how calls to a specific function are compiled.  DEFMACRO is
+  not usable for this purpose since it requires use of the
+  symbol-function cell, which would prevent the functional definition
+  from being active in the compilation environment.
+
+
+Proposal: (DEFINE-COMPILER-MACRO:FIX-BUGS):
+
+Amend proposal NEW-FACILITY as follows:
+
+(1) Clarify that it is unspecified whether any language processor
+(compiler, evaluator, random code walker) must actually use the
+expansion of a compiler macro in place of the original call.
+
+    Rationale:
+
+    A number of people have indicated that this point was discussed and
+    agreed upon at the June 89 meeting, but there is no record of it in
+    the minutes and no formal amendment to the proposal was made at that
+    time.  Because of this, there is still some confusion about whether
+    this was really the intent of the proposal.
+
+(2) Change the proposal to leave it unspecified whether any language
+processor must invoke the compiler macro function.
+
+    Rationale:
+
+    Items (1) and (2) together place compiler-macros in much the same
+    category as declarations.  That is, a language processor can determine
+    when it is appropriate to apply compiler macros based on declarations
+    or other implementation-dependent considerations.  This is more
+    consistent with other parts of the language, where we have tried to
+    minimize the differences between the semantics of interpreted and
+    compiled code.
+
+    One specific reason for removing the requirement that the compiler
+    always expand compiler macros is that there may be a substantial
+    compile-time performance penalty involved in doing so.
+    Implementations might wish to use the COMPILATION-SPEED optimize
+    quality to control this, for example.
+
+(3) Change the proposal so that expansion of compiler macros by
+COMPILER-MACROEXPAND and COMPILER-MACROEXPAND-1 is not inhibited by
+NOTINLINE declarations.  Instead, forbid language processors from
+making use of compiler macro expansions when the corresponding
+function has been declared NOTINLINE, in the same way that they are
+now required not to perform inline expansion of functions in the
+presence of NOTINLINE declarations.
+
+    Rationale:
+
+    This is primarily an aesthetic change to make the relationship 
+    between COMPILER-MACROEXPAND/COMPILER-MACROEXPAND-1 and
+    COMPILER-MACRO-FUNCTION exactly analogous to the relationship between
+    MACROEXPAND/MACROEXPAND-1 and MACRO-FUNCTION.  In addition, in
+    combination with item (2) it removes the requirement of the unamended
+    proposal that compilers pay attention to NOTINLINE declarations.  (In
+    other words, processors would only be required to pay attention 
+    to NOTINLINE declarations if they also perform either inline 
+    transformations or compiler macro substitution.)
+
+(4) Clarify that issue LISP-SYMBOL-REDEFINITION does not, in fact,
+prohibit user definition of compiler macros for symbols in the
+common-lisp package.  Instead, this is a constraint which has been
+added with this issue.  It is consistent with other constraints
+in issue LISP-SYMBOL-REDEFINITION but is not implied by that issue.
+
+    Rationale:
+
+    This was an unintentional mis-statement in the language of the 
+    original proposal.
+
+(5) Clarify that if COMPILE-FILE chooses to use the expansion of a
+top-level compiler macro call in place of the original macro call,
+then that expansion is also treated as a top-level form by
+COMPILE-FILE for the purposes of EVAL-WHEN processing.
+
+    Rationale:
+
+    The original proposal didn't say anything about this, but it is
+    consistent with the treatment of ordinary top-level macro calls by 
+    COMPILE-FILE.
+
+
+
+Current Practice:
+
+Lucid, Franz, and Symbolics have very similar facilities.  Hunoz about
+the others?
+
+
+Cost to Implementors:
+
+Minor: implement a method for storing named expansion functions, and
+tweak the compiler in one or two places.
+
+
+Cost to Users:
+
+None.  This is an upward-compatible addition.
+
+
+Benefits:
+
+Increased portability for clients of the existing facilities.
+
+
+Discussion:
+
+There has been extensive discussion under the issue DEFINE-OPTIMIZER.
+-------
+
+
+
+1,,
+Summary-line: 24-Oct           barmar@Think.COM  #issue DEFINE-COMPILER-MACRO, version 3
+Received: from Xerox.COM by pooh.parc.xerox.com with SMTP
+	(5.61+/IDA-1.2.8/gandalf) id AA14204; Tue, 24 Oct 89 18:51:24 PDT
+Received: from Cabernet.ms by ArpaGateway.ms ; 24 OCT 89 18:40:25 PDT
+Return-Path: <X3J13-mailer@SAIL.Stanford.EDU>
+Received: from SAIL.Stanford.EDU ([36.86.0.194]) by Xerox.COM ; 24 OCT 89
+ 17:04:39 PDT
+Received: from Think.COM (Gateway.Think.COM) by SAIL.Stanford.EDU with TCP;
+ 24 Oct 89  16:38:11 PDT
+Return-Path: <barmar@Think.COM>
+Received: from Occam.Think.COM by Think.COM; Tue, 24 Oct 89 19:39:51 -0400
+Date: Tue, 24 Oct 89 19:34 EDT
+From: Barry Margolin <barmar@Think.COM>
+Subject: issue DEFINE-COMPILER-MACRO, version 3
+To: Sandra J Loosemore <sandra%defun@cs.utah.edu>
+Cc: x3j13@sail.stanford.edu
+In-Reply-To: <8910241949.AA08819@defun.utah.edu>
+Message-Id: <19891024233456.3.BARMAR@OCCAM.THINK.COM>
+
+*** EOOH ***
+Date: Tue, 24 Oct 89 19:34 EDT
+From: Barry Margolin <barmar@Think.COM>
+Subject: issue DEFINE-COMPILER-MACRO, version 3
+To: Sandra J Loosemore <sandra%defun@cs.utah.edu>
+Cc: x3j13@sail.stanford.edu
+In-Reply-To: <8910241949.AA08819@defun.utah.edu>
+
+    Date: Tue, 24 Oct 89 13:49:56 MDT
+    From: sandra%defun@cs.utah.edu (Sandra J Loosemore)
+
+    Forum:		Cleanup
+    Issue:		DEFINE-COMPILER-MACRO
+    Related Issues: Issue DEFINE-OPTIMIZER
+		    Issue SYNTACTIC-ENVIRONMENT-ACCESS
+		    Issue LISP-SYMBOL-REDEFINITION
+    References:	CLtL p. 151, p. 152
+    Category:	ADDITION
+    Edit-History:   28-Jun-89, Version 1 by JonL White and Steve Haflich
+		    12-Jul-89, Version 2 by Loosemore
+		    24-Oct-89, Version 3 by Loosemore
+    Status:		Version 2 (proposal NEW-FACILITY) passed at June 89 meeting
+
+It would have been better if you'd done this as a separate issue, rather
+than a new version of the old issue.  It was not obvious which sections
+outside the Proposal section were new and which were old.  I decided
+that the only change was the additional proposal.  This means that there
+are no Problem Description, Current Practice, Cost to
+Implementors/Users, Esthetics, or Discussion sections associated with
+your new proposal.  If someone were to try to read this issue knowing
+the derivation, they'd find it very inconsistent (for instance, the
+Current Practice section says that several implementations "have very
+similar facilities", but doesn't say which variant they are more similar
+to).
+
+Also, it's not clear what you expect us to do with this at the next
+meeting?  Technically, by combining your amendments into the original
+issue, you're requiring us to bring the issue up for reconsideration,
+which means that we go back to the state before they were approved; if
+we then get deadlocked on it, compiler macros go away (I won't cry, but
+others might not like it).  If you just want to propose changes to an
+existing facility (anything we've approved is has the same status as
+CLtL), write a new issue.
+
+    Proposal: (DEFINE-COMPILER-MACRO:FIX-BUGS):
+
+    Amend proposal NEW-FACILITY as follows:
+
+    (2) Change the proposal to leave it unspecified whether any language
+    processor must invoke the compiler macro function.
+
+	Rationale:
+
+	Items (1) and (2) together place compiler-macros in much the same
+	category as declarations.  That is, a language processor can determine
+	when it is appropriate to apply compiler macros based on declarations
+	or other implementation-dependent considerations.  This is more
+	consistent with other parts of the language, where we have tried to
+	minimize the differences between the semantics of interpreted and
+	compiled code.
+
+	One specific reason for removing the requirement that the compiler
+	always expand compiler macros is that there may be a substantial
+	compile-time performance penalty involved in doing so.
+	Implementations might wish to use the COMPILATION-SPEED optimize
+	quality to control this, for example.
+
+There was quite a bit of discussion about this, and NEW-FACILITY is the
+result of this.  It was intentional that the language require compiler
+macros to be invoked.  Some people suggested that compiler macros might
+try to communicate with each other, and licensing the implementation to
+arbitrarily decide not to invoke one of the compiler macros would screw
+up such code.
+
+
+
+1,,
+Summary-line: 30-Oct   sandra%defun@cs.utah.edu  #Re: issue DEFINE-COMPILER-MACRO, version 3
+Received: from Xerox.COM by pooh.parc.xerox.com with SMTP
+	(5.61+/IDA-1.2.8/gandalf) id AA12701; Mon, 30 Oct 89 15:23:17 PST
+Received: from Salvador.ms by ArpaGateway.ms ; 30 OCT 89 15:23:37 PST
+Return-Path: <X3J13-mailer@SAIL.Stanford.EDU>
+Received: from SAIL.Stanford.EDU ([36.86.0.194]) by Xerox.COM ; 30 OCT 89
+ 14:48:16 PST
+Received: from cs.utah.edu by SAIL.Stanford.EDU with TCP; 30 Oct 89
+ 14:41:58 PST
+Received: from defun.utah.edu by cs.utah.edu (5.61/utah-2.4-cs)
+ 	id AA26494; Mon, 30 Oct 89 15:41:43 -0700
+Received: by defun.utah.edu (5.61/utah-2.3-leaf)
+ 	id AA14535; Mon, 30 Oct 89 15:41:35 -0700
+From: sandra%defun@cs.utah.edu (Sandra J Loosemore)
+Message-Id: <8910302241.AA14535@defun.utah.edu>
+Date: Mon, 30 Oct 89 15:41:34 MST
+Subject: Re: issue DEFINE-COMPILER-MACRO, version 3
+To: Barry Margolin <barmar@Think.COM>
+Cc: Sandra J Loosemore <sandra%defun@cs.utah.edu>, x3j13@sail.stanford.edu
+In-Reply-To: Barry Margolin <barmar@Think.COM>, Tue, 24 Oct 89 19:34 EDT
+
+*** EOOH ***
+From: sandra%defun@cs.utah.edu (Sandra J Loosemore)
+Date: Mon, 30 Oct 89 15:41:34 MST
+Subject: Re: issue DEFINE-COMPILER-MACRO, version 3
+To: Barry Margolin <barmar@Think.COM>
+Cc: Sandra J Loosemore <sandra%defun@cs.utah.edu>, x3j13@sail.stanford.edu
+In-Reply-To: Barry Margolin <barmar@Think.COM>, Tue, 24 Oct 89 19:34 EDT
+
+> Date: Tue, 24 Oct 89 19:34 EDT
+> From: Barry Margolin <barmar@Think.COM>
+> 
+> Also, it's not clear what you expect us to do with this at the next
+> meeting?  Technically, by combining your amendments into the original
+> issue, you're requiring us to bring the issue up for reconsideration,
+> which means that we go back to the state before they were approved; if
+> we then get deadlocked on it, compiler macros go away (I won't cry, but
+> others might not like it).
+
+We've brought up revised versions of issues that had previously been
+passed before, with the understanding that the previous version would
+stand if the new one failed.  That is what I expect to happen here.
+Some people might also think it is appropriate to take a vote to
+confirm that proposal NEW-FACILITY reflects what was actually approved
+at the June meeting, since earlier some questions were raised about
+whether the writeup was accurate.  (We've done that before with other
+issues too.)  
+
+> Some people suggested that compiler macros might
+> try to communicate with each other, and licensing the implementation to
+> arbitrarily decide not to invoke one of the compiler macros would screw
+> up such code.
+
+I can't take this argument seriously.  For one thing, various people
+have indicated that it was agreed at the last meeting that, although
+the compiler must call the compiler macro function, it need not
+actually use the result.  So that would already break any user program
+that depends on compiler macros that communicate with each other
+through their expansions.  The other possibility is that they try to
+communicate with each other by side-effects in the expander function
+itself.  CLtL is already quite clear (see pages 143-144) that this
+won't work for ordinary macros, since there are no guarantees about
+the expander functions being called at any particular time, in any
+particular order, or in any particular execution environment.  Why
+should compiler-macros be any different (especially since the original
+proposal says they're "just like" ordinary macros)? 
+
+-Sandra
+-------
+
+
+
+1, answered,,
+Summary-line:  2-Nov  Moon@STONY-BROOK.SCRC.Sym  #issue DEFINE-COMPILER-MACRO, version 3
+Received: from Xerox.COM by pooh.parc.xerox.com with SMTP
+	(5.61+/IDA-1.2.8/gandalf) id AA28668; Thu, 2 Nov 89 10:51:43 PST
+Received: from Semillon.ms by ArpaGateway.ms ; 02 NOV 89 10:50:38 PST
+Return-Path: <X3J13-mailer@SAIL.Stanford.EDU>
+Received: from SAIL.Stanford.EDU ([36.86.0.194]) by Xerox.COM ; 02 NOV 89
+ 10:43:30 PST
+Received: from STONY-BROOK.SCRC.Symbolics.COM by SAIL.Stanford.EDU with
+ TCP; 2 Nov 89  10:33:24 PST
+Received: from EUPHRATES.SCRC.Symbolics.COM by
+ STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 686279; 2 Nov
+ 89 13:32:07 EST
+Date: Thu, 2 Nov 89 13:32 EST
+From: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: issue DEFINE-COMPILER-MACRO, version 3
+To: x3j13@sail.stanford.edu
+In-Reply-To: <8910241949.AA08819@defun.utah.edu>
+References: <6v83R@SAIL.Stanford.EDU>,
+             <8907190732.AA03107@masunter.parc.xerox.com>,
+             <8907140203.AA07138@defun.utah.edu>,
+             <19890713224024.9.MOON@EUPHRATES.SCRC.Symbolics.COM>,
+             <8907131922.AA16436@bhopal>,
+             <8907131729.AA06791@defun.utah.edu>,
+             <8907131656.AA13108@verdi.think.com>,
+             <8907131702.AA07543@clam.sun.com>,
+             <19890713160237.2.MOON@EUPHRATES.SCRC.Symbolics.COM>,
+             <Bs705@SAIL.Stanford.EDU>,
+             <8907122158.AA06269@defun.utah.edu>,
+             <8907122134.AA14129@bhopal>,
+             <19890712210002.4.MOON@EUPHRATES.SCRC.Symbolics.COM>,
+             <8907121724.AA06070@defun.utah.edu>,
+             <jrXeM@SAIL.Stanford.EDU>,
+             <RrXSX@SAIL.Stanford.EDU>,
+             <8907121619.AA06014@defun.utah.edu>,
+             <8907120307.AA05623@defun.utah.edu>,
+             <8907120122.AA12092@bhopal>,
+             <8907112354.AA02537@aurora.Franz.COM>,
+             <8907112003.AA05354@defun.utah.edu>
+Message-Id: <19891102183214.6.MOON@EUPHRATES.SCRC.Symbolics.COM>
+
+*** EOOH ***
+Date: Thu, 2 Nov 89 13:32 EST
+From: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: issue DEFINE-COMPILER-MACRO, version 3
+To: x3j13@sail.stanford.edu
+In-Reply-To: <8910241949.AA08819@defun.utah.edu>
+References: <6v83R@SAIL.Stanford.EDU>,
+             <8907190732.AA03107@masunter.parc.xerox.com>,
+             <8907140203.AA07138@defun.utah.edu>,
+             <19890713224024.9.MOON@EUPHRATES.SCRC.Symbolics.COM>,
+             <8907131922.AA16436@bhopal>,
+             <8907131729.AA06791@defun.utah.edu>,
+             <8907131656.AA13108@verdi.think.com>,
+             <8907131702.AA07543@clam.sun.com>,
+             <19890713160237.2.MOON@EUPHRATES.SCRC.Symbolics.COM>,
+             <Bs705@SAIL.Stanford.EDU>,
+             <8907122158.AA06269@defun.utah.edu>,
+             <8907122134.AA14129@bhopal>,
+             <19890712210002.4.MOON@EUPHRATES.SCRC.Symbolics.COM>,
+             <8907121724.AA06070@defun.utah.edu>,
+             <jrXeM@SAIL.Stanford.EDU>,
+             <RrXSX@SAIL.Stanford.EDU>,
+             <8907121619.AA06014@defun.utah.edu>,
+             <8907120307.AA05623@defun.utah.edu>,
+             <8907120122.AA12092@bhopal>,
+             <8907112354.AA02537@aurora.Franz.COM>,
+             <8907112003.AA05354@defun.utah.edu>
+
+I have carefully re-read the referenced mail on this topic (mostly from
+July) and I believe that DEFINE-COMPILER-MACRO:FIX-BUGS, version 3,
+correctly addresses all the issues raised in that mail.  I see two
+remaining issues and one problem.
+
+1. It is not made clear whether a compiler macro can be defined only for
+the name of a function, or also for the name of a macro or of a special
+form.  I believe the intent was that a compiler macro can be defined for
+any symbol, except the user can't define one for a Common Lisp defined
+name that names a function, macro, or special form.  The implementation
+could define a compiler macro that shadows a special form.  An
+implementation that allows users to define special forms in their own
+package (as an extension) would have to allow users to shadow their
+special forms with compiler macros.  I would like to see the proposal
+clarified to state explicitly that a compiler macro can be defined for
+any symbol (other than the ones ruled out in point 4).  Of course there
+is no guarantee that a language processor will ever call a compiler
+macro.
+
+2. There doesn't seem to have been any coordination with the FUNCTION-NAME
+proposal.  A couple of places in the writeup, although not the description
+of DEFINE-COMPILER-MACRO itself, say the name has to be a symbol.  It seems
+legitimate to me to define a compiler-macro for a SETF function, so I would
+like to see the proposal extended to allow the name of a compiler macro to
+be any function-name (rather than any symbol) except for those function-names
+(including SETF names) that are defined as operator names by the Common Lisp
+language.
+
+3. Although Sandra's version 3 writeup satisfactorily addresses the issues
+as a cleanup proposal, it is not in a form that is any use as part of the
+draft language specification document.  Someone's going to have to write
+that stuff.  Currently there are no writeups for the macro and three functions
+added by the proposal, and the writeups in the evaluation and compilation
+sections (pages 4-8 and 4-34) are rather a mess and not completely consistent
+with this cleanup proposal, so they will need to be reworked.  Because the
+cleanup issue is so far from the form needed in the document, there is room
+for ambiguity, or variation from what people thought, perhaps incorrectly,
+they were voting for, during that writing.  I have no good suggestion for
+this except that if anyone is a fast writer perhaps they could bring a
+first draft to the meeting next week.
+
+
+
+1,,
+Summary-line:  2-Nov  Moon@STONY-BROOK.SCRC.Sym  #issue DEFINE-COMPILER-MACRO, version 3
+Received: from Xerox.COM by pooh.parc.xerox.com with SMTP
+	(5.61+/IDA-1.2.8/gandalf) id AA29116; Thu, 2 Nov 89 12:18:31 PST
+Received: from Semillon.ms by ArpaGateway.ms ; 02 NOV 89 12:15:44 PST
+Return-Path: <X3J13-mailer@SAIL.Stanford.EDU>
+Received: from SAIL.Stanford.EDU ([36.86.0.194]) by Xerox.COM ; 02 NOV 89
+ 12:05:21 PST
+Received: from STONY-BROOK.SCRC.Symbolics.COM by SAIL.Stanford.EDU with
+ TCP; 2 Nov 89  11:59:40 PST
+Received: from EUPHRATES.SCRC.Symbolics.COM by
+ STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 686365; 2 Nov
+ 89 14:58:19 EST
+Date: Thu, 2 Nov 89 14:58 EST
+From: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: issue DEFINE-COMPILER-MACRO, version 3
+To: x3j13@sail.stanford.edu
+In-Reply-To: <19891102183214.6.MOON@EUPHRATES.SCRC.Symbolics.COM>
+Message-Id: <19891102195835.2.MOON@EUPHRATES.SCRC.Symbolics.COM>
+
+*** EOOH ***
+Date: Thu, 2 Nov 89 14:58 EST
+From: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: issue DEFINE-COMPILER-MACRO, version 3
+To: x3j13@sail.stanford.edu
+In-Reply-To: <19891102183214.6.MOON@EUPHRATES.SCRC.Symbolics.COM>
+
+Clarification:
+
+    Date: Thu, 2 Nov 89 13:32 EST
+    From: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+    ....the writeups in the evaluation and compilation
+    sections (pages 4-8 and 4-34) are rather a mess and not completely consistent
+    with this cleanup proposal, so they will need to be reworked.
+
+This comment refers specifically to the paragraphs on compiler macros, not to
+the entire sections containing them.  I have not read section 4.2 at all yet,
+except for the one part about compiler macros, and I'm still going through
+section 4.1.
+
+
+
+1,,
+Summary-line:  2-Nov      RPG@SAIL.Stanford.EDU  #re: issue DEFINE-COMPILER-MACRO, version 3    
+Received: from Xerox.COM by pooh.parc.xerox.com with SMTP
+	(5.61+/IDA-1.2.8/gandalf) id AA01047; Thu, 2 Nov 89 16:47:21 PST
+Received: from Salvador.ms by ArpaGateway.ms ; 02 NOV 89 16:47:00 PST
+Return-Path: <X3J13-mailer@SAIL.Stanford.EDU>
+Received: from SAIL.Stanford.EDU ([36.86.0.194]) by Xerox.COM ; 02 NOV 89
+ 16:41:01 PST
+Message-Id: <1K5zOT@SAIL.Stanford.EDU>
+Date: 02 Nov 89 16:29 PST
+From: Dick Gabriel <RPG@SAIL.Stanford.EDU>
+Subject: re: issue DEFINE-COMPILER-MACRO, version 3    
+To: sandra%defun@CS.UTAH.EDU, Moon@STONY-BROOK.SCRC.SYMBOLICS.COM
+Cc: x3j13@SAIL.Stanford.EDU
+
+*** EOOH ***
+Date: 02 Nov 89 16:29 PST
+From: Dick Gabriel <RPG@SAIL.Stanford.EDU>
+Subject: re: issue DEFINE-COMPILER-MACRO, version 3    
+To: sandra%defun@CS.UTAH.EDU, Moon@STONY-BROOK.SCRC.SYMBOLICS.COM
+Cc: x3j13@SAIL.Stanford.EDU
+
+[In reply to message from sandra%defun@cs.utah.edu sent Thu, 2 Nov 89 16:51:51 MST.]
+
+  > 1. It is not made clear whether a compiler macro can be defined only for
+  > the name of a function, or also for the name of a macro or of a special
+  > form.  I believe the intent was that a compiler macro can be defined for
+  > any symbol [...]
+
+  I agree that this was the intent.
+
+I'm not sure this was the intent, though it seems plausible. The original
+motivation was to be able to provide a mechanism that would replace what
+would appear to a function call with some other form, much as some compilers
+currently operate. The key element of the proposal is that the compiler
+might choose to ignore the expansion, which means that the original form
+must be meaningful. 
+
+I believe that during our discussion of the issue, functions as the other
+designation was considered mostly, but the possibility of macros was
+mentioned. Special forms never happened to come up since we don't have
+a way to define them and you cannot screw with the builtin special forms.
+That is, I think the original intent was for functions only.
+
+We can decide to change the proposal to include these possibilities, but
+in describing the functionality of compiler macros in the draft, the best
+way to handle the description of the expanded proposal is to not mention
+that which the name of a particular compiler macro must designate, only that
+it must always designate something else in a conforming program.
+
+				-rpg-
+
+
+
+1,,
+Summary-line:  2-Nov   sandra%defun@cs.utah.edu  #Re: issue DEFINE-COMPILER-MACRO, version 3
+Received: from Xerox.COM by pooh.parc.xerox.com with SMTP
+	(5.61+/IDA-1.2.8/gandalf) id AA01118; Thu, 2 Nov 89 16:55:08 PST
+Received: from Salvador.ms by ArpaGateway.ms ; 02 NOV 89 16:50:13 PST
+Return-Path: <X3J13-mailer@SAIL.Stanford.EDU>
+Received: from SAIL.Stanford.EDU ([36.86.0.194]) by Xerox.COM ; 02 NOV 89
+ 16:48:41 PST
+Received: from cs.utah.edu by SAIL.Stanford.EDU with TCP; 2 Nov 89
+ 15:52:03 PST
+Received: from defun.utah.edu by cs.utah.edu (5.61/utah-2.4-cs)
+ 	id AA03947; Thu, 2 Nov 89 16:51:56 -0700
+Received: by defun.utah.edu (5.61/utah-2.3-leaf)
+ 	id AA17806; Thu, 2 Nov 89 16:51:52 -0700
+From: sandra%defun@cs.utah.edu (Sandra J Loosemore)
+Message-Id: <8911022351.AA17806@defun.utah.edu>
+Date: Thu, 2 Nov 89 16:51:51 MST
+Subject: Re: issue DEFINE-COMPILER-MACRO, version 3
+To: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Cc: x3j13@sail.stanford.edu
+In-Reply-To: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>, Thu, 2
+ Nov 89 13:32 EST
+
+*** EOOH ***
+From: sandra%defun@cs.utah.edu (Sandra J Loosemore)
+Date: Thu, 2 Nov 89 16:51:51 MST
+Subject: Re: issue DEFINE-COMPILER-MACRO, version 3
+To: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Cc: x3j13@sail.stanford.edu
+In-Reply-To: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>, Thu, 2
+ Nov 89 13:32 EST
+
+> Date: Thu, 2 Nov 89 13:32 EST
+> From: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+> 
+> 1. It is not made clear whether a compiler macro can be defined only for
+> the name of a function, or also for the name of a macro or of a special
+> form.  I believe the intent was that a compiler macro can be defined for
+> any symbol [...]
+
+I agree that this was the intent.
+
+> 2. There doesn't seem to have been any coordination with the FUNCTION-NAME
+> proposal.  A couple of places in the writeup, although not the description
+> of DEFINE-COMPILER-MACRO itself, say the name has to be a symbol.  It seems
+> legitimate to me to define a compiler-macro for a SETF function, so I would
+> like to see the proposal extended to allow the name of a compiler macro to
+> be any function-name (rather than any symbol) except for those function-names
+> (including SETF names) that are defined as operator names by the Common Lisp
+> language.
+
+This change seems reasonable in itself but would be inconsistent with
+the goal of being "just like" DEFMACRO.  We voted down the items (7,
+8, and 9) in issue FUNCTION-NAME that would have extended DEFMACRO
+syntax to accept function-name arguments.  If you think it is really
+important to have DEFINE-COMPILER-MACRO work on function-names and not
+just symbols, I think this would be better handled by considering this
+separately as an amendment to issue FUNCTION-NAME, since I would
+rather extend DEFMACRO than break the similarity between DEFMACRO and
+DEFINE-COMPILER-MACRO. 
+
+Reading issue FUNCTION-NAME over again, items 7 and 8 don't seem so
+awful to me but item 9 is clearly wrong; you can't expect FBOUNDP,
+FDEFINITION, etc to return local function definitions (which don't
+exist until run-time) from a compile-time syntactic environment.
+
+> 3. Although Sandra's version 3 writeup satisfactorily addresses the issues
+> as a cleanup proposal, it is not in a form that is any use as part of the
+> draft language specification document.  Someone's going to have to write
+> that stuff.
+
+Yes, this is a problem.  When I initially wrote up version 3, I
+thought about doing a complete rewrite as you suggest, but I
+eventually decided that if I did that, people would have a hard time
+identifying what exactly I was proposing to add or change, and why.  I
+also thought that formatting my new proposal as a list of amendments
+to the previous version would make things easier procedurally at the
+meeting, in case people want to vote on the items individually.
+
+I'm willing to work on the writeup, but I'm not going to have time to
+do it before the meeting. 
+
+-Sandra
+-------
+
+
+
+1,,
+Summary-line:  2-Nov             jonl@lucid.com  #issue DEFINE-COMPILER-MACRO, version 3
+Received: from Xerox.COM by pooh.parc.xerox.com with SMTP
+	(5.61+/IDA-1.2.8/gandalf) id AA01600; Thu, 2 Nov 89 18:03:39 PST
+Received: from Semillon.ms by ArpaGateway.ms ; 02 NOV 89 18:02:30 PST
+Return-Path: <X3J13-mailer@SAIL.Stanford.EDU>
+Received: from SAIL.Stanford.EDU ([36.86.0.194]) by Xerox.COM ; 02 NOV 89
+ 18:00:44 PST
+Received: from lucid.com by SAIL.Stanford.EDU with TCP; 2 Nov 89  17:55:20
+ PST
+Received: from bhopal ([192.43.178.13]) by heavens-gate id AA19352g; Thu, 2
+ Nov 89 17:51:29 PST
+Received: by bhopal id AA15426g; Thu, 2 Nov 89 17:53:21 PST
+Date: Thu, 2 Nov 89 17:53:21 PST
+From: Jon L White <jonl@lucid.com>
+Message-Id: <8911030153.AA15426@bhopal>
+To: Moon@STONY-BROOK.SCRC.Symbolics.COM
+Cc: sandra%defun@cs.utah.edu, x3j13@sail.stanford.edu
+In-Reply-To: David A. Moon's message of Thu, 2 Nov 89 13:32 EST
+ <19891102183214.6.MOON@EUPHRATES.SCRC.Symbolics.COM>
+Subject: issue DEFINE-COMPILER-MACRO, version 3
+
+*** EOOH ***
+Date: Thu, 2 Nov 89 17:53:21 PST
+From: Jon L White <jonl@lucid.com>
+To: Moon@STONY-BROOK.SCRC.Symbolics.COM
+Cc: sandra%defun@cs.utah.edu, x3j13@sail.stanford.edu
+In-Reply-To: David A. Moon's message of Thu, 2 Nov 89 13:32 EST
+ <19891102183214.6.MOON@EUPHRATES.SCRC.Symbolics.COM>
+Subject: issue DEFINE-COMPILER-MACRO, version 3
+
+re:  I believe the intent was that a compiler macro can be defined for
+    any symbol, except the user can't define one for a Common Lisp defined
+    name that names a function, macro, or special form.  
+
+Yes, that was stated clearly in the original proposal.   [Sigh, side point:
+the problem with issues presented "on the fly" is that there is no
+electronic history on them, and I'm sure there are spurious nits between
+the slides presented in Palo Alto and the version that Sandra finally
+managed to type in].  Here is the text from the current version:
+    The issue LISP-SYMBOL-REDEFINITION precludes user definition of any
+    compiler macros for symbols external in the Lisp package that have a
+    definition as a function, macro, or special form.
+So I'm completely confused now since Sandra's proposed emmendations say:
+    (4) Clarify that issue LISP-SYMBOL-REDEFINITION does not, in fact,
+    prohibit user definition of compiler macros for symbols in the
+    common-lisp package.   . . . 
+What is needed to be "clarified"?  Your "belief" expressed above seems
+to be an exact duplicate of the original proposal wording.
+
+
+re: ... FUNCTION-NAME proposal.
+
+Sure.  If DEFMACRO does it, then DEFINE-COMPILER-MACRO has to also.
+
+
+re:  Of course there is no guarantee that a language processor will ever 
+    call a compiler macro.
+
+Well, foo, this is indeed counter to the proposal that was passed in
+June.  It's not a super-critical point, but it certainly breaks the
+symmetry with macros if compiler-macros are degraded to the optionality
+of declarations  [Sandra's first proposed amendment specifically
+makes this analogy].  Both RPG and I remember an explicit statement
+in either the original, or in the verbal discussion before the vote,
+that  the compiler had to do the expansion; and that the compiler
+might or might not substitute the expansion for the original source
+based purely on other compilation constraints such as NOTINLINE, 
+optimization qualities, etc. --  time-of-day, phase-of-moon, and
+other implementor whims don't count here.
+
+
+In fact, I think the more serious problem that "fell through the cracks"
+is that of resolving the competing hiearchy for expansions during
+compilation.  That is, what do you do if a symbol has both a compiler
+macro and a regular macro?  Is it permissible for an implementation to
+support a special-form with a compiler macro (Answer must be yes, right?). 
+RPG and I though the order of dominance ought to be something like:
+    Common-Lisp-Magic-Symbols  [such as IF, EQUAL, . . . ]  
+	Interpreter and/or compiler may or may not process "magically".
+        When there is no special "magic", proceed to the alternatives 
+        mentioned below.
+    Compiler-Macros
+        Interpreter must ignore; Compiler must expand.  Compiler *may*
+        substitute the result in place of the original source, or it might
+        ignore the result and proceed to the alternatives mentioned below.
+    Macros
+        Interpreter and Compiler will expand, and substitute the result
+        for the original source.
+    Nothing Else More Specific [i.e., Function-Call]
+        Interpreter will "call the named function"; Compiler will "compile"
+        a call to the named function.
+
+
+
+-- JonL --
+
+
+
+1,,
+Summary-line:  2-Nov   sandra%defun@cs.utah.edu  #Re: issue DEFINE-COMPILER-MACRO, version 3
+Received: from Xerox.COM by pooh.parc.xerox.com with SMTP
+	(5.61+/IDA-1.2.8/gandalf) id AA04301; Fri, 3 Nov 89 04:46:42 PST
+Received: from Chardonnay.ms by ArpaGateway.ms ; 03 NOV 89 04:46:36 PST
+Return-Path: <X3J13-mailer@SAIL.Stanford.EDU>
+Received: from SAIL.Stanford.EDU ([36.86.0.194]) by Xerox.COM ; 03 NOV 89
+ 04:46:09 PST
+Received: from cs.utah.edu by SAIL.Stanford.EDU with TCP; 3 Nov 89
+ 04:40:51 PST
+Received: from defun.utah.edu by cs.utah.edu (5.61/utah-2.4-cs)
+ 	id AA01031; Fri, 3 Nov 89 05:40:39 -0700
+Received: by defun.utah.edu (5.61/utah-2.3-leaf)
+ 	id AA17946; Thu, 2 Nov 89 22:05:46 -0700
+From: sandra%defun@cs.utah.edu (Sandra J Loosemore)
+Message-Id: <8911030505.AA17946@defun.utah.edu>
+Date: Thu, 2 Nov 89 22:05:45 MST
+Subject: Re: issue DEFINE-COMPILER-MACRO, version 3
+To: Jon L White <jonl@lucid.com>
+Cc: Moon@STONY-BROOK.SCRC.Symbolics.COM, sandra%defun@cs.utah.edu,
+        x3j13@sail.stanford.edu
+In-Reply-To: Jon L White <jonl@lucid.com>, Thu, 2 Nov 89 17:53:21 PST
+
+*** EOOH ***
+From: sandra%defun@cs.utah.edu (Sandra J Loosemore)
+Date: Thu, 2 Nov 89 22:05:45 MST
+Subject: Re: issue DEFINE-COMPILER-MACRO, version 3
+To: Jon L White <jonl@lucid.com>
+Cc: Moon@STONY-BROOK.SCRC.Symbolics.COM, sandra%defun@cs.utah.edu,
+        x3j13@sail.stanford.edu
+In-Reply-To: Jon L White <jonl@lucid.com>, Thu, 2 Nov 89 17:53:21 PST
+
+Just a few quick comments:
+
+> Date: Thu, 2 Nov 89 17:53:21 PST
+> From: Jon L White <jonl@lucid.com>
+> 
+>     (4) Clarify that issue LISP-SYMBOL-REDEFINITION does not, in fact,
+>     prohibit user definition of compiler macros for symbols in the
+>     common-lisp package.   . . . 
+> What is needed to be "clarified"?
+
+This is something GLS pointed out.  The original wording in the
+DEFINE-COMPILER-MACRO:NEW-FACILITY proposal claimed that
+LISP-SYMBOL-REDEFINITION said something that it really didn't.
+
+> In fact, I think the more serious problem that "fell through the cracks"
+> is that of resolving the competing hiearchy for expansions during
+> compilation.  That is, what do you do if a symbol has both a compiler
+> macro and a regular macro?
+
+I thought that the wording of proposal DEFINE-COMPILER-MACRO:NEW-FACILITY 
+was clear enough that the intent was for a compiler macro had
+precedence over everything else, including ordinary macros:
+
+  When the compiler is about to compile a nonatomic form, it first calls
+  COMPILER-MACROEXPAND-1 repeatedly until there is no more expansion
+  (there might not be any to begin with).  Then it continues its
+  remaining processing, which may include calling MACROEXPAND-1 etc.
+
+I think the only detail that is missing is an explicit statement that
+the result of expanding an ordinary macro is re-examined to see if
+it's another compiler macro call, but in my mind that's already
+implied by "about to compile a nonatomic form". 
+
+I don't think there's any ambiguity with precedence in the remaining
+situations.  To summarize:
+
+  Standard CL macros and special forms may have both macro definitions and
+  special form definitions.  It's unspecified which the compiler will use.
+  (CLtL p 57)
+
+  Macro calls must be expanded by the compiler.  (CLtL p143)
+
+  Anything that's not known to be a macro or special form is treated as
+  a function call.  A name can't be bound to both a macro or special
+  form definition, and to a function definition at the same time.
+  (CLtL p. 57, 58, 90)
+
+-Sandra
+-------
+
+
+
+1,,
+Summary-line:  3-Nov  Moon@STONY-BROOK.SCRC.Sym  #Re: issue DEFINE-COMPILER-MACRO, version 3
+Received: from Xerox.COM by pooh.parc.xerox.com with SMTP
+	(5.61+/IDA-1.2.8/gandalf) id AA03606; Fri, 3 Nov 89 17:02:45 PST
+Received: from Chardonnay.ms by ArpaGateway.ms ; 03 NOV 89 16:35:11 PST
+Return-Path: <X3J13-mailer@SAIL.Stanford.EDU>
+Received: from SAIL.Stanford.EDU ([36.86.0.194]) by Xerox.COM ; 03 NOV 89
+ 16:26:47 PST
+Received: from STONY-BROOK.SCRC.Symbolics.COM by SAIL.Stanford.EDU with
+ TCP; 3 Nov 89  15:51:47 PST
+Received: from EUPHRATES.SCRC.Symbolics.COM by
+ STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 687236; 3 Nov
+ 89 18:50:37 EST
+Date: Fri, 3 Nov 89 18:50 EST
+From: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: Re: issue DEFINE-COMPILER-MACRO, version 3
+To: Sandra J Loosemore <sandra%defun@cs.utah.edu>
+Cc: x3j13@sail.stanford.edu
+In-Reply-To: <8911022351.AA17806@defun.utah.edu>
+Message-Id: <19891103235046.3.MOON@EUPHRATES.SCRC.Symbolics.COM>
+
+*** EOOH ***
+Date: Fri, 3 Nov 89 18:50 EST
+From: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: Re: issue DEFINE-COMPILER-MACRO, version 3
+To: Sandra J Loosemore <sandra%defun@cs.utah.edu>
+Cc: x3j13@sail.stanford.edu
+In-Reply-To: <8911022351.AA17806@defun.utah.edu>
+
+    Date: Thu, 2 Nov 89 16:51:51 MST
+    From: sandra%defun@cs.utah.edu (Sandra J Loosemore)
+
+    > Date: Thu, 2 Nov 89 13:32 EST
+    > From: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+
+    > 2. There doesn't seem to have been any coordination with the FUNCTION-NAME
+    > proposal.  A couple of places in the writeup, although not the description
+    > of DEFINE-COMPILER-MACRO itself, say the name has to be a symbol.  It seems
+    > legitimate to me to define a compiler-macro for a SETF function, so I would
+    > like to see the proposal extended to allow the name of a compiler macro to
+    > be any function-name (rather than any symbol) except for those function-names
+    > (including SETF names) that are defined as operator names by the Common Lisp
+    > language.
+
+    This change seems reasonable in itself but would be inconsistent with
+    the goal of being "just like" DEFMACRO.  
+
+I don't believe that DEFINE-COMPILER-MACRO is "just like" DEFMACRO in
+all ways, only in some ways.  I think where the original proposal says
+"This is just like DEFMACRO except..." that means it has the same kind
+of lambda-list and return value that DEFMACRO has.  As JonL pointed out
+in a recent message, it's unfortunate the way this issue got written at
+the last minute without adequate text editing facilities.  The original
+writeup (DEFINE-OPTIMIZER version 6) said the same thing in considerably
+more precise English, presumably because there was a lot more time
+available to work on the wording.  By now we've wasted far more time
+being confused by hasty wording than it would have taken to tighten up
+the wording in the first place.
+
+Certainly how the expansion of a compiler-macro gets used is quite
+different from a normal macro; a macro is always expanded but expansion
+of a compiler-macro is at the language processor's option.  Even more to
+the point, how a programmer uses a compiler-macro is very different from
+how a programmer uses a regular macro.  One uses a regular macro to
+extend the syntax of the language.  It is impossible to use a
+compiler-macro to extend the syntax of the language.  The only thing one
+can use compiler-macros for (unless there is some clever trick I haven't
+thought of) is to do more extensive inlining than INLINE declarations
+do; in particular error checking can be removed, keyword arguments can
+be changed into positional arguments, and optimizations based on type
+inference can be done.  Note that these are all things that compilers
+do.  Really, I don't think a compiler-macro can do anything that a
+compiler could not do itself if it felt like doing it.  The reason we
+have compiler macros is as a structured, portable way to extend the
+compiler so that people will be better able to use the less than perfect
+compilers that exist in the real world.  The reason we don't require the
+compiler to pay attention to compiler macros, and leave it to market
+forces, is the same reason we don't require the compiler to pay
+attention to inline declarations.
+
+The fact that how a programmer uses a compiler-macro is very different
+from how a programmer uses a regular macro is what makes me think it
+makes sense to define a compiler macro for any function name, including
+SETF functions, even though it's not necessary to be able to define a
+regular macro for anything but a symbol.  I might want to optimize
+(setf (helmet-size person) (computation)) to not actually call the
+(setf helmet-size) generic function in some circumstances.  If I can't
+do that with a compiler macro, I have to play some kind of naming games,
+such as calling the generic function setf-helmet-size, making a
+compiler macro for that, and doing a define-setf-method to tell setf
+what to do.  Then when I define methods and slots I have to know
+about the nonstandard name setf-helmet-size.  This is silly, either
+we shouldn't have compiler macros at all or they should work for all
+function names.
+
+I wish we had left these things' name "optimizers" instead of "compiler
+macros."  Upon re-reading the discussion, I sense that the name
+"compiler macro" is confusing some of us into thinking these things are
+more like regular macros than they really are.  I guess I will leave
+that as a wistful wish rather than a proposed amendment, since I do not
+wish to waste time.
+
+					     We voted down the items (7,
+    8, and 9) in issue FUNCTION-NAME that would have extended DEFMACRO
+    syntax to accept function-name arguments.  If you think it is really
+    important to have DEFINE-COMPILER-MACRO work on function-names and not
+    just symbols, I think this would be better handled by considering this
+    separately as an amendment to issue FUNCTION-NAME, since I would
+    rather extend DEFMACRO than break the similarity between DEFMACRO and
+    DEFINE-COMPILER-MACRO. 
+
+    Reading issue FUNCTION-NAME over again, items 7 and 8 don't seem so
+    awful to me but item 9 is clearly wrong; you can't expect FBOUNDP,
+    FDEFINITION, etc to return local function definitions (which don't
+    exist until run-time) from a compile-time syntactic environment.
+
+To review, 7 was to allow forms like ((setf foo) new-value bar), 8 was
+to allow (defmacro (setf foo) ...) and also change MACROLET and
+MACRO-FUNCTION, and 9 was to add an optional environment argument to
+FDEFINITION, SETF of FDEFINITION, FBOUNDP, and FMAKUNBOUND.
+
+9 was pretty well superseded by SYNTACTIC-ENVIRONMENT-ACCESS.  I do not
+want to reopen 7 and 8, since I don't think compiler-macros are the same
+thing as macros.  I agree that the interaction of DEFINE-COMPILER-MACRO
+and FUNCTION-NAME could be discussed under the rubric of either issue
+name.
+
+While comparing the DEFINE-COMPILER-MACRO and DEFINE-OPTIMIZER proposals
+I found another nit to pick, by the way: the DEFINE-COMPILER-MACRO
+proposal says the compiler-macro has a documentation string, but it
+doesn't modify the DOCUMENTATION function to provide a way to retrieve
+that string.
+
+
+
+1,,
+Summary-line:  3-Nov      RPG@SAIL.Stanford.EDU  #re: issue DEFINE-COMPILER-MACRO, version 3    
+Received: from Xerox.COM by pooh.parc.xerox.com with SMTP
+	(5.61+/IDA-1.2.8/gandalf) id AA04550; Fri, 3 Nov 89 21:58:52 PST
+Received: from Salvador.ms by ArpaGateway.ms ; 03 NOV 89 21:59:00 PST
+Return-Path: <X3J13-mailer@SAIL.Stanford.EDU>
+Received: from SAIL.Stanford.EDU ([36.86.0.194]) by Xerox.COM ; 03 NOV 89
+ 21:58:49 PST
+Message-Id: <S6Cq2@SAIL.Stanford.EDU>
+Date: 03 Nov 89 21:48 PST
+From: Dick Gabriel <RPG@SAIL.Stanford.EDU>
+Subject: re: issue DEFINE-COMPILER-MACRO, version 3    
+To: sandra%defun@CS.UTAH.EDU, jonl@LUCID.COM
+Cc: Moon@STONY-BROOK.SCRC.SYMBOLICS.COM, sandra%defun@CS.UTAH.EDU,
+        x3j13@SAIL.Stanford.EDU
+
+*** EOOH ***
+Date: 03 Nov 89 21:48 PST
+From: Dick Gabriel <RPG@SAIL.Stanford.EDU>
+Subject: re: issue DEFINE-COMPILER-MACRO, version 3    
+To: sandra%defun@CS.UTAH.EDU, jonl@LUCID.COM
+Cc: Moon@STONY-BROOK.SCRC.SYMBOLICS.COM, sandra%defun@CS.UTAH.EDU,
+        x3j13@SAIL.Stanford.EDU
+
+[In reply to message from sandra%defun@cs.utah.edu sent Thu, 2 Nov 89 22:05:45 MST.]
+
+Sandra writes:
+
+  I don't think there's any ambiguity with precedence in the remaining
+  situations.  To summarize:
+
+    Standard CL macros and special forms may have both macro definitions and
+    special form definitions.  It's unspecified which the compiler will use.
+    (CLtL p 57)
+
+    Macro calls must be expanded by the compiler.  (CLtL p143)
+
+    Anything that's not known to be a macro or special form is treated as
+    a function call.  A name can't be bound to both a macro or special
+    form definition, and to a function definition at the same time.
+    (CLtL p. 57, 58, 90)
+
+  -Sandra
+  -------
+
+The first point is subject to the cleanup that passed named
+LISP-SYMBOL-REDEFINITION. If there are such user definitions of symbols
+external to the package COMMON-LISP, the results are undefined.
+Of course, a particular implementation can use compiler macros to
+implement compiled functionality in the COMMON-LISP package, and
+some can allow users to redefine these symbols. 
+
+			-rpg-
+
+
+
+1,,
+Summary-line:  4-Nov             jonl@lucid.com  #[User-Extensible Compiler?]issue DEFINE-COMPILER-MACRO, version 3
+Received: from Xerox.COM by pooh.parc.xerox.com with SMTP
+	(5.61+/IDA-1.2.8/gandalf) id AA09887; Sat, 4 Nov 89 18:23:22 PST
+Received: from Chardonnay.ms by ArpaGateway.ms ; 04 NOV 89 18:23:46 PST
+Return-Path: <X3J13-mailer@SAIL.Stanford.EDU>
+Received: from SAIL.Stanford.EDU ([36.86.0.194]) by Xerox.COM ; 04 NOV 89
+ 18:23:32 PST
+Received: from lucid.com by SAIL.Stanford.EDU with TCP; 4 Nov 89  18:18:01
+ PST
+Received: from bhopal ([192.43.178.13]) by heavens-gate id AA01504g; Sat, 4
+ Nov 89 18:14:47 PST
+Received: by bhopal id AA11509g; Sat, 4 Nov 89 18:16:41 PST
+Date: Sat, 4 Nov 89 18:16:41 PST
+From: Jon L White <jonl@lucid.com>
+Message-Id: <8911050216.AA11509@bhopal>
+To: Moon@STONY-BROOK.SCRC.Symbolics.COM
+Cc: sandra%defun@cs.utah.edu, x3j13@sail.stanford.edu
+In-Reply-To: David A. Moon's message of Fri, 3 Nov 89 18:50 EST
+ <19891103235046.3.MOON@EUPHRATES.SCRC.Symbolics.COM>
+Subject: [User-Extensible Compiler?]issue DEFINE-COMPILER-MACRO, version 3
+
+*** EOOH ***
+Date: Sat, 4 Nov 89 18:16:41 PST
+From: Jon L White <jonl@lucid.com>
+To: Moon@STONY-BROOK.SCRC.Symbolics.COM
+Cc: sandra%defun@cs.utah.edu, x3j13@sail.stanford.edu
+In-Reply-To: David A. Moon's message of Fri, 3 Nov 89 18:50 EST
+ <19891103235046.3.MOON@EUPHRATES.SCRC.Symbolics.COM>
+Subject: [User-Extensible Compiler?]issue DEFINE-COMPILER-MACRO, version 3
+
+[Yes, I realize that no one will be reading this msg before the meeting
+in Palo Alto this next week, but for historical purposes I will send out
+this comment electronically now.]
+
+re: . . .  The only thing one
+    can use compiler-macros for (unless there is some clever trick I haven't
+    thought of) is to do more extensive inlining than INLINE declarations
+    do; in particular error checking can be removed, keyword arguments can
+    be changed into positional arguments, and optimizations based on type
+    inference can be done.  Note that these are all things that compilers
+    do.  Really, I don't think a compiler-macro can do anything that a
+    compiler could not do itself if it felt like doing it.  The reason we
+    have compiler macros is as a structured, portable way to extend the
+    compiler so that people will be better able to use the less than perfect
+    compilers that exist in the real world.  The reason we don't require the
+    compiler to pay attention to compiler macros, and leave it to market
+    forces, is the same reason we don't require the compiler to pay
+    attention to inline declarations.
+    . . . 
+    I wish we had left these things' name "optimizers" instead of "compiler
+    macros."  Upon re-reading the discussion, I sense that the name
+    "compiler macro" is confusing some of us into thinking these things are
+    more like regular macros than they really are.  
+
+
+I believe that the reason we finally did change the name from "optimizer"
+to "compiler-macro" was that the name "optimizer" was confusing even more 
+people.  Yes, we have had a bit of a trip-up with wording since the June 
+meeting, but don't you remember the volumes and volumes of fruitless 
+argumentation over optimizers?  At least when we settled on compiler 
+macros, we could claim "current practice" from the compilers of Symbolics,
+Lucid, and Franz.  [and in fact, compiler macros existed well over a 
+decade ago in Interlisp -- CMACRO's was it? -- and I'm sure they existed 
+in the original Lisp's like the one on CTSS at MIT in the 1960s].
+
+Nit time: one reason I don't like "optimizer" is that frequently mine
+turn out to be "pessimizers".   Let's just say (as you did) that 
+compiler-macros are CL's mechanism for a user-extensible compiler.
+
+
+-- JonL --
+
+
+

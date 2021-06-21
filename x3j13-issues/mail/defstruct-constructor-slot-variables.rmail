@@ -1,0 +1,300 @@
+BABYL OPTIONS:
+Version: 5
+Labels:
+Note:   This is the header of an rmail file.
+Note:   If you are seeing it in rmail,
+Note:    it means the file has no messages in it.
+
+1,,
+Summary-line:  2-Nov   sandra%defun@cs.utah.edu  #issue DEFSTRUCT-CONSTRUCTOR-SLOT-VARIABLES, version 2
+Received: from Xerox.COM by pooh.parc.xerox.com with SMTP
+	(5.61+/IDA-1.2.8/gandalf) id AA28553; Thu, 2 Nov 89 10:29:47 PST
+Received: from Salvador.ms by ArpaGateway.ms ; 02 NOV 89 10:29:48 PST
+Return-Path: <X3J13-mailer@SAIL.Stanford.EDU>
+Received: from SAIL.Stanford.EDU ([36.86.0.194]) by Xerox.COM ; 02 NOV 89
+ 10:20:48 PST
+Received: from cs.utah.edu by SAIL.Stanford.EDU with TCP; 2 Nov 89
+ 10:12:31 PST
+Received: from defun.utah.edu by cs.utah.edu (5.61/utah-2.4-cs)
+ 	id AA15646; Thu, 2 Nov 89 09:22:30 -0700
+Received: by defun.utah.edu (5.61/utah-2.3-leaf)
+ 	id AA17320; Thu, 2 Nov 89 09:22:27 -0700
+From: sandra%defun@cs.utah.edu (Sandra J Loosemore)
+Message-Id: <8911021622.AA17320@defun.utah.edu>
+Date: Thu, 2 Nov 89 09:22:25 MST
+Subject: issue DEFSTRUCT-CONSTRUCTOR-SLOT-VARIABLES, version 2
+To: x3j13@sail.stanford.edu
+
+*** EOOH ***
+From: sandra%defun@cs.utah.edu (Sandra J Loosemore)
+Date: Thu, 2 Nov 89 09:22:25 MST
+Subject: issue DEFSTRUCT-CONSTRUCTOR-SLOT-VARIABLES, version 2
+To: x3j13@sail.stanford.edu
+
+Forum:		Cleanup
+Issue:		DEFSTRUCT-CONSTRUCTOR-SLOT-VARIABLES
+References:	DEFSTRUCT; CLtL p. 309
+                Issue DEFSTRUCT-CONSTRUCTOR-KEY-MIXTURE (passed)
+Category:	CLARIFICATION, CHANGE
+Edit History:   V1, 11 Oct 1989, Sandra Loosemore
+		V2, 02 Nov 1989, Sandra Loosemore (update discussion)
+
+
+Problem Description:
+
+Must the symbols which name DEFSTRUCT slots be bound as lambda
+variables by the default keyword constructor function?  Normally it
+would not matter, but if any of these symbols have been proclaimed
+SPECIAL it will affect the dynamic environment in which the slot init
+forms are evaluated.
+
+There are three proposals, BOUND, NOT-BOUND, and VISIBLY-BOUND.
+
+
+Background:
+
+CLtL requires each default slot init form to be evaluated "in the
+lexical environment of the DEFSTRUCT form in which it appeared".  This
+means that the obvious technique of supplying the init forms as the
+defaults for the keyword arguments in the lambda list of the
+constructor function is incorrect, unless care is taken to avoid
+shadowing any variable bindings of the symbols which correspond to
+those arguments.
+
+For example, given
+    (defstruct foo
+        (a <a-init>)
+        (b <b-init>)
+        (c <c-init>))
+
+Generating the constructor as
+    (defun make-foo (&key (a <a-init>) (b <b-init>) (c <c-init>)) ...)
+may not evaluate <b-init> and <c-init> in the correct lexical environment
+as specified in CLtL.  Proposal VISIBLY-BOUND would change the specification
+to make this the correct behavior.
+
+One alternative is to wrap the init forms in closures named with gensyms:
+    (flet ((#:g1 () <a-init>)
+           (#:g2 () <b-init>)
+           (#:g3 () <c-init>))
+        (defun make-foo (&key (a (#:g1)) (b (#:g2)) (c (#:g3))) ...))
+Under proposal BOUND, this would be the correct way to implement the
+constructor function.
+
+Another alternative is to make the lambda variables themselves gensyms:
+    (defun make-foo (&key ((:a #:g4) <a-init>)
+                          ((:b #:g5) <b-init>)
+                          ((:c #:g6) <c-init>)) ...)
+Under proposal NOT-BOUND, this would be the correct way to implement the
+constructor function.
+
+(Of course, it's possible that DEFSTRUCT could produce a simplified
+expansion in many cases by examining the init forms and/or lexical
+environment.)
+
+Issue DEFSTRUCT-CONSTRUCTOR-KEY-MIXTURE implies that BOA constructors
+do bind the symbols which name slots as lambda variables, since these
+variables can be referenced in the init forms for subsequent
+arguments.
+
+
+Proposal (DEFSTRUCT-CONSTRUCTOR-SLOT-VARIABLES:BOUND):
+
+Clarify that the symbols which name slots must be bound as lambda
+variables by the keyword constructor function, in the order in which
+the slots are specified in the DEFSTRUCT form.  Variables for
+inherited slots are bound before variables for explitly specified
+slots, in the order in which they were specified in the definition of
+the inherited structure.  Special bindings of these variables will be
+visible during the evaluation of the default init forms for subsequent
+slots.  The slot default init forms are still evaluated in the 
+lexical environment in which the DEFSTRUCT form itself appears.
+
+  Rationale:
+
+  This appears to be closest to the intent of CLtL.
+
+
+Proposal (DEFSTRUCT-CONSTRUCTOR-SLOT-VARIABLES:NOT-BOUND):
+
+Clarify that the symbols which name slots must *not* be bound as
+lambda variables by the keyword constructor function.  The slot
+default init forms are evaluated in the lexical environment
+in which the DEFSTRUCT form itself appears and the dynamic environment
+in which the call to the constructor function appears.
+
+  Rationale:
+
+  This avoids the overhead of creating and invoking closures to compute
+  the default values of the slots for the default keyword constructor.
+
+
+Proposal (DEFSTRUCT-CONSTRUCTOR-SLOT-VARIABLES:VISIBLY-BOUND):
+
+Clarify that the symbols which name slots must be bound as lambda
+variables by the keyword constructor function, in the order in which
+the slots are specified in the DEFSTRUCT form.  Variables for
+inherited slots are bound before variables for explitly specified
+slots, in the order in which they were specified in the definition of
+the inherited structure.  Special bindings of these variables will be
+visible during the evaluation of the default init forms for subsequent
+slots.  
+
+Remove the requirement that the slot default init forms be evaluated
+in the lexical environment in which the DEFSTRUCT form itself appears.
+Instead, require that they be evaluated in a lexical environment that
+contains bindings for the previous lambda variables of the constructor
+function.  This applies to both the default keyword constructor function
+and BOA constructors.
+
+  Rationale:
+
+  This alternative corresponds most closely to current practice.  It
+  avoids the overhead of creating and invoking closures to compute the
+  default values of the slots for both the default keyword constructor
+  and BOA constructors.
+
+
+Example/Test Cases:
+
+(defvar x 'global-x)
+(let ((y  'local-y))
+    (defstruct baz (x 'x-init) (y x) (z y)))
+(make-baz)
+
+Under proposal BOUND,
+    slot X is initialized to X-INIT
+    slot Y is initialized to X-INIT
+        (since the init form X is evaluated in the dynamic environment
+        containing the binding to X-INIT)
+    slot Z is initialized to LOCAL-Y
+        (since the init form Y is evaluated in the lexical environment in
+        which the DEFSTRUCT appears)
+
+Under proposal NOT-BOUND,
+    slot X is initialized to X-INIT
+    slot Y is initialized to GLOBAL-X
+        (since the constructor does not rebind the special variable X)
+    slot Z is initialized to LOCAL-Y
+
+Under proposal VISIBLY-BOUND,
+    slot X is initialized to X-INIT
+    slot Y is initialized to X-INIT
+        (since the special binding of X made by the constructor is visible)
+    slot Z is initialized to X-INIT
+        (since the lexical binding of Y made by the constructor is visible)
+       
+
+Current Practice:
+
+Most implementations (including Lucid CL, HPCL-I, KCL, CMU Common Lisp)
+appear to implement proposal VISIBLY-BOUND even though it is in conflict
+with what is required by CLtL.
+
+Utah Common Lisp currently implements proposal NOT-BOUND.
+
+
+Cost to implementors:
+
+For proposal BOUND, the cost of implementing the proposal correctly is
+fairly small.  The cost of implementing it both correctly and efficiently
+is potentially much larger.
+
+For proposal NOT-BOUND, the implementation cost is again fairly small, 
+but it still requires essentially the same work as in proposal BOUND to
+handle BOA constructors correctly.
+
+Proposal VISIBLY-BOUND has the least implementation cost, since this
+is what most implementations already do and is the least complicated
+of the alternatives.
+
+
+Cost to users:
+
+Adopting any of these proposals would improve the situation faced by
+users now.
+
+Users may find proposal VISIBLY-BOUND to be marginally more useful
+than the other alternatives since it allows the values of slots to be
+referenced in the subsequent default init forms.
+
+
+Benefits:
+
+An area of confusion in the language is removed.
+
+
+Discussion:
+
+Loosemore doesn't care much about which of these alternatives we
+adopt, but thinks that leaving this unspecified would be a mistake.
+
+Margolin says:
+  By the way, I prefer this proposal [NOT-BOUND].  I think lexical
+  environments should be captured (I think we've fixed everything so
+  that init-forms are always evaluated in the appropriate lexical
+  environment), but I don't like making the order of slots significant
+  by allowing init forms to reference other slots.  Order of slots is
+  often constrained by other requirements (such as the :INCLUDE
+  hierarchy, or using :TYPE to match a pre-existing structure), so they
+  shouldn't have an effect on the semantics of the structure.
+
+Moon says:
+  Surely the default constructor function and "BOA constructors" must work
+  compatibly.  Unspecified initforms for optional and keyword arguments in
+  a "BOA constructor" default from the slot initform rather than NIL, so
+  "BOA constructors" face the same issue as default constructors.
+
+  VISIBLY-BOUND seems semantically wrong.
+
+  I would go with BOUND, assuming we can't just get rid of DEFSTRUCT
+  entirely.  I don't care about the supposed efficiency issue, which is
+  easily gotten around or ignored.
+
+-------
+
+
+
+1,,
+Summary-line:  3-Nov           dussud@lucid.com  #issue DEFSTRUCT-CONSTRUCTOR-SLOT-VARIABLES, version 2
+Received: from Xerox.COM by pooh.parc.xerox.com with SMTP
+	(5.61+/IDA-1.2.8/gandalf) id AA02345; Fri, 3 Nov 89 13:58:27 PST
+Received: from Salvador.ms by ArpaGateway.ms ; 03 NOV 89 13:54:30 PST
+Return-Path: <X3J13-mailer@SAIL.Stanford.EDU>
+Received: from SAIL.Stanford.EDU ([36.86.0.194]) by Xerox.COM ; 03 NOV 89
+ 13:53:43 PST
+Received: from lucid.com by SAIL.Stanford.EDU with TCP; 3 Nov 89  13:43:37
+ PST
+Received: from challenger ([192.9.200.17]) by heavens-gate id AA25236g;
+ Fri, 3 Nov 89 13:40:36 PST
+Received: by challenger id AA03316g; Fri, 3 Nov 89 13:42:13 PST
+Date: Fri, 3 Nov 89 13:42:13 PST
+From: Patrick Dussud <dussud@lucid.com>
+Message-Id: <8911032142.AA03316@challenger>
+To: sandra%defun@cs.utah.edu
+Cc: x3j13@sail.stanford.edu
+In-Reply-To: Sandra J Loosemore's message of Thu, 2 Nov 89 09:22:25 MST
+ <8911021622.AA17320@defun.utah.edu>
+Subject: issue DEFSTRUCT-CONSTRUCTOR-SLOT-VARIABLES, version 2
+
+*** EOOH ***
+Date: Fri, 3 Nov 89 13:42:13 PST
+From: Patrick Dussud <dussud@lucid.com>
+To: sandra%defun@cs.utah.edu
+Cc: x3j13@sail.stanford.edu
+In-Reply-To: Sandra J Loosemore's message of Thu, 2 Nov 89 09:22:25 MST
+ <8911021622.AA17320@defun.utah.edu>
+Subject: issue DEFSTRUCT-CONSTRUCTOR-SLOT-VARIABLES, version 2
+
+
+I remember that I had to re-implement some non BOA constructors from
+VISIBLY-BOUND style to NOT-BOUND style because some Explorer customer had a
+number of slot that was greater than LAMBDA-PARAMETERS-LIMIT. In this case, I
+had to resort to a &rest parameter style.  This has to be clear that anything
+except NO-BOUND will require structures to have a number of slots lower than
+LAMBDA-PARAMETERS-LIMIT.
+
+Patrick.
+
+
+

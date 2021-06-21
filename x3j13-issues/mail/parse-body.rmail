@@ -1,0 +1,311 @@
+BABYL OPTIONS:
+Version: 5
+Labels:
+Note:   This is the header of an rmail file.
+Note:   If you are seeing it in rmail,
+Note:    it means the file has no messages in it.
+
+1,,
+Summary-line: 30-May  KMP@STONY-BROOK.SCRC.Symb  #PARSE-BODY
+GV-Info: CL-Cleanup-mailer@SAIL.Stanford.EDU at 30-May-89 05:47:18 from AG
+Return-Path: <CL-Cleanup-mailer@SAIL.Stanford.EDU>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU ([36.86.0.194]) by Xerox.COM ; 30 MAY 89 05:47:24 PDT
+Received: from STONY-BROOK.SCRC.Symbolics.COM by SAIL.Stanford.EDU with TCP; 30 May 89  05:44:36 PDT
+Received: from BOBOLINK.SCRC.Symbolics.COM by STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 602551; 30 May 89 08:44:59 EDT
+Date: Tue, 30 May 89 08:44 EDT
+From: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: PARSE-BODY
+To: jonl@lucid.com
+cc: cl-cleanup@sail.stanford.edu
+In-Reply-To: <8905272250.AA19002@bhopal>
+Message-ID: <19890530124448.9.KMP@BOBOLINK.SCRC.Symbolics.COM>
+
+*** EOOH ***
+GV-Info: CL-Cleanup-mailer@SAIL.Stanford.EDU at 30-May-89 05:47:18 from AG
+Redistributed: xerox-cl-cleanup^.pa
+Date: Tue, 30 May 89 08:44 EDT
+From: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: PARSE-BODY
+To: jonl@lucid.com
+cc: cl-cleanup@sail.stanford.edu
+In-Reply-To: <8905272250.AA19002@bhopal>
+
+    Date: Sat, 27 May 89 15:50:44 PDT
+    From: Jon L White <jonl@lucid.com>
+
+    ... Lucid implemented PARSE-BODY exactly according to Steele's description;
+    but apparently not enough other implementations did so. ...
+
+I don't recall Steele's description. Cloe implements a function named PARSE-BODY
+internally which may or may not be related:
+ (PARSE-BODY body env) => forms, decls, docs
+All three return values are lists (for convenience with ",@"), but the `docs'
+value never contains more than one string.
+
+There is a discrepancy between the formal syntax description of DEFUN and 
+LAMBDA on p67 and the text that follows two paragraphs below. The paragraph
+which begins with "If the optional..." ends with "It is an errro if more than
+one doc-string is present." I have always (since I noticed it, anyway :-)
+taken the text to have priority over the syntax description. My guess is that
+Mr. Duff didn't notice the text override.
+
+Cloe's PARSE-BODY (used in implementing New Flavors, for example) signals the
+error, though not for any highly principled reason.
+
+Btw, the correct way for Steele to have written the syntax to avoid this
+confusion would presumably have been:
+
+ lambda lambda-list {declaration}* [doc-string] {declaration}* {form}*
+
+-- though it looks fairly yucky. Probably better would have been to strike
+the one-doc-string restriction and just permit multiple doc strings. That
+way, people could write:
+
+ (defun foo ()
+   "This is a very long doc string"
+   "that didn't fit all one one line."
+   ...)
+
+I certainly believe that would be more aesthetic than:
+
+(defun foo ()
+   "This is a very long doc string
+    that didn't fit all one one line"
+   ...)
+
+or:
+
+(defun foo ()
+   "This is a very long doc string
+that didn't fit all one one line"
+   ...)
+
+As I recall, this was discussed explicitly in the production of CLtL. The
+main issue was what DOCUMENTATION would produce in the case of multiple
+doc strings. My preference was then (and is now) to have DOCUMENTATION do
+ (FORMAT NIL "~{~A~^~%~}" strings)
+in order to support multiple doc strings as a solution to the `indentation
+problem' cited above.
+
+Summary:
+
+ - I'm fairly agnostic about whether PARSE-BODY should be there.  It's less
+   needed now that there is no macro expansion to contend with, but the idiom
+   of extracting DECLARE expressions from the top of a body is still needed
+   even so, and this does help to do that concisely, so my personal inclination
+   toward the feature would probably be mildly positive.
+
+ - I don't think there is an ambiguity about doc strings, but I do think the
+   restriction is gratuitous and would not oppose its removal.  This would
+   simplify the syntax description and admit a programming style that some
+   would find useful. Clarifications of how DOCUMENTATION and PARSE-BODY
+   treated the situation would be in order.
+
+
+1,,
+Summary-line: 27-May             jonl@lucid.com  #PARSE-BODY
+GV-Info: CL-Cleanup-mailer@SAIL.Stanford.EDU at 27-May-89 15:53:47 from AG
+Return-Path: <CL-Cleanup-mailer@SAIL.Stanford.EDU>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU ([36.86.0.194]) by Xerox.COM ; 27 MAY 89 15:53:47 PDT
+Received: from lucid.com by SAIL.Stanford.EDU with TCP; 27 May 89  15:52:15 PDT
+Received: from bhopal ([192.43.178.13]) by heavens-gate id AA05167g; Sat, 27 May 89 15:51:12 PDT
+Received: by bhopal id AA19002g; Sat, 27 May 89 15:50:44 PDT
+Date: Sat, 27 May 89 15:50:44 PDT
+From: Jon L White <jonl@lucid.com>
+Message-Id: <8905272250.AA19002@bhopal>
+To: cl-cleanup@sail.stanford.edu
+Subject: PARSE-BODY
+
+*** EOOH ***
+GV-Info: CL-Cleanup-mailer@SAIL.Stanford.EDU at 27-May-89 15:53:47 from AG
+Redistributed: xerox-cl-cleanup^.pa
+Date: Sat, 27 May 89 15:50:44 PDT
+From: Jon L White <jonl@lucid.com>
+To: cl-cleanup@sail.stanford.edu
+Subject: PARSE-BODY
+
+Guy Steele's "Clarifications" of 6-Dec-85 proposed adding a function
+PARSE-BODY.  After passage of the proposal that cancelled the use of 
+macroexpansions for declarations, interest in this function died out, 
+with the excuse given that it could now be written portably (since it 
+no longer had to deal with macroexpanding any body forms).
+
+However, this excuse appears to be short-sighted, since the main
+purpose of a standard is not kernelization, but to ensure a standard
+way of doing things.  Way back when, Lucid implemented PARSE-BODY exactly 
+according to Steele's description; but apparently not enough other
+implementations did so.  Consequently, PCL carries its own idiosyncratic
+version called EXTRACT-DECLARATIONS.  Below is a copy of a note sent
+to the PCL mailing list  musing about the matter.  Despite the sender's
+confusion on a minor matter, it does illustrate the value of agreeing
+to a standard interface, regardless of how easy it might be to code it.
+
+
+-- JonL --
+
+
+
+Return-Path: <duff@unclejack.crd.ge.com>
+Redistributed: commonloops.PA
+Date: Thu, 25 May 89 13:57:34 EDT
+From: duff@unclejack.crd.ge.com (David A Duff)
+To: commonloops.PA@Xerox.COM
+Subject: minor point about extract-declarations
+Reply-To: duff@eraserhead.crd.ge.com
+
+hello.
+
+the macro EXTRACT-DECLARATIONS, defined in macros.lisp performs a function
+that is very useful to me.  looking at it more closely, however, revealed
+either a discrepancy in the code or in my understanding of Steele's
+description of common lisp.
+
+the macro only returns at most one docstring and it assumes that the
+docstring, if present will always be the first thing in the body.  Steele
+seems to indicate that multiple docstrings are allowable and that they can be
+interspersed with the declarations.
+
+has there been some sort of cleanup or clarification of Steele on this issue?
+
+i personally, can't see much point in allowing docstrings to be interspersed
+with declarations, and i don't know what the correct way would be to handle
+more than one (i don't think Steele says anything about this).
+
+Dave Duff                                  GE Corporate Research and Development
+duff@eraserhead.crd.ge.com                                 Schenectady, NY 12309  
+
+
+
+
+
+1,,
+Summary-line:  4-Jun                  Gregor.pa  #Re: minor point about extract-declarations
+GV-Info: CL-Cleanup-mailer@SAIL.Stanford.EDU at  4-Jun-89 12:16:23 from AG
+Return-Path: <CL-Cleanup-mailer@SAIL.Stanford.EDU>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU ([36.86.0.194]) by Xerox.COM ; 04 JUN 89 12:16:22 PDT
+Received: from Xerox.COM by SAIL.Stanford.EDU with TCP; 4 Jun 89  12:15:03 PDT
+Received: from Semillon.ms by ArpaGateway.ms ; 04 JUN 89 12:13:36 PDT
+Date: Sun, 4 Jun 89 12:13 PDT
+From: Gregor.pa
+Subject: Re: minor point about extract-declarations
+To: duff@eraserhead.crd.ge.com, Jon L White <jonl@lucid.com>, Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+cc: cl-cleanup@sail.stanford.edu
+Fcc: BD:>Gregor>mail>outgoing-mail-6.text.newest
+In-Reply-To: <8905251757.AA06245@unclejack.crd.Ge.Com>,
+              <8905272250.AA19002@bhopal>,
+              <19890530124448.9.KMP@BOBOLINK.SCRC.Symbolics.COM>
+Message-ID: <19890604191319.8.GREGOR@SPIFF.parc.xerox.com>
+Line-fold: no
+
+*** EOOH ***
+GV-Info: CL-Cleanup-mailer@SAIL.Stanford.EDU at  4-Jun-89 12:16:23 from AG
+Redistributed: xerox-cl-cleanup^.pa
+Date: Sun, 4 Jun 89 12:13 PDT
+From: Gregor.pa
+Subject: Re: minor point about extract-declarations
+To: duff@eraserhead.crd.ge.com, Jon L White <jonl@lucid.com>, Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+cc: cl-cleanup@sail.stanford.edu
+Fcc: BD:>Gregor>mail>outgoing-mail-6.text.newest
+In-Reply-To: <8905251757.AA06245@unclejack.crd.Ge.Com>,
+              <8905272250.AA19002@bhopal>,
+              <19890530124448.9.KMP@BOBOLINK.SCRC.Symbolics.COM>
+
+    Date: Thu, 25 May 89 13:57:34 EDT
+    From: duff@unclejack.crd.ge.com (David A Duff)
+
+    the macro EXTRACT-DECLARATIONS, defined in macros.lisp performs a function
+    that is very useful to me.  looking at it more closely, however, revealed
+    either a discrepancy in the code or in my understanding of Steele's
+    description of common lisp.
+
+
+    Date: Sat, 27 May 89 15:50:44 PDT
+    From: Jon L White <jonl@lucid.com>
+
+    Guy Steele's "Clarifications" of 6-Dec-85 proposed adding a function
+    PARSE-BODY.  After passage of the proposal that cancelled the use of 
+    macroexpansions for declarations, interest in this function died out, 
+    with the excuse given that it could now be written portably (since it 
+    no longer had to deal with macroexpanding any body forms).
+
+    However, this excuse appears to be short-sighted, since the main
+    purpose of a standard is not kernelization, but to ensure a standard
+    way of doing things.
+
+
+    Date: Tue, 30 May 89 08:44 EDT
+    From: Kent M Pitman <KMP@STONY-BROOK.SCRC.Symbolics.COM>
+
+     - I'm fairly agnostic about whether PARSE-BODY should be there.  It's less
+       needed now that there is no macro expansion to contend with, but the idiom
+       of extracting DECLARE expressions from the top of a body is still needed
+       even so, and this does help to do that concisely, so my personal inclination
+       toward the feature would probably be mildly positive.
+
+     - I don't think there is an ambiguity about doc strings, but I do think the
+       restriction is gratuitous and would not oppose its removal.  This would
+       simplify the syntax description and admit a programming style that some
+       would find useful. Clarifications of how DOCUMENTATION and PARSE-BODY
+       treated the situation would be in order.
+
+
+I would be content to see PARSE-BODY defined either way.  I prefer
+Kent's proposal because I always hate documentation strings like:
+
+    (defun foo ()
+       "This is a very long doc string
+    that didn't fit all one one line"
+       ...)
+
+Of course I would far more gladly cast my vote for the elimination of
+documentation strings, but I doubt that would pass.  In the absence of
+such an event, I would like to see PARSE-BODY added to the language.
+
+For David Duff, as soon as CL-CLEANUP comes up with a proposal or at
+least a decision about multiple documentation strings, I will implement
+and support it in PCL.
+-------
+
+
+1,,
+Summary-line:  5-Jun             jonl@lucid.com  #minor point about extract-declarations
+GV-Info: CL-Cleanup-mailer@SAIL.Stanford.EDU at  5-Jun-89 14:49:40 from AG
+Return-Path: <CL-Cleanup-mailer@SAIL.Stanford.EDU>
+Redistributed: xerox-cl-cleanup^.pa
+Received: from SAIL.Stanford.EDU ([36.86.0.194]) by Xerox.COM ; 05 JUN 89 14:49:42 PDT
+Received: from lucid.com by SAIL.Stanford.EDU with TCP; 5 Jun 89  14:47:36 PDT
+Received: from bhopal ([192.43.178.13]) by heavens-gate id AA16793g; Mon, 5 Jun 89 14:44:30 PDT
+Received: by bhopal id AA00890g; Mon, 5 Jun 89 14:46:43 PDT
+Date: Mon, 5 Jun 89 14:46:43 PDT
+From: Jon L White <jonl@lucid.com>
+Message-Id: <8906052146.AA00890@bhopal>
+To: Gregor.pa
+Cc: duff@eraserhead.crd.ge.com, KMP@STONY-BROOK.SCRC.Symbolics.COM, cl-cleanup@sail.stanford.edu
+In-Reply-To: Gregor.pa@Xerox.COM's message of Sun, 4 Jun 89 12:13 PDT <19890604191319.8.GREGOR@SPIFF.parc.xerox.com>
+Subject: minor point about extract-declarations
+
+*** EOOH ***
+GV-Info: CL-Cleanup-mailer@SAIL.Stanford.EDU at  5-Jun-89 14:49:40 from AG
+Redistributed: xerox-cl-cleanup^.pa
+Date: Mon, 5 Jun 89 14:46:43 PDT
+From: Jon L White <jonl@lucid.com>
+To: Gregor.pa
+Cc: duff@eraserhead.crd.ge.com, KMP@STONY-BROOK.SCRC.Symbolics.COM, cl-cleanup@sail.stanford.edu
+In-Reply-To: Gregor.pa@Xerox.COM's message of Sun, 4 Jun 89 12:13 PDT <19890604191319.8.GREGOR@SPIFF.parc.xerox.com>
+Subject: minor point about extract-declarations
+
+Could we actually support a new cleanup issue based on the fact that
+Guy Steele's "Clarifications" has already been around for n years?  If
+so, the minimal thing would be to support it just as Steele had it.
+
+I really don't see why CLtL p67 is inconsistent about the multiplicities
+of doc-string and declaration; but it's probably too late to change that
+now.
+
+
+-- JonL --
+
+

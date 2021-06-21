@@ -1,0 +1,552 @@
+BABYL OPTIONS:
+Version: 5
+Labels:
+Note:   This is the header of an rmail file.
+Note:   If you are seeing it in rmail,
+Note:    it means the file has no messages in it.
+
+1,,
+Summary-line: 23-Oct           barmar@Think.COM  #issue INSPECT-RETURN-VALUE
+Received: from Xerox.COM by pooh.parc.xerox.com with SMTP
+	(5.61+/IDA-1.2.8/gandalf) id AA08633; Mon, 23 Oct 89 23:24:15 PDT
+Received: from Salvador.ms by ArpaGateway.ms ; 23 OCT 89 23:23:18 PDT
+Return-Path: <X3J13-mailer@SAIL.Stanford.EDU>
+Received: from SAIL.Stanford.EDU ([36.86.0.194]) by Xerox.COM ; 23 OCT 89
+ 18:41:26 PDT
+Received: from Think.COM (Gateway.Think.COM) by SAIL.Stanford.EDU with TCP;
+ 23 Oct 89  18:31:48 PDT
+Return-Path: <barmar@Think.COM>
+Received: from Occam.Think.COM by Think.COM; Mon, 23 Oct 89 21:33:25 -0400
+Date: Mon, 23 Oct 89 21:28 EDT
+From: Barry Margolin <barmar@Think.COM>
+Subject: issue INSPECT-RETURN-VALUE
+To: Sandra J Loosemore <sandra%defun@cs.utah.edu>
+Cc: x3j13@sail.stanford.edu
+In-Reply-To: <8910232242.AA07990@defun.utah.edu>
+Message-Id: <19891024012833.2.BARMAR@OCCAM.THINK.COM>
+
+*** EOOH ***
+Date: Mon, 23 Oct 89 21:28 EDT
+From: Barry Margolin <barmar@Think.COM>
+Subject: issue INSPECT-RETURN-VALUE
+To: Sandra J Loosemore <sandra%defun@cs.utah.edu>
+Cc: x3j13@sail.stanford.edu
+In-Reply-To: <8910232242.AA07990@defun.utah.edu>
+
+    Date: Mon, 23 Oct 89 16:42:09 MDT
+    From: sandra%defun@cs.utah.edu (Sandra J Loosemore)
+
+    Forum:		Cleanup
+    Issue:		INSPECT-RETURN-VALUE
+    References:	CLtL p442,
+		    issue RETURN-VALUES-UNSPECIFIED
+		    issue DESCRIBE-INTERACTIVE
+    Category:	CHANGE
+    Edit History:   V1, 23 Oct 1989, Sandra Loosemore
+
+    Proposal (INSPECT-RETURN-VALUE:SPECIFY):
+
+    Specify that INSPECT returns the object being inspected.  It is
+    possible that some implementations might permit the user to specify a
+    replacement object within the inspector, in which case that object
+    should be returned instead.  (In other words, the return value need
+    not be EQL to the argument.)
+
+This is a confusing way to describe it.  How about:
+
+Specify that by default INSPECT returns the object being inspected, but
+an implementation may allow the user to specify the value interactively
+instead.
+
+                                                barmar
+
+
+
+1,,
+Summary-line: 25-Oct  t.Fahlman@B.GP.CS.CMU.EDU  #Re: issue INSPECT-RETURN-VALUE 
+Received: from Xerox.COM by pooh.parc.xerox.com with SMTP
+	(5.61+/IDA-1.2.8/gandalf) id AA14626; Tue, 24 Oct 89 21:17:19 PDT
+Received: from Salvador.ms by ArpaGateway.ms ; 24 OCT 89 21:17:27 PDT
+Return-Path: <X3J13-mailer@SAIL.Stanford.EDU>
+Received: from SAIL.Stanford.EDU ([36.86.0.194]) by Xerox.COM ; 24 OCT 89
+ 21:16:58 PDT
+Received: from SEF1.SLISP.CS.CMU.EDU by SAIL.Stanford.EDU with TCP; 24 Oct
+ 89  21:10:52 PDT
+Received: from SEF1.SLISP.CS.CMU.EDU by SEF1.SLISP.CS.CMU.EDU; 25 Oct 89
+ 00:10:19 EDT
+To: Sandra J Loosemore <sandra%defun@cs.utah.edu>
+Cc: x3j13@sail.stanford.edu
+Subject: Re: issue INSPECT-RETURN-VALUE 
+In-Reply-To: Your message of Mon, 23 Oct 89 16:42:09 -0600.
+              <8910232242.AA07990@defun.utah.edu> 
+Date: Wed, 25 Oct 89 00:10:09 EDT
+From: Scott.Fahlman@B.GP.CS.CMU.EDU
+Message-Id: <891024-211727-2038@Xerox>
+
+*** EOOH ***
+To: Sandra J Loosemore <sandra%defun@cs.utah.edu>
+Cc: x3j13@sail.stanford.edu
+Subject: Re: issue INSPECT-RETURN-VALUE 
+In-Reply-To: Your message of Mon, 23 Oct 89 16:42:09 -0600.
+              <8910232242.AA07990@defun.utah.edu> 
+Date: Wed, 25 Oct 89 00:10:09 EDT
+From: Scott.Fahlman@B.GP.CS.CMU.EDU
+
+
+I'm very strongly oppposed to Sandra's proposal for INSPECT.  INSPECT is
+primarily useful for interactively crawling around on really big (perhaps
+circular) objects; little tiny objects you just print and look at.  If
+INSPECT insists on returning (and therefore printing) the original object,
+that makes it *much* less useful as an interactive debugging tool.  That's
+the point Guy made some time ago, and I agree with him.  I'd favor leaving
+the return value of INSPECT unspecified, but if we do specify it, it should
+return NIL or no values.
+
+Sandra's response to this is unconvincing.  I don't want to have to mess
+with all the damned print switches every time I'm about to use INSPECT,
+just so that it won't gratuitously print too much when it exits.
+If an implemenation wants to provide a way of returning a modified data
+structure from inspect, that's fine, but I still wouldn't want this
+modified structure just to be returned as a value.
+
+-- Scott
+
+
+
+1,,
+Summary-line: 25-Oct           barmar@Think.COM  #Re: issue INSPECT-RETURN-VALUE 
+Received: from Xerox.COM by pooh.parc.xerox.com with SMTP
+	(5.61+/IDA-1.2.8/gandalf) id AA16994; Wed, 25 Oct 89 10:32:27 PDT
+Received: from Cabernet.ms by ArpaGateway.ms ; 25 OCT 89 10:32:35 PDT
+Return-Path: <X3J13-mailer@SAIL.Stanford.EDU>
+Received: from SAIL.Stanford.EDU ([36.86.0.194]) by Xerox.COM ; 25 OCT 89
+ 10:31:20 PDT
+Received: from Think.COM (Gateway.Think.COM) by SAIL.Stanford.EDU with TCP;
+ 25 Oct 89  10:25:15 PDT
+Return-Path: <barmar@Think.COM>
+Received: from Occam.Think.COM by Think.COM; Wed, 25 Oct 89 13:26:13 -0400
+Date: Wed, 25 Oct 89 13:21 EDT
+From: Barry Margolin <barmar@Think.COM>
+Subject: Re: issue INSPECT-RETURN-VALUE 
+To: Scott.Fahlman@B.GP.CS.CMU.EDU
+Cc: Sandra J Loosemore <sandra%defun@cs.utah.edu>, x3j13@sail.stanford.edu
+In-Reply-To: <8910251553.AA00797@Think.COM>
+Message-Id: <19891025172143.6.BARMAR@OCCAM.THINK.COM>
+
+*** EOOH ***
+Date: Wed, 25 Oct 89 13:21 EDT
+From: Barry Margolin <barmar@Think.COM>
+Subject: Re: issue INSPECT-RETURN-VALUE 
+To: Scott.Fahlman@B.GP.CS.CMU.EDU
+Cc: Sandra J Loosemore <sandra%defun@cs.utah.edu>, x3j13@sail.stanford.edu
+In-Reply-To: <8910251553.AA00797@Think.COM>
+
+    Date: Wed, 25 Oct 89 11:45:14 EDT
+    From: Scott.Fahlman@B.GP.CS.CMU.EDU
+
+    Let me suggest that we leave INSPECT alone and that you use the
+    following construct within your portable toolkit:
+
+    (defun object-returning-inspect (object)
+      (inspect object)
+      object)
+
+Give Sandra some credit; if it were this simple, she wouldn't be
+fighting this battle.  The above definition doesn't provide a way for
+the user to specify an alternate return value, which is what she wants.
+
+However, I think I've got an idea.  Some inspectors provide some form of
+read-eval-inspect loop within the inspector (Genera does), as well as a
+way to set a variable to a component being displayed (Genera has "Set
+/" in the inspector menu).  Then define
+
+(defun my-inspect (object)
+  (let ((*inspect-value* object))
+    (declare (special *inspect-value*))
+    (inspect object)
+    *inspect-value*))
+
+Then document that the user should use the above features to set
+*inspect-value* to the object they wish to return, if the inspector
+provides a way to set a variable.  For instance, in Genera's inspector,
+I could use "Set /" to select an object, then type (setq *inspect-value*
+/) in the read-eval-inspect loop before exiting.
+
+                                                barmar
+
+
+
+1,,
+Summary-line: 25-Oct   sandra%defun@cs.utah.edu  #Re: issue INSPECT-RETURN-VALUE 
+Received: from Xerox.COM by pooh.parc.xerox.com with SMTP
+	(5.61+/IDA-1.2.8/gandalf) id AA16654; Wed, 25 Oct 89 09:17:59 PDT
+Received: from Chardonnay.ms by ArpaGateway.ms ; 25 OCT 89 09:17:54 PDT
+Return-Path: <X3J13-mailer@SAIL.Stanford.EDU>
+Received: from SAIL.Stanford.EDU ([36.86.0.194]) by Xerox.COM ; 25 OCT 89
+ 09:13:38 PDT
+Received: from cs.utah.edu by SAIL.Stanford.EDU with TCP; 25 Oct 89
+ 09:06:39 PDT
+Received: from defun.utah.edu by cs.utah.edu (5.61/utah-2.4-cs)
+ 	id AA24499; Wed, 25 Oct 89 10:06:23 -0600
+Received: by defun.utah.edu (5.61/utah-2.3-leaf)
+ 	id AA09730; Wed, 25 Oct 89 10:06:19 -0600
+From: sandra%defun@cs.utah.edu (Sandra J Loosemore)
+Message-Id: <8910251606.AA09730@defun.utah.edu>
+Date: Wed, 25 Oct 89 10:06:18 MDT
+Subject: Re: issue INSPECT-RETURN-VALUE 
+To: Scott.Fahlman@B.GP.CS.CMU.EDU
+Cc: Sandra J Loosemore <sandra%defun@cs.utah.edu>, x3j13@sail.stanford.edu
+In-Reply-To: Scott.Fahlman@B.GP.CS.CMU.EDU, Wed, 25 Oct 89 11:45:14 EDT
+
+*** EOOH ***
+From: sandra%defun@cs.utah.edu (Sandra J Loosemore)
+Date: Wed, 25 Oct 89 10:06:18 MDT
+Subject: Re: issue INSPECT-RETURN-VALUE 
+To: Scott.Fahlman@B.GP.CS.CMU.EDU
+Cc: Sandra J Loosemore <sandra%defun@cs.utah.edu>, x3j13@sail.stanford.edu
+In-Reply-To: Scott.Fahlman@B.GP.CS.CMU.EDU, Wed, 25 Oct 89 11:45:14 EDT
+
+> Date: Wed, 25 Oct 89 11:45:14 EDT
+> From: Scott.Fahlman@B.GP.CS.CMU.EDU
+> 
+> Let me suggest that we leave INSPECT alone and that you use the
+> following construct within your portable toolkit:
+> 
+> (defun object-returning-inspect (object)
+>   (inspect object)
+>   object)
+
+That is, in fact, what I am now doing.  The problem is that in some
+implementations, INSPECT does allow the user to specify a replacement
+object and/or destructively modify the object -- that is, it acts as
+an input tool as well as an output tool.  Simply returning the
+original object all the time, even when the user tried to specify some
+other object, is less than satisfactory..... 
+
+-Sandra
+-------
+
+
+
+1,,
+Summary-line: 25-Oct  Moon@STONY-BROOK.SCRC.Sym  #issue INSPECT-RETURN-VALUE
+Received: from Xerox.COM by pooh.parc.xerox.com with SMTP
+	(5.61+/IDA-1.2.8/gandalf) id AA16432; Wed, 25 Oct 89 08:19:33 PDT
+Received: from Chardonnay.ms by ArpaGateway.ms ; 25 OCT 89 08:19:07 PDT
+Return-Path: <X3J13-mailer@SAIL.Stanford.EDU>
+Received: from SAIL.Stanford.EDU ([36.86.0.194]) by Xerox.COM ; 25 OCT 89
+ 08:14:26 PDT
+Received: from STONY-BROOK.SCRC.Symbolics.COM by SAIL.Stanford.EDU with
+ TCP; 25 Oct 89  08:06:06 PDT
+Received: from EUPHRATES.SCRC.Symbolics.COM by
+ STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 681304; 25 Oct
+ 89 11:04:33 EDT
+Date: Wed, 25 Oct 89 11:04 EDT
+From: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: issue INSPECT-RETURN-VALUE
+To: Sandra J Loosemore <sandra%defun@cs.utah.edu>,
+        Scott.Fahlman@B.GP.CS.CMU.EDU, Jon L White <jonl@lucid.com>,
+        Bartley@ti-csl.csc.ti.com
+Cc: x3j13@sail.stanford.edu
+In-Reply-To: <8910232242.AA07990@defun.utah.edu>,
+              The message of 25 Oct 89 00:10 EDT from
+ Scott.Fahlman@B.GP.CS.CMU.EDU,
+              <8910251238.AA28089@bhopal>,
+              <8910251352.AA05240@m2.csc.ti.com>
+Message-Id: <19891025150420.0.MOON@EUPHRATES.SCRC.Symbolics.COM>
+
+*** EOOH ***
+Date: Wed, 25 Oct 89 11:04 EDT
+From: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: issue INSPECT-RETURN-VALUE
+To: Sandra J Loosemore <sandra%defun@cs.utah.edu>,
+        Scott.Fahlman@B.GP.CS.CMU.EDU, Jon L White <jonl@lucid.com>,
+        Bartley@ti-csl.csc.ti.com
+Cc: x3j13@sail.stanford.edu
+In-Reply-To: <8910232242.AA07990@defun.utah.edu>,
+              The message of 25 Oct 89 00:10 EDT from
+ Scott.Fahlman@B.GP.CS.CMU.EDU,
+              <8910251238.AA28089@bhopal>,
+              <8910251352.AA05240@m2.csc.ti.com>
+
+If I may summarize this conversation, Sandra wants to be able to call
+INSPECT from a program and have it serve as a useful front end between
+that program and the user, while her interlocutors want to call INSPECT
+from the read-eval-print loop.
+
+What we are seeing is, of course, the tension between the use of INSPECT
+as a function and the use of INSPECT as a command.  It is silly of
+Common Lisp to confuse the two.  Just because it is an extremely useful
+and powerful feature of almost all Lisp systems that the full
+programming language can be used as part of the command language,
+doesn't mean that the command language must be 100% identical to the
+programming language.  A more reasonable approach would be to have an
+INSPECT function that behaves appropriately for a function and an
+INSPECT command that behaves appropriately for a command.  Then of
+course the function would return a useful value, and of course the
+command would not print something stupid when it exits, and the two
+could coexist peacefully.  I suppose there is no chance of reaching
+concensus that Common Lisp, the language, should not contain a
+half-baked attempt at programming environment commands.  As it is,
+functions like INSPECT, DESCRIBE, and ED aren't sure whether they are
+supposed to be called by programs or are supposed to be used as commands
+by users.  Sandra's program will have to be mildly non-portable and call
+the internal function version of INSPECT that has a different name in
+every implementation, and users will have to either use Common Lisp's
+feeble attempt at a programming environment that is somewhat the same in
+every implementation, or learn a powerful but idiosyncratic set of
+commands afresh each time they use a new implementation.
+
+
+
+1,,
+Summary-line: 25-Oct  t.Fahlman@B.GP.CS.CMU.EDU  #Re: issue INSPECT-RETURN-VALUE 
+Received: from Xerox.COM by pooh.parc.xerox.com with SMTP
+	(5.61+/IDA-1.2.8/gandalf) id AA16561; Wed, 25 Oct 89 08:54:57 PDT
+Received: from Cabernet.ms by ArpaGateway.ms ; 25 OCT 89 08:53:40 PDT
+Return-Path: <X3J13-mailer@SAIL.Stanford.EDU>
+Received: from SAIL.Stanford.EDU ([36.86.0.194]) by Xerox.COM ; 25 OCT 89
+ 08:53:26 PDT
+Received: from SEF1.SLISP.CS.CMU.EDU by SAIL.Stanford.EDU with TCP; 25 Oct
+ 89  08:45:55 PDT
+Received: from SEF1.SLISP.CS.CMU.EDU by SEF1.SLISP.CS.CMU.EDU; 25 Oct 89
+ 11:45:17 EDT
+To: Sandra J Loosemore <sandra%defun@cs.utah.edu>
+Cc: x3j13@sail.stanford.edu
+Subject: Re: issue INSPECT-RETURN-VALUE 
+In-Reply-To: Your message of Wed, 25 Oct 89 09:05:26 -0600.
+              <8910251505.AA09630@defun.utah.edu> 
+Date: Wed, 25 Oct 89 11:45:14 EDT
+From: Scott.Fahlman@B.GP.CS.CMU.EDU
+Message-Id: <891025-085340-2910@Xerox>
+
+*** EOOH ***
+To: Sandra J Loosemore <sandra%defun@cs.utah.edu>
+Cc: x3j13@sail.stanford.edu
+Subject: Re: issue INSPECT-RETURN-VALUE 
+In-Reply-To: Your message of Wed, 25 Oct 89 09:05:26 -0600.
+              <8910251505.AA09630@defun.utah.edu> 
+Date: Wed, 25 Oct 89 11:45:14 EDT
+From: Scott.Fahlman@B.GP.CS.CMU.EDU
+
+
+Sandra,
+
+I am not suggesting that "supporting this kind of application" is not
+useful.  I am suggesting that destroying the usefulness of INSPECT as an
+interactive tool in order to make such applications a bit easier is not a
+good idea.  Let me suggest that we leave INSPECT alone and that you use the
+following construct within your portable toolkit:
+
+(defun object-returning-inspect (object)
+  (inspect object)
+  object)
+
+-- Scott
+
+
+
+1,,
+Summary-line: 25-Oct   sandra%defun@cs.utah.edu  #Re: issue INSPECT-RETURN-VALUE 
+Received: from Xerox.COM by pooh.parc.xerox.com with SMTP
+	(5.61+/IDA-1.2.8/gandalf) id AA16413; Wed, 25 Oct 89 08:15:19 PDT
+Received: from Cabernet.ms by ArpaGateway.ms ; 25 OCT 89 08:14:15 PDT
+Return-Path: <X3J13-mailer@SAIL.Stanford.EDU>
+Received: from SAIL.Stanford.EDU ([36.86.0.194]) by Xerox.COM ; 25 OCT 89
+ 08:13:32 PDT
+Received: from cs.utah.edu by SAIL.Stanford.EDU with TCP; 25 Oct 89
+ 08:05:43 PDT
+Received: from defun.utah.edu by cs.utah.edu (5.61/utah-2.4-cs)
+ 	id AA22052; Wed, 25 Oct 89 09:05:30 -0600
+Received: by defun.utah.edu (5.61/utah-2.3-leaf)
+ 	id AA09630; Wed, 25 Oct 89 09:05:27 -0600
+From: sandra%defun@cs.utah.edu (Sandra J Loosemore)
+Message-Id: <8910251505.AA09630@defun.utah.edu>
+Date: Wed, 25 Oct 89 09:05:26 MDT
+Subject: Re: issue INSPECT-RETURN-VALUE 
+To: x3j13@sail.stanford.edu
+In-Reply-To: Bartley@ti-csl.csc.ti.com, Wed, 25 Oct 89 08:52:34 CDT
+
+*** EOOH ***
+From: sandra%defun@cs.utah.edu (Sandra J Loosemore)
+Date: Wed, 25 Oct 89 09:05:26 MDT
+Subject: Re: issue INSPECT-RETURN-VALUE 
+To: x3j13@sail.stanford.edu
+In-Reply-To: Bartley@ti-csl.csc.ti.com, Wed, 25 Oct 89 08:52:34 CDT
+
+Perhaps I should have been a little more explicit in the writeup about
+why I wanted this feature.
+
+I have been working on developing some debugging tools lately.
+Although this stuff is probably going to eventually be incorporated
+into Utah Common Lisp, the parts I have working now are mostly
+portable, assuming you have things like CLX and CLUE working in your
+favorite Lisp implementation.  One of the features my stepper supports
+is that users can inspect the values of lexical variable bindings,
+arguments to function applications, return values, etc. from within
+the debugger.  Basically, I want to be able to use this mechanism to
+let the user modify the value as well as examine it.  I do have an
+X-based graphical inspector that works well for this, but sometimes
+it's useful to see text instead of pictures, especially since you
+might feel more familiar and comfortable with the user interface of
+the standard system inspector.  But I can't do this unless INSPECT is
+guaranteed to return a useful value.  Merely leaving the possibility
+open that it *might* return a useful value is not enough.  Also, I
+would like to be able to recursively invoke the standard system
+INSPECT utility from my graphical inspector so that users again have
+the choice of pictures or text for browsing through substructure. 
+
+If everybody else is firmly convinced that supporting this kind of
+application is not important, I will withdraw my proposal.  I guess
+the real question is whether we want to treat INSPECT as something
+that is invoked only from the read/eval/print loop or whether it is
+something that might usefully be called from programs.
+
+-Sandra
+-------
+
+
+
+1,,
+Summary-line: 25-Oct      bartley@m2.csc.ti.com  #Re: issue INSPECT-RETURN-VALUE 
+Received: from Xerox.COM by pooh.parc.xerox.com with SMTP
+	(5.61+/IDA-1.2.8/gandalf) id AA16312; Wed, 25 Oct 89 07:14:41 PDT
+Received: from Semillon.ms by ArpaGateway.ms ; 25 OCT 89 07:09:07 PDT
+Return-Path: <X3J13-mailer@SAIL.Stanford.EDU>
+Received: from SAIL.Stanford.EDU ([36.86.0.194]) by Xerox.COM ; 25 OCT 89
+ 07:08:24 PDT
+Received: from ti.com by SAIL.Stanford.EDU with TCP; 25 Oct 89  07:02:28
+ PDT
+Received: by ti.com id AA15595; Wed, 25 Oct 89 09:03:05 -0500
+Received: from m2.csc.ti.com by tilde id AA28421; Wed, 25 Oct 89 08:52:38
+ CDT
+Received: by m2.csc.ti.com (5.52/4.7)
+ 	id AA05240; Wed, 25 Oct 89 08:52:34 CDT
+Date: Wed, 25 Oct 89 08:52:34 CDT
+From: bartley@m2.csc.ti.com (David Bartley)
+Message-Id: <8910251352.AA05240@m2.csc.ti.com>
+To: sandra%defun@cs.utah.edu
+Cc: x3j13@sail.stanford.edu
+Subject: Re: issue INSPECT-RETURN-VALUE 
+Reply-To: Bartley@ti-csl.csc.ti.com
+
+*** EOOH ***
+Date: Wed, 25 Oct 89 08:52:34 CDT
+From: bartley@m2.csc.ti.com (David Bartley)
+To: sandra%defun@cs.utah.edu
+Cc: x3j13@sail.stanford.edu
+Subject: Re: issue INSPECT-RETURN-VALUE 
+Reply-To: Bartley@ti-csl.csc.ti.com
+
+I also oppose Sandra's proposal that INSPECT be required to return the
+inspected (and possibly large or circular) value.  I should think her
+needs would be better met by having an interactive command that exits
+INSPECT with whatever value she wants.  In other words, leaving the
+returned value unspecified allows implementations to give users the
+capability to return whatever value they want.
+
+--db--
+
+
+
+1,,
+Summary-line: 25-Oct             jonl@lucid.com  #issue INSPECT-RETURN-VALUE
+Received: from Xerox.COM by pooh.parc.xerox.com with SMTP
+	(5.61+/IDA-1.2.8/gandalf) id AA16223; Wed, 25 Oct 89 05:45:32 PDT
+Received: from Semillon.ms by ArpaGateway.ms ; 25 OCT 89 05:45:38 PDT
+Return-Path: <X3J13-mailer@SAIL.Stanford.EDU>
+Received: from SAIL.Stanford.EDU ([36.86.0.194]) by Xerox.COM ; 25 OCT 89
+ 05:45:30 PDT
+Received: from lucid.com by SAIL.Stanford.EDU with TCP; 25 Oct 89  05:39:21
+ PDT
+Received: from bhopal ([192.43.178.13]) by heavens-gate id AA18125g; Wed,
+ 25 Oct 89 05:36:36 PDT
+Received: by bhopal id AA28089g; Wed, 25 Oct 89 05:38:35 PDT
+Date: Wed, 25 Oct 89 05:38:35 PDT
+From: Jon L White <jonl@lucid.com>
+Message-Id: <8910251238.AA28089@bhopal>
+To: sandra%defun@cs.utah.edu
+Cc: x3j13@sail.stanford.edu
+In-Reply-To: Sandra J Loosemore's message of Mon, 23 Oct 89 16:42:09 MDT
+ <8910232242.AA07990@defun.utah.edu>
+Subject: issue INSPECT-RETURN-VALUE
+
+*** EOOH ***
+Date: Wed, 25 Oct 89 05:38:35 PDT
+From: Jon L White <jonl@lucid.com>
+To: sandra%defun@cs.utah.edu
+Cc: x3j13@sail.stanford.edu
+In-Reply-To: Sandra J Loosemore's message of Mon, 23 Oct 89 16:42:09 MDT
+ <8910232242.AA07990@defun.utah.edu>
+Subject: issue INSPECT-RETURN-VALUE
+
+re: Specify that INSPECT returns the object being inspected.  ...
+
+This is ambiguous.  Does it refer to the object that was used as the
+argument to INSPECT, or does it mean some randomly-selected object?
+[The "random selection" capability is implicit in the interactive
+and otherwise unspecified nature of the operation of INSPECT].
+
+Although Lucid's INSPECT returns the most recently "selected" object,
+I agree with Scott and Guy that there has not been a demonstration
+of need to pin this one down, other than to say that the return value
+may be implementation dependent.
+
+
+-- JonL --
+
+
+
+1,,
+Summary-line: 25-Oct              jlm@lucid.com  #issue INSPECT-RETURN-VALUE 
+Received: from Xerox.COM by pooh.parc.xerox.com with SMTP
+	(5.61+/IDA-1.2.8/gandalf) id AA17629; Wed, 25 Oct 89 12:27:27 PDT
+Received: from Chardonnay.ms by ArpaGateway.ms ; 25 OCT 89 12:27:36 PDT
+Return-Path: <X3J13-mailer@SAIL.Stanford.EDU>
+Received: from SAIL.Stanford.EDU ([36.86.0.194]) by Xerox.COM ; 25 OCT 89
+ 12:27:09 PDT
+Received: from lucid.com by SAIL.Stanford.EDU with TCP; 25 Oct 89  12:21:48
+ PDT
+Received: from edsel ([192.9.200.1]) by heavens-gate id AA20452g; Wed, 25
+ Oct 89 12:18:49 PDT
+Received: from chappaquiddick. by edsel id AA17532g; Wed, 25 Oct 89
+ 12:14:21 PDT
+Received: by chappaquiddick. (4.0/SMI-4.0)
+ 	id AA05315; Wed, 25 Oct 89 12:23:31 PDT
+Date: Wed, 25 Oct 89 12:23:31 PDT
+From: jlm@lucid.com (Jim McDonald)
+Message-Id: <8910251923.AA05315@chappaquiddick.>
+To: sandra%defun@cs.utah.edu
+Cc: x3j13@sail.stanford.edu
+In-Reply-To: Sandra J Loosemore's message of Wed, 25 Oct 89 09:05:26 MDT
+ <8910251505.AA09630@defun.utah.edu>
+Subject: issue INSPECT-RETURN-VALUE 
+
+*** EOOH ***
+Date: Wed, 25 Oct 89 12:23:31 PDT
+From: jlm@lucid.com (Jim McDonald)
+To: sandra%defun@cs.utah.edu
+Cc: x3j13@sail.stanford.edu
+In-Reply-To: Sandra J Loosemore's message of Wed, 25 Oct 89 09:05:26 MDT
+ <8910251505.AA09630@defun.utah.edu>
+Subject: issue INSPECT-RETURN-VALUE 
+
+INSPECT could return an encapsulation with a short print form and with
+the real object easily accessible.  E.g.,  
+
+(setq result (inspect *very-large-structure*))
+...user rummages around and chooses to return <very-large-component>...
+-> :Q [or whatever]
+#<ENCAPSULATED 0x12345>
+
+> (contents result)
+<very-large-component>
+
+>
+
+There might be other contexts in which this would be a useful trick...
+
+  jlm
+
+
+

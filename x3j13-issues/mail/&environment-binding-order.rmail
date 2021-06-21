@@ -1,0 +1,252 @@
+BABYL OPTIONS:
+Version: 5
+Labels:
+Note:   This is the header of an rmail file.
+Note:   If you are seeing it in rmail,
+Note:    it means the file has no messages in it.
+
+1,,
+Summary-line: 24-Oct   sandra%defun@cs.utah.edu  #issue &ENVIRONMENT-BINDING-ORDER
+Received: from Xerox.COM by pooh.parc.xerox.com with SMTP
+	(5.61+/IDA-1.2.8/gandalf) id AA11376; Tue, 24 Oct 89 11:18:14 PDT
+Received: from Cabernet.ms by ArpaGateway.ms ; 24 OCT 89 11:13:34 PDT
+Return-Path: <X3J13-mailer@SAIL.Stanford.EDU>
+Received: from SAIL.Stanford.EDU ([36.86.0.194]) by Xerox.COM ; 24 OCT 89
+ 10:43:24 PDT
+Received: from cs.utah.edu by SAIL.Stanford.EDU with TCP; 24 Oct 89
+ 10:36:30 PDT
+Received: from defun.utah.edu by cs.utah.edu (5.61/utah-2.4-cs)
+ 	id AA03120; Tue, 24 Oct 89 11:36:15 -0600
+Received: by defun.utah.edu (5.61/utah-2.3-leaf)
+ 	id AA08712; Tue, 24 Oct 89 11:36:13 -0600
+From: sandra%defun@cs.utah.edu (Sandra J Loosemore)
+Message-Id: <8910241736.AA08712@defun.utah.edu>
+Date: Tue, 24 Oct 89 11:36:11 MDT
+Subject: issue &ENVIRONMENT-BINDING-ORDER
+To: x3j13@sail.stanford.edu
+
+*** EOOH ***
+From: sandra%defun@cs.utah.edu (Sandra J Loosemore)
+Date: Tue, 24 Oct 89 11:36:11 MDT
+Subject: issue &ENVIRONMENT-BINDING-ORDER
+To: x3j13@sail.stanford.edu
+
+This is issue #24 from my list.
+
+Forum:		Cleanup
+Issue:		&ENVIRONMENT-BINDING-ORDER
+References:	CLtL p. 145-146, 63
+                Issue DEFMACRO-LAMBDA-LIST
+Category:	CLARIFICATION
+Edit History:   V1, 24 Oct 1989, Sandra Loosemore
+
+
+Problem Description:
+
+Issue DEFMACRO-LAMBDA-LIST states that &ENVIRONMENT can appear once
+anywhere at top level of a macro lambda list, but doesn't say anything
+about the order in which the &ENVIRONMENT variable is bound relative
+to the other lambda-list variables.
+
+Some implementations treat &ENVIRONMENT as a mechanism for naming the
+second argument to the macro function, in which case it is bound
+before any of the variables in the actual destructuring pattern.
+Other implementations bind it with the other lambda parameters in the
+usual left-to-right order.
+
+There are two proposals, FIRST and LEFT-TO-RIGHT.
+
+
+Proposal (&ENVIRONMENT-BINDING-ORDER:FIRST):
+
+Clarify that the &ENVIRONMENT parameter is bound along with &WHOLE
+before any of other variables in the lambda list, regardless of where
+&ENVIRONMENT appears in the lambda list.
+
+  Rationale:
+
+  This proposal provides a convenient explanation for the special
+  treatment of &WHOLE and &ENVIRONMENT at top-level in a DEFMACRO-style
+  lambda list.  Basically, these two parameters are stripped out and
+  used to name the two arguments to the macro function, then the binding
+  of the remaining arguments is handled exactly the same as at
+  non-top-level or in a DESTRUCTURING-BIND.  It is also very
+  straightforward to implement this model (as opposed to having
+  special parsing code for destructuring top-level DEFMACRO lambda
+  lists).
+
+
+Proposal (&ENVIRONMENT-BINDING-ORDER:LEFT-TO-RIGHT):
+
+Clarify that the all lambda variables in a DEFMACRO-style lambda list
+are bound left-to-right, including the &ENVIRONMENT parameter.
+
+  Rationale:
+
+  This is more consistent with the order in which variables in ordinary 
+  lambda lists are bound.
+
+
+Current Practice:
+
+Lucid CL, Utah CL, and KCL implement proposal BEFORE.  CMU CL
+implements proposal LEFT-TO-RIGHT.
+
+
+Cost to implementors:
+
+The changes are probably localized but potentially hairy.  It is
+possible that in some implementations it might be easier to completely
+replace the code which handles lambda-list parsing and destructuring
+than to try to patch it.  Proposal BEFORE is probably easier to
+implement initially but the cost of converting an existing
+implementation is probably about the same for both proposals.
+
+
+Cost to users:
+
+There are probably few user programs that would be affected by a
+change in the binding order of &ENVIRONMENT parameters.
+
+
+Benefits:
+
+The language specification is made more precise.
+
+
+Discussion:
+-------
+
+
+
+1,,
+Summary-line:  2-Nov   sandra%defun@cs.utah.edu  #issue &ENVIRONMENT-BINDING-ORDER, version 2
+Received: from Xerox.COM by pooh.parc.xerox.com with SMTP
+	(5.61+/IDA-1.2.8/gandalf) id AA28537; Thu, 2 Nov 89 10:28:00 PST
+Received: from Salvador.ms by ArpaGateway.ms ; 02 NOV 89 10:28:09 PST
+Return-Path: <X3J13-mailer@SAIL.Stanford.EDU>
+Received: from SAIL.Stanford.EDU ([36.86.0.194]) by Xerox.COM ; 02 NOV 89
+ 10:19:06 PST
+Received: from cs.utah.edu by SAIL.Stanford.EDU with TCP; 2 Nov 89
+ 10:11:30 PST
+Received: from defun.utah.edu by cs.utah.edu (5.61/utah-2.4-cs)
+ 	id AA15561; Thu, 2 Nov 89 09:19:40 -0700
+Received: by defun.utah.edu (5.61/utah-2.3-leaf)
+ 	id AA17290; Thu, 2 Nov 89 09:19:36 -0700
+From: sandra%defun@cs.utah.edu (Sandra J Loosemore)
+Message-Id: <8911021619.AA17290@defun.utah.edu>
+Date: Thu, 2 Nov 89 09:19:35 MST
+Subject: issue &ENVIRONMENT-BINDING-ORDER, version 2
+To: x3j13@sail.stanford.edu
+
+*** EOOH ***
+From: sandra%defun@cs.utah.edu (Sandra J Loosemore)
+Date: Thu, 2 Nov 89 09:19:35 MST
+Subject: issue &ENVIRONMENT-BINDING-ORDER, version 2
+To: x3j13@sail.stanford.edu
+
+Forum:		Cleanup
+Issue:		&ENVIRONMENT-BINDING-ORDER
+References:	CLtL p. 145-146, 63
+                Issue DEFMACRO-LAMBDA-LIST
+Category:	CLARIFICATION
+Edit History:   V1, 24 Oct 1989, Sandra Loosemore
+		V3, 02 Nov 1989, Sandra Loosemore (comments from Moon)
+
+
+Problem Description:
+
+Issue DEFMACRO-LAMBDA-LIST states that &ENVIRONMENT can appear once
+anywhere at top level of a macro lambda list, but doesn't say anything
+about the order in which the &ENVIRONMENT variable is bound relative
+to the other lambda-list variables.
+
+Some implementations treat &ENVIRONMENT as a mechanism for naming the
+second argument to the macro function, in which case it is bound
+before any of the variables in the actual destructuring pattern.
+Other implementations bind it with the other lambda parameters in the
+usual left-to-right order.
+
+The binding order of &WHOLE parameters is not an issue.  This is
+because a &WHOLE parameter must appear first in the lambda list, so
+there is no difference between binding it first or binding it
+left-to-right.  The relative binding order of &WHOLE and &ENVIRONMENT
+parameters is not an issue because neither one can include init forms
+where the binding of the other might be visible.
+
+There are two proposals, FIRST and LEFT-TO-RIGHT.
+
+
+Proposal (&ENVIRONMENT-BINDING-ORDER:FIRST):
+
+Clarify that the &ENVIRONMENT parameter is bound along with &WHOLE
+before any of other variables in the lambda list, regardless of where
+&ENVIRONMENT appears in the lambda list.
+
+  Rationale:
+
+  This proposal provides a convenient explanation for the special
+  treatment of &WHOLE and &ENVIRONMENT at top-level in a DEFMACRO-style
+  lambda list.  Basically, these two parameters are stripped out and
+  used to name the two arguments to the macro function, then the binding
+  of the remaining arguments is handled exactly the same as at
+  non-top-level or in a DESTRUCTURING-BIND.  It is also very
+  straightforward to implement this model (as opposed to having
+  special parsing code for destructuring top-level DEFMACRO lambda
+  lists).
+
+
+Proposal (&ENVIRONMENT-BINDING-ORDER:LEFT-TO-RIGHT):
+
+Clarify that the all lambda variables in a DEFMACRO-style lambda list
+are bound left-to-right, including the &WHOLE and &ENVIRONMENT parameters.
+
+  Rationale:
+
+  This is more consistent with the order in which variables in ordinary 
+  lambda lists are bound.
+
+
+Current Practice:
+
+Lucid CL, Utah CL, and KCL implement proposal FIRST.  CMU CL
+implements proposal LEFT-TO-RIGHT.
+
+Symbolics Genera implements proposal FIRST.  Specifically, &WHOLE is
+bound first, followed by &ENVIRONMENT, then the destructuring
+variables in the order listed.
+
+
+Cost to implementors:
+
+The changes are probably localized but potentially hairy.  It is
+possible that in some implementations it might be easier to completely
+replace the code which handles lambda-list parsing and destructuring
+than to try to patch it.  Proposal FIRST is probably easier to
+implement initially but the cost of converting an existing
+implementation is probably about the same for both proposals.
+
+
+Cost to users:
+
+There are probably few user programs that would be affected by a
+change in the binding order of &ENVIRONMENT parameters.
+
+
+Benefits:
+
+The language specification is made more precise.
+
+
+Discussion:
+
+Moon says:
+  I believe LEFT-TO-RIGHT is more clean, but I don't have strong feelings.
+  I am equally in favor of either of the two presented proposals or an
+  EXPLICITLY-VAGUE proposal.
+
+
+-------
+
+
+
