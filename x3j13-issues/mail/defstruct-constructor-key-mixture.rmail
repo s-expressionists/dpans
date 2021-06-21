@@ -1,0 +1,64 @@
+BABYL OPTIONS:
+Version: 5
+Labels:
+Note:   This is the header of an rmail file.
+Note:   If you are seeing it in rmail,
+Note:    it means the file has no messages in it.
+
+1,,
+Summary-line:  2-Nov  Moon@STONY-BROOK.SCRC.Sym  #issue DEFSTRUCT-CONSTRUCTOR-KEY-MIXTURE
+Received: from Xerox.COM by pooh.parc.xerox.com with SMTP
+	(5.61+/IDA-1.2.8/gandalf) id AA29024; Thu, 2 Nov 89 12:02:46 PST
+Received: from Semillon.ms by ArpaGateway.ms ; 02 NOV 89 12:03:03 PST
+Return-Path: <Quinquevirate-mailer@SAIL.Stanford.EDU>
+Received: from SAIL.Stanford.EDU ([36.86.0.194]) by Xerox.COM ; 02 NOV 89
+ 11:46:54 PST
+Received: from STONY-BROOK.SCRC.Symbolics.COM by SAIL.Stanford.EDU with
+ TCP; 2 Nov 89  11:46:38 PST
+Received: from EUPHRATES.SCRC.Symbolics.COM by
+ STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 686350; 2 Nov
+ 89 14:45:02 EST
+Date: Thu, 2 Nov 89 14:45 EST
+From: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: issue DEFSTRUCT-CONSTRUCTOR-KEY-MIXTURE
+To: Sandra J Loosemore <sandra%defun@cs.utah.edu>
+Cc: quinquevirate@sail.stanford.edu
+In-Reply-To: <19890822153755.0.MOON@EUPHRATES.SCRC.Symbolics.COM>
+Message-Id: <19891102194507.8.MOON@EUPHRATES.SCRC.Symbolics.COM>
+
+*** EOOH ***
+Date: Thu, 2 Nov 89 14:45 EST
+From: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: issue DEFSTRUCT-CONSTRUCTOR-KEY-MIXTURE
+To: Sandra J Loosemore <sandra%defun@cs.utah.edu>
+Cc: quinquevirate@sail.stanford.edu
+In-Reply-To: <19890822153755.0.MOON@EUPHRATES.SCRC.Symbolics.COM>
+
+    Date: Tue, 22 Aug 89 11:37 EDT
+    From: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+    ....
+    Editorial note upon re-reading the issue: the sentence 
+
+      Keyword arguments default
+      in a manner similar to that of &OPTIONAL arguments: if no default
+      is supplied in the lambda-list then the slot initform is used;
+      otherwise the slot is not initialized -- its initial value is
+      undefined.
+
+    is partially bogus.  The portion following the semicolon comes from a
+    misreading of CLtL, confusing the description of &AUX with the
+    description of &OPTIONAL, and should be replaced with
+
+      otherwise the default in the lambda-list is used.
+
+    X3J13 couldn't possibly have consciously voted for what this says, as it
+    is nonsense.  I don't know where to look in the current draft
+    specification, which in any case I do not have a copy of, for the
+    corresponding text to see if this mistake got into our draft.
+
+I've checked this against the recently mailed draft (p. 6-95).  This mistake
+is not in the draft, however there is another wording problem in its place.
+I'll add it to Symbolics' collection of review comments.
+
+
+
