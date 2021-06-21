@@ -1,0 +1,40 @@
+BABYL OPTIONS:
+Version: 5
+Labels:
+Note:   This is the header of an rmail file.
+Note:   If you are seeing it in rmail,
+Note:    it means the file has no messages in it.
+
+1,,
+Summary-line: 23-Oct  Moon@STONY-BROOK.SCRC.Sym  #issue DEFSTRUCT-CONSTRUCTOR-OPTIONS
+Received: from Xerox.COM by pooh.parc.xerox.com with SMTP
+	(5.61+/IDA-1.2.8/gandalf) id AA08677; Mon, 23 Oct 89 23:48:32 PDT
+Received: from Semillon.ms by ArpaGateway.ms ; 23 OCT 89 23:47:29 PDT
+Return-Path: <X3J13-mailer@SAIL.Stanford.EDU>
+Received: from SAIL.Stanford.EDU ([36.86.0.194]) by Xerox.COM ; 23 OCT 89
+ 21:25:01 PDT
+Received: from STONY-BROOK.SCRC.Symbolics.COM by SAIL.Stanford.EDU with
+ TCP; 23 Oct 89  21:15:05 PDT
+Received: from EUPHRATES.SCRC.Symbolics.COM by
+ STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 680552; 23 Oct
+ 89 23:44:39 EDT
+Date: Mon, 23 Oct 89 23:44 EDT
+From: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: issue DEFSTRUCT-CONSTRUCTOR-OPTIONS
+To: Sandra J Loosemore <sandra%defun@cs.utah.edu>
+Cc: x3j13@sail.stanford.edu
+In-Reply-To: <8910112103.AA21802@defun.utah.edu>
+Message-Id: <19891024034439.2.MOON@EUPHRATES.SCRC.Symbolics.COM>
+
+*** EOOH ***
+Date: Mon, 23 Oct 89 23:44 EDT
+From: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: issue DEFSTRUCT-CONSTRUCTOR-OPTIONS
+To: Sandra J Loosemore <sandra%defun@cs.utah.edu>
+Cc: x3j13@sail.stanford.edu
+In-Reply-To: <8910112103.AA21802@defun.utah.edu>
+
+Seems okay, and conforms to Symbolics Genera current parctice.
+
+
+

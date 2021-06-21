@@ -25,10 +25,16 @@
        This directory contains a subset of the X3J13 cleanup issues
        produced by the committee.
 
-       The files in this directory have been obtained from
+       The files in the file:x3j13-issues/passed directory have
+       been obtained from
        http://www.cs.cmu.edu/afs/cs/project/ai-repository/ai/lang/lisp/doc/standard/ansi/cleanup/
        on 2021-05-06. Unfortunately, that collection does not contain
        all issue files.
+
+       The files in the file:x3j13-issues/mail and
+       file:x3j13-issues/old-mail directories have been obtained from
+       http://ftp.lp0.dk/pub/archives/ftp-sites/ftp.parc.xerox.com/pub/cl/cleanup
+       on 2021-06-13.
 
   + file:changes directory ::
 

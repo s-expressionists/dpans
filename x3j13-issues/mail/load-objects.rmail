@@ -1,0 +1,172 @@
+BABYL OPTIONS:
+Version: 5
+Labels:
+Note:   This is the header of an rmail file.
+Note:   If you are seeing it in rmail,
+Note:    it means the file has no messages in it.
+
+1,,
+Summary-line: 25-Oct  Moon@STONY-BROOK.SCRC.Sym  #Query on ISSUE: LOAD-OBJECTS
+Received: from Xerox.COM by pooh.parc.xerox.com with SMTP
+	(5.61+/IDA-1.2.8/gandalf) id AA17048; Wed, 25 Oct 89 10:43:14 PDT
+Received: from Chardonnay.ms by ArpaGateway.ms ; 25 OCT 89 10:41:19 PDT
+Return-Path: <X3J13-mailer@SAIL.Stanford.EDU>
+Received: from SAIL.Stanford.EDU ([36.86.0.194]) by Xerox.COM ; 25 OCT 89
+ 10:39:14 PDT
+Received: from STONY-BROOK.SCRC.Symbolics.COM by SAIL.Stanford.EDU with
+ TCP; 25 Oct 89  10:18:41 PDT
+Received: from EUPHRATES.SCRC.Symbolics.COM by
+ STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 681390; 25 Oct
+ 89 13:16:47 EDT
+Date: Wed, 25 Oct 89 13:16 EDT
+From: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: Query on ISSUE: LOAD-OBJECTS
+To: Jon L White <jonl@lucid.com>
+Cc: X3J13@SAIL.Stanford.edu, Common-Lisp-Object-System@SAIL.Stanford.edu
+In-Reply-To: <8910251456.AA28268@bhopal>
+Message-Id: <19891025171650.2.MOON@EUPHRATES.SCRC.Symbolics.COM>
+
+*** EOOH ***
+Date: Wed, 25 Oct 89 13:16 EDT
+From: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: Query on ISSUE: LOAD-OBJECTS
+To: Jon L White <jonl@lucid.com>
+Cc: X3J13@SAIL.Stanford.edu, Common-Lisp-Object-System@SAIL.Stanford.edu
+In-Reply-To: <8910251456.AA28268@bhopal>
+
+    Date: Wed, 25 Oct 89 07:56:12 PDT
+    From: Jon L White <jonl@lucid.com>
+
+    It says somewhere in this proposal:
+
+      MAKE-LOAD-FORM of an object of * metaclass STANDARD-CLASS or
+      STRUCTURE-CLASS for which no user-defined method is applicable signals
+      an error.  
+
+    Surely this can't mean "user-defined", since that would effectively prohibit
+    an implementation from using STANDARD-OBJECTs for internal purposes.
+
+At the asterisk above I would insert "user-defined class and".
+
+    Perhaps
+    the next sentence in that paragraph is all that is really needed:
+
+      It is valid to implement this [default error-signaling behaviour] either 
+      by defining default methods on STANDARD-OBJECT and STRUCTURE-OBJECT that 
+      signal an error or by having no applicable method for those classes.
+
+    with the implication that user-defined classes of metaclass either
+    STANDARD-CLASS or STRUCTURE-CLASS will see no other system-provided 
+    methods on MAKE-LOAD-FORM.
+
+Yes, the idea was that user-defined objects would not inherit a method that
+would do something they didn't want.
+
+I don't know whether MAKE-LOAD-FORM has been put into the specification
+yet.  Perhaps the best way to address this issue would be to make the
+writeup for MAKE-LOAD-FORM speak about conforming programs, rather than
+about implementations.  Then it wouldn't accidentally imply anything about
+what implementations can and cannot do with their own internal objects.
+
+
+
+1,,
+Summary-line: 25-Oct             jonl@lucid.com  #Query on ISSUE: LOAD-OBJECTS
+Received: from Xerox.COM by pooh.parc.xerox.com with SMTP
+	(5.61+/IDA-1.2.8/gandalf) id AA16416; Wed, 25 Oct 89 08:15:27 PDT
+Received: from Cabernet.ms by ArpaGateway.ms ; 25 OCT 89 08:15:32 PDT
+Return-Path: <X3J13-mailer@SAIL.Stanford.EDU>
+Received: from SAIL.Stanford.EDU ([36.86.0.194]) by Xerox.COM ; 25 OCT 89
+ 08:14:14 PDT
+Received: from lucid.com by SAIL.Stanford.EDU with TCP; 25 Oct 89  07:57:00
+ PDT
+Received: from bhopal ([192.43.178.13]) by heavens-gate id AA18878g; Wed,
+ 25 Oct 89 07:54:14 PDT
+Received: by bhopal id AA28268g; Wed, 25 Oct 89 07:56:12 PDT
+Date: Wed, 25 Oct 89 07:56:12 PDT
+From: Jon L White <jonl@lucid.com>
+Message-Id: <8910251456.AA28268@bhopal>
+To: X3J13@SAIL.Stanford.edu
+Cc: Common-Lisp-Object-System@SAIL.Stanford.edu
+Subject: Query on ISSUE: LOAD-OBJECTS
+
+*** EOOH ***
+Date: Wed, 25 Oct 89 07:56:12 PDT
+From: Jon L White <jonl@lucid.com>
+To: X3J13@SAIL.Stanford.edu
+Cc: Common-Lisp-Object-System@SAIL.Stanford.edu
+Subject: Query on ISSUE: LOAD-OBJECTS
+
+It says somewhere in this proposal:
+
+  MAKE-LOAD-FORM of an object of metaclass STANDARD-CLASS or
+  STRUCTURE-CLASS for which no user-defined method is applicable signals
+  an error.  
+
+Surely this can't mean "user-defined", since that would effectively prohibit
+an implementation from using STANDARD-OBJECTs for internal purposes.  Perhaps
+the next sentence in that paragraph is all that is really needed:
+
+  It is valid to implement this [default error-signaling behaviour] either 
+  by defining default methods on STANDARD-OBJECT and STRUCTURE-OBJECT that 
+  signal an error or by having no applicable method for those classes.
+
+with the implication that user-defined classes of metaclass either
+STANDARD-CLASS or STRUCTURE-CLASS will see no other system-provided 
+methods on MAKE-LOAD-FORM.
+
+
+-- JonL --
+
+
+
+1,,
+Summary-line: 25-Oct             jonl@lucid.com  #Query on ISSUE: LOAD-OBJECTS
+Received: from Xerox.COM by pooh.parc.xerox.com with SMTP
+	(5.61+/IDA-1.2.8/gandalf) id AA16409; Wed, 25 Oct 89 08:15:10 PDT
+Received: from Salvador.ms by ArpaGateway.ms ; 25 OCT 89 08:03:47 PDT
+Return-Path: <X3J13-mailer@SAIL.Stanford.EDU>
+Received: from SAIL.Stanford.EDU ([36.86.0.194]) by Xerox.COM ; 25 OCT 89
+ 08:03:19 PDT
+Received: from lucid.com by SAIL.Stanford.EDU with TCP; 25 Oct 89  07:57:00
+ PDT
+Received: from bhopal ([192.43.178.13]) by heavens-gate id AA18878g; Wed,
+ 25 Oct 89 07:54:14 PDT
+Received: by bhopal id AA28268g; Wed, 25 Oct 89 07:56:12 PDT
+Date: Wed, 25 Oct 89 07:56:12 PDT
+From: Jon L White <jonl@lucid.com>
+Message-Id: <8910251456.AA28268@bhopal>
+To: X3J13@SAIL.Stanford.edu
+Cc: Common-Lisp-Object-System@SAIL.Stanford.edu
+Subject: Query on ISSUE: LOAD-OBJECTS
+
+*** EOOH ***
+Date: Wed, 25 Oct 89 07:56:12 PDT
+From: Jon L White <jonl@lucid.com>
+To: X3J13@SAIL.Stanford.edu
+Cc: Common-Lisp-Object-System@SAIL.Stanford.edu
+Subject: Query on ISSUE: LOAD-OBJECTS
+
+It says somewhere in this proposal:
+
+  MAKE-LOAD-FORM of an object of metaclass STANDARD-CLASS or
+  STRUCTURE-CLASS for which no user-defined method is applicable signals
+  an error.  
+
+Surely this can't mean "user-defined", since that would effectively prohibit
+an implementation from using STANDARD-OBJECTs for internal purposes.  Perhaps
+the next sentence in that paragraph is all that is really needed:
+
+  It is valid to implement this [default error-signaling behaviour] either 
+  by defining default methods on STANDARD-OBJECT and STRUCTURE-OBJECT that 
+  signal an error or by having no applicable method for those classes.
+
+with the implication that user-defined classes of metaclass either
+STANDARD-CLASS or STRUCTURE-CLASS will see no other system-provided 
+methods on MAKE-LOAD-FORM.
+
+
+-- JonL --
+
+
+

@@ -1,0 +1,585 @@
+BABYL OPTIONS:
+Version: 5
+Labels:
+Note:   This is the header of an rmail file.
+Note:   If you are seeing it in rmail,
+Note:    it means the file has no messages in it.
+
+1,,
+Summary-line: 24-Oct   sandra%defun@cs.utah.edu  #issue DEFMACRO-BLOCK-SCOPE
+Received: from Xerox.COM by pooh.parc.xerox.com with SMTP
+	(5.61+/IDA-1.2.8/gandalf) id AA10758; Tue, 24 Oct 89 09:45:13 PDT
+Received: from Cabernet.ms by ArpaGateway.ms ; 24 OCT 89 09:43:30 PDT
+Return-Path: <X3J13-mailer@SAIL.Stanford.EDU>
+Received: from SAIL.Stanford.EDU ([36.86.0.194]) by Xerox.COM ; 24 OCT 89
+ 09:31:51 PDT
+Received: from cs.utah.edu by SAIL.Stanford.EDU with TCP; 24 Oct 89
+ 09:25:00 PDT
+Received: from defun.utah.edu by cs.utah.edu (5.61/utah-2.4-cs)
+ 	id AA00297; Tue, 24 Oct 89 10:24:44 -0600
+Received: by defun.utah.edu (5.61/utah-2.3-leaf)
+ 	id AA08645; Tue, 24 Oct 89 10:24:40 -0600
+From: sandra%defun@cs.utah.edu (Sandra J Loosemore)
+Message-Id: <8910241624.AA08645@defun.utah.edu>
+Date: Tue, 24 Oct 89 10:24:39 MDT
+Subject: issue DEFMACRO-BLOCK-SCOPE
+To: x3j13@sail.stanford.edu
+
+*** EOOH ***
+From: sandra%defun@cs.utah.edu (Sandra J Loosemore)
+Date: Tue, 24 Oct 89 10:24:39 MDT
+Subject: issue DEFMACRO-BLOCK-SCOPE
+To: x3j13@sail.stanford.edu
+
+This is issue #23 from my list.
+
+Forum:		Cleanup
+Issue:		DEFMACRO-BLOCK-SCOPE
+References:	Issue FLET-IMPLICIT-BLOCK
+Category:	CLARIFICATION
+Edit History:   V1, 24 Oct 1989, Sandra Loosemore
+
+
+Problem Description:
+
+Does the scope of the implicit BLOCK that surrounds the body of
+DEFMACRO, MACROLET, DEFINE-SETF-METHOD, DEFTYPE, and
+DEFINE-COMPILER-MACRO (the forms that define functional objects that
+also support destructuring) include the bindings of the variables in
+the destructuring pattern?  In other words, is the BLOCK visible
+during the evaluation of initialization forms included in the lambda
+list?
+
+It seems clear that in forms such as DEFUN which do not support
+destructuring, the BLOCK surrounds only the body and includes none of
+the lambda-variable binding forms.
+
+There are two proposals, INCLUDES-BINDINGS and EXCLUDES-BINDINGS.
+
+
+Proposal (DEFMACRO-BLOCK-SCOPE:INCLUDES-BINDINGS):
+
+Clarify that the scope of the implicit BLOCK in the functions defined
+by the forms listed above does include the initialization forms within
+the lambda list as well as the body forms.
+
+  Rationale:
+
+  One can view the destructuring code which binds the variables in the
+  lambda list as part of the body of the function (for example, as 
+  equivalent to a LET* or DESTRUCTURING-BIND construct), which would
+  be inside the scope of the BLOCK in an ordinary function-defining form.
+  Some users might find this behavior marginally more useful than the
+  other alternative.
+
+
+Proposal (DEFMACRO-BLOCK-SCOPE:EXCLUDES-BINDINGS):
+
+Clarify that the scope of the implicit BLOCK in the functions defined
+by the forms listed above includes only the body forms and not the
+initialization forms within the lambda list.
+
+  Rationale:
+
+  One can view the destructuring code which binds the variables in the
+  lambda list as part of the ordinary lambda-list processing (for example,
+  as equivalent to binding &AUX variables), which would be outside the
+  scope of the BLOCK in an ordinary function-defining form.  Some people
+  might find this to be more consistent with the scoping of the BLOCK 
+  in the non-destructuring cases.
+
+
+Current Practice:
+
+Lucid CL, Utah CL, and CMU Common Lisp currently implement proposal
+INCLUDES-BINDINGS.  Kyoto CL implements proposal EXCLUDES-BINDINGS.
+
+
+Cost to implementors:
+
+Probably not too much effort involved to fix it.
+
+
+Cost to users:
+
+Currently nonportable user programs that depend on this being done the
+other way will break, but this is a rather obscure point and it is
+unlikely that there would be many programs affected.
+
+
+Benefits:
+
+The specification of the language is made more precise.
+
+
+Discussion:
+
+Sandra Loosemore says:
+  I don't think this issue is worth spending a lot of time arguing over,
+  since both alternatives seem equally plausible to me.  I suggest we
+  just adopt whichever alternative that is closest to current practice.
+  I'm missing information on several implementations.
+-------
+
+
+
+1,,
+Summary-line: 24-Oct           barmar@Think.COM  #issue DEFMACRO-BLOCK-SCOPE
+Received: from Xerox.COM by pooh.parc.xerox.com with SMTP
+	(5.61+/IDA-1.2.8/gandalf) id AA11120; Tue, 24 Oct 89 10:43:35 PDT
+Received: from Cabernet.ms by ArpaGateway.ms ; 24 OCT 89 10:34:04 PDT
+Return-Path: <X3J13-mailer@SAIL.Stanford.EDU>
+Received: from SAIL.Stanford.EDU ([36.86.0.194]) by Xerox.COM ; 24 OCT 89
+ 10:02:28 PDT
+Received: from Think.COM (Gateway.Think.COM) by SAIL.Stanford.EDU with TCP;
+ 24 Oct 89  09:53:31 PDT
+Return-Path: <barmar@Think.COM>
+Received: from Occam.Think.COM by Think.COM; Tue, 24 Oct 89 12:55:09 -0400
+Date: Tue, 24 Oct 89 12:50 EDT
+From: Barry Margolin <barmar@Think.COM>
+Subject: issue DEFMACRO-BLOCK-SCOPE
+To: Sandra J Loosemore <sandra%defun@cs.utah.edu>
+Cc: x3j13@sail.stanford.edu
+In-Reply-To: <8910241624.AA08645@defun.utah.edu>
+Message-Id: <19891024165015.0.BARMAR@OCCAM.THINK.COM>
+
+*** EOOH ***
+Date: Tue, 24 Oct 89 12:50 EDT
+From: Barry Margolin <barmar@Think.COM>
+Subject: issue DEFMACRO-BLOCK-SCOPE
+To: Sandra J Loosemore <sandra%defun@cs.utah.edu>
+Cc: x3j13@sail.stanford.edu
+In-Reply-To: <8910241624.AA08645@defun.utah.edu>
+
+Symbolics Genera 7.2 seems to implement INCLUDES-BINDINGS (I only tried
+DEFMACRO, though), so this seems like the concensus.
+
+You didn't include an Aesthetics section in your writeup, so I thought
+I'd just remark that I don't care for the fact that DEFMACRO and DEFUN
+initializations have different scoping rules.  But it's not a big deal.
+Standardizing current practice is probably the best idea for this.
+
+                                                barmar
+
+
+
+1,,
+Summary-line: 24-Oct              smh@franz.com  #issue DEFMACRO-BLOCK-SCOPE
+Received: from Xerox.COM by pooh.parc.xerox.com with SMTP
+	(5.61+/IDA-1.2.8/gandalf) id AA11919; Tue, 24 Oct 89 12:40:00 PDT
+Received: from Cabernet.ms by ArpaGateway.ms ; 24 OCT 89 12:33:17 PDT
+Return-Path: <X3J13-mailer@SAIL.Stanford.EDU>
+Received: from SAIL.Stanford.EDU ([36.86.0.194]) by Xerox.COM ; 24 OCT 89
+ 12:27:22 PDT
+Received: from uunet.uu.net by SAIL.Stanford.EDU with TCP; 24 Oct 89
+ 12:21:19 PDT
+Received: by uunet.uu.net (5.61/1.14) with UUCP 
+ 	id AA03410; Tue, 24 Oct 89 15:21:05 -0400
+Received: by franz.Franz.COM (MC 2.0/FI-1.0)
+ 	id AA20011; Tue, 24 Oct 89 11:44:18 PDT
+Received: by fiona.Franz.COM (3.2/FI-1.0)
+ 	id AA02184; Tue, 24 Oct 89 11:44:10 PDT
+Date: Tue, 24 Oct 89 11:44:10 PDT
+From: smh@franz.com (Steve Haflich)
+Message-Id: <8910241844.AA02184@fiona.Franz.COM>
+To: sandra%defun@cs.utah.edu
+Cc: x3j13@sail.stanford.edu
+In-Reply-To: Sandra J Loosemore's message of Tue, 24 Oct 89 10:24:39 MDT
+ <8910241624.AA08645@defun.utah.edu>
+Subject: issue DEFMACRO-BLOCK-SCOPE
+
+*** EOOH ***
+Date: Tue, 24 Oct 89 11:44:10 PDT
+From: smh@franz.com (Steve Haflich)
+To: sandra%defun@cs.utah.edu
+Cc: x3j13@sail.stanford.edu
+In-Reply-To: Sandra J Loosemore's message of Tue, 24 Oct 89 10:24:39 MDT
+ <8910241624.AA08645@defun.utah.edu>
+Subject: issue DEFMACRO-BLOCK-SCOPE
+
+Franz's Allegro Common Lisp also implements INCLUDES-BINDINGS.
+
+
+
+1,,
+Summary-line: 25-Oct             jonl@lucid.com  #issue DEFMACRO-BLOCK-SCOPE
+Received: from Xerox.COM by pooh.parc.xerox.com with SMTP
+	(5.61+/IDA-1.2.8/gandalf) id AA16075; Wed, 25 Oct 89 03:57:07 PDT
+Received: from Semillon.ms by ArpaGateway.ms ; 25 OCT 89 03:57:20 PDT
+Return-Path: <X3J13-mailer@SAIL.Stanford.EDU>
+Received: from SAIL.Stanford.EDU ([36.86.0.194]) by Xerox.COM ; 25 OCT 89
+ 03:57:04 PDT
+Received: from lucid.com by SAIL.Stanford.EDU with TCP; 25 Oct 89  03:51:41
+ PDT
+Received: from bhopal ([192.43.178.13]) by heavens-gate id AA17377g; Wed,
+ 25 Oct 89 03:48:48 PDT
+Received: by bhopal id AA27966g; Wed, 25 Oct 89 03:50:42 PDT
+Date: Wed, 25 Oct 89 03:50:42 PDT
+From: Jon L White <jonl@lucid.com>
+Message-Id: <8910251050.AA27966@bhopal>
+To: sandra%defun@cs.utah.edu
+Cc: x3j13@sail.stanford.edu
+In-Reply-To: Sandra J Loosemore's message of Tue, 24 Oct 89 10:24:39 MDT
+ <8910241624.AA08645@defun.utah.edu>
+Subject: issue DEFMACRO-BLOCK-SCOPE
+
+*** EOOH ***
+Date: Wed, 25 Oct 89 03:50:42 PDT
+From: Jon L White <jonl@lucid.com>
+To: sandra%defun@cs.utah.edu
+Cc: x3j13@sail.stanford.edu
+In-Reply-To: Sandra J Loosemore's message of Tue, 24 Oct 89 10:24:39 MDT
+ <8910241624.AA08645@defun.utah.edu>
+Subject: issue DEFMACRO-BLOCK-SCOPE
+
+Although as Barry says, this issue is "no big deal", EXCLUDES-BINDINGS 
+certainly has simplicity of specification in its favor, as well as 
+consistency with the semantics of block scope for initforms in DEFUN.
+
+I'd find it very hard to believe that even the "incompatible" change of 
+EXCLUDES-BINDINGS would be an imposition for anyone (because -- it seems 
+to me -- it's very unlikely that any existing code depends upon either 
+behaviour).  Evidence to the contrary is hereby solicited.
+
+
+
+-- JonL --
+
+
+
+1,,
+Summary-line: 26-Oct  acLachlan@FRED.SLISP.CS.C  #Re: issue DEFMACRO-BLOCK-SCOPE 
+Received: from Xerox.COM by pooh.parc.xerox.com with SMTP
+	(5.61+/IDA-1.2.8/gandalf) id AA23064; Thu, 26 Oct 89 13:17:43 PDT
+Received: from Chardonnay.ms by ArpaGateway.ms ; 26 OCT 89 12:47:56 PDT
+Return-Path: <X3J13-mailer@SAIL.Stanford.EDU>
+Received: from SAIL.Stanford.EDU ([36.86.0.194]) by Xerox.COM ; 26 OCT 89
+ 12:47:29 PDT
+Received: from FRED.SLISP.CS.CMU.EDU by SAIL.Stanford.EDU with TCP; 26 Oct
+ 89  12:41:34 PDT
+Received: from fred.slisp.cs.cmu.edu by FRED.SLISP.CS.CMU.EDU id aa01751;
+           26 Oct 89 15:40:15 EDT
+To: Sandra J Loosemore <sandra%defun@cs.utah.edu>
+Cc: x3j13@SAIL.Stanford.EDU
+Subject: Re: issue DEFMACRO-BLOCK-SCOPE 
+In-Reply-To: Your message of Tue, 24 Oct 89 10:24:39 -0600.
+              <8910241624.AA08645@defun.utah.edu> 
+Date: Thu, 26 Oct 89 15:39:54 EDT
+From: Rob.MacLachlan@FRED.SLISP.CS.CMU.EDU
+Message-Id: <891026-124756-3145@Xerox>
+
+*** EOOH ***
+To: Sandra J Loosemore <sandra%defun@cs.utah.edu>
+Cc: x3j13@SAIL.Stanford.EDU
+Subject: Re: issue DEFMACRO-BLOCK-SCOPE 
+In-Reply-To: Your message of Tue, 24 Oct 89 10:24:39 -0600.
+              <8910241624.AA08645@defun.utah.edu> 
+Date: Thu, 26 Oct 89 15:39:54 EDT
+From: Rob.MacLachlan@FRED.SLISP.CS.CMU.EDU
+
+
+I strongly oppose INCLUDES-BINDINGS since it prevents DEFUN from having any
+reasonable Common Lisp expansion.  In addition to being contrary to the
+goal (now required?) that standard macros not expand into
+implementation-dependent special forms, this also prevents users from
+defining new macros "just like DEFUN".
+
+The only expansion I can think of that would include the binding forms is
+the following:
+
+    (defun foo <args> <body>) ==>
+
+    #'(lambda (&rest args)
+	(block foo
+	  (apply #'(lambda <args>
+		     <body>)
+		 args)))
+
+This is pretty inefficient.  I am not saying that INCLUDES-BINDINGS cannot
+be implemented efficiently, only that there is no way *in Common Lisp* to
+do so.  If there is overwhelming sentiment that INCLUDES-BINDINGS is
+better, then we should make NAMED-LAMBDA a Common Lisp feature.  I
+personally think that this is a wart we can do without.
+
+By the way, CMU CL does not implement INCLUDES-BINDINGS.
+
+  Rob
+
+
+
+1,,
+Summary-line: 26-Oct  acLachlan@FRED.SLISP.CS.C  #Re: issue DEFMACRO-BLOCK-SCOPE 
+Received: from Xerox.COM by pooh.parc.xerox.com with SMTP
+	(5.61+/IDA-1.2.8/gandalf) id AA23091; Thu, 26 Oct 89 13:22:48 PDT
+Received: from Salvador.ms by ArpaGateway.ms ; 26 OCT 89 13:04:05 PDT
+Return-Path: <X3J13-mailer@SAIL.Stanford.EDU>
+Received: from SAIL.Stanford.EDU ([36.86.0.194]) by Xerox.COM ; 26 OCT 89
+ 13:03:53 PDT
+Received: from FRED.SLISP.CS.CMU.EDU by SAIL.Stanford.EDU with TCP; 26 Oct
+ 89  12:57:28 PDT
+Received: from fred.slisp.cs.cmu.edu by FRED.SLISP.CS.CMU.EDU id aa01772;
+           26 Oct 89 15:56:36 EDT
+To: Sandra J Loosemore <sandra%defun@cs.utah.edu>
+Cc: x3j13@SAIL.Stanford.EDU
+Subject: Re: issue DEFMACRO-BLOCK-SCOPE 
+In-Reply-To: Your message of Thu, 26 Oct 89 15:39:54 -0400.
+Date: Thu, 26 Oct 89 15:56:26 EDT
+From: Rob.MacLachlan@FRED.SLISP.CS.CMU.EDU
+Message-Id: <891026-130405-3181@Xerox>
+
+*** EOOH ***
+To: Sandra J Loosemore <sandra%defun@cs.utah.edu>
+Cc: x3j13@SAIL.Stanford.EDU
+Subject: Re: issue DEFMACRO-BLOCK-SCOPE 
+In-Reply-To: Your message of Thu, 26 Oct 89 15:39:54 -0400.
+Date: Thu, 26 Oct 89 15:56:26 EDT
+From: Rob.MacLachlan@FRED.SLISP.CS.CMU.EDU
+
+
+Oops...  I seem to have misread DEFUN for DEFMACRO.  Perhaps I was making
+the assumption that the scope of the BLOCK in DEFUN would be the same as in
+DEFMACRO.  You may replace my flamage with much milder opposition based on
+the undesirability of this inconsistency.
+
+  Rob
+
+
+
+1,,
+Summary-line: 26-Oct           barmar@Think.COM  #Re: issue DEFMACRO-BLOCK-SCOPE 
+Received: from Xerox.COM by pooh.parc.xerox.com with SMTP
+	(5.61+/IDA-1.2.8/gandalf) id AA23706; Thu, 26 Oct 89 14:53:59 PDT
+Received: from Chardonnay.ms by ArpaGateway.ms ; 26 OCT 89 14:53:56 PDT
+Return-Path: <X3J13-mailer@SAIL.Stanford.EDU>
+Received: from SAIL.Stanford.EDU ([36.86.0.194]) by Xerox.COM ; 26 OCT 89
+ 14:53:12 PDT
+Received: from Think.COM (Gateway.Think.COM) by SAIL.Stanford.EDU with TCP;
+ 26 Oct 89  14:37:20 PDT
+Return-Path: <barmar@Think.COM>
+Received: from Occam.Think.COM by Think.COM; Thu, 26 Oct 89 17:37:30 -0400
+Date: Thu, 26 Oct 89 17:32 EDT
+From: Barry Margolin <barmar@Think.COM>
+Subject: Re: issue DEFMACRO-BLOCK-SCOPE 
+To: Rob.MacLachlan@FRED.SLISP.CS.CMU.EDU
+Cc: Sandra J Loosemore <sandra%defun@cs.utah.edu>, x3j13@SAIL.Stanford.EDU
+In-Reply-To: <8910261947.AA09654@Think.COM>
+Message-Id: <19891026213237.3.BARMAR@OCCAM.THINK.COM>
+
+*** EOOH ***
+Date: Thu, 26 Oct 89 17:32 EDT
+From: Barry Margolin <barmar@Think.COM>
+Subject: Re: issue DEFMACRO-BLOCK-SCOPE 
+To: Rob.MacLachlan@FRED.SLISP.CS.CMU.EDU
+Cc: Sandra J Loosemore <sandra%defun@cs.utah.edu>, x3j13@SAIL.Stanford.EDU
+In-Reply-To: <8910261947.AA09654@Think.COM>
+
+    Date: Thu, 26 Oct 89 15:39:54 EDT
+    From: Rob.MacLachlan@FRED.SLISP.CS.CMU.EDU
+
+    I strongly oppose INCLUDES-BINDINGS since it prevents DEFUN from having any
+    reasonable Common Lisp expansion.  
+
+The proposal didn't address DEFUN at all.  The name of the issue is
+DEF*MACRO*-BLOCK-SCOPE.  The second paragraph of the issue was:
+
+    It seems clear that in forms such as DEFUN which do not support
+    destructuring, the BLOCK surrounds only the body and includes none of
+    the lambda-variable binding forms.
+
+Defining macros that permit destructing are expected to actually define
+functions where the entire list structure is passed as a single
+argument, and the destructuring happens inside that function.  For
+example:
+
+(defmacro foo <args> <body>) ==>
+
+(defun <internal foo> (#:args <env-var>)
+  (destructuring-bind <args> #:args
+    <body>))
+
+There should also be a (block foo ...) somewhere, and the issue is
+whether it's inside or outside the destructuring-bind.
+
+				       In addition to being contrary to the
+    goal (now required?) that standard macros not expand into
+    implementation-dependent special forms, 
+
+I know of no such requirement.  If a standard macro expands into an
+implementation-specific special form, that special form must also have a
+macro definition so that program-manipulation functions can understand
+it.
+
+The rest of my response addresses the issues involved if someone were to
+propose changing DEFUN the way you thought Sandra was.
+
+    The only expansion I can think of that would include the binding forms is
+    the following:
+
+	(defun foo <args> <body>) ==>
+
+	#'(lambda (&rest args)
+	    (block foo
+	      (apply #'(lambda <args>
+			 <body>)
+		     args)))
+
+    This is pretty inefficient.  
+
+It's only inefficient if the compiler doesn't do much optimization.
+Well-known compiler transformations can optimize away the internal
+function.
+
+Also, the expansion could be:
+
+	(defun foo (&optional (arg1 <init1>) (arg2 <init2>) ...) <body>
+
+	#'(lambda (&optional (#:opt1 nil #:opt1-p) (#:opt2 nil #:opt2-p) ...)
+	    (block foo
+	      (let* ((arg1 (if #:opt1-p
+			       #:opt1
+			       <init1>))
+		     (arg2 (if #:opt2-p
+			       #:opt2
+			       <init2>))
+		     ...)
+		<body>)))
+
+This isn't as efficient as is possible without the block, but it's
+pretty close.
+
+                                                barmar
+
+
+
+1,,
+Summary-line:  2-Nov   sandra%defun@cs.utah.edu  #issue DEFMACRO-BLOCK-SCOPE, version 2
+Received: from Xerox.COM by pooh.parc.xerox.com with SMTP
+	(5.61+/IDA-1.2.8/gandalf) id AA28540; Thu, 2 Nov 89 10:28:10 PST
+Received: from Salvador.ms by ArpaGateway.ms ; 02 NOV 89 10:28:26 PST
+Return-Path: <X3J13-mailer@SAIL.Stanford.EDU>
+Received: from SAIL.Stanford.EDU ([36.86.0.194]) by Xerox.COM ; 02 NOV 89
+ 10:19:19 PST
+Received: from cs.utah.edu by SAIL.Stanford.EDU with TCP; 2 Nov 89
+ 10:11:45 PST
+Received: from defun.utah.edu by cs.utah.edu (5.61/utah-2.4-cs)
+ 	id AA15572; Thu, 2 Nov 89 09:20:23 -0700
+Received: by defun.utah.edu (5.61/utah-2.3-leaf)
+ 	id AA17296; Thu, 2 Nov 89 09:20:20 -0700
+From: sandra%defun@cs.utah.edu (Sandra J Loosemore)
+Message-Id: <8911021620.AA17296@defun.utah.edu>
+Date: Thu, 2 Nov 89 09:20:19 MST
+Subject: issue DEFMACRO-BLOCK-SCOPE, version 2
+To: x3j13@sail.stanford.edu
+
+*** EOOH ***
+From: sandra%defun@cs.utah.edu (Sandra J Loosemore)
+Date: Thu, 2 Nov 89 09:20:19 MST
+Subject: issue DEFMACRO-BLOCK-SCOPE, version 2
+To: x3j13@sail.stanford.edu
+
+Forum:		Cleanup
+Issue:		DEFMACRO-BLOCK-SCOPE
+References:	Issue FLET-IMPLICIT-BLOCK
+Category:	CLARIFICATION
+Edit History:   V1, 24 Oct 1989, Sandra Loosemore
+		V2, 02 Nov 1989, Sandra Loosemore
+			(update current practice, discussion)
+
+
+Problem Description:
+
+Does the scope of the implicit BLOCK that surrounds the body of
+DEFMACRO, MACROLET, DEFINE-SETF-METHOD, DEFTYPE, and
+DEFINE-COMPILER-MACRO (the forms that define functional objects that
+also support destructuring) include the bindings of the variables in
+the destructuring pattern?  In other words, is the BLOCK visible
+during the evaluation of initialization forms included in the lambda
+list?
+
+It seems clear that in forms such as DEFUN which do not support
+destructuring, the BLOCK surrounds only the body and includes none of
+the lambda-variable binding forms.
+
+There are two proposals, INCLUDES-BINDINGS and EXCLUDES-BINDINGS.
+
+
+Proposal (DEFMACRO-BLOCK-SCOPE:INCLUDES-BINDINGS):
+
+Clarify that the scope of the implicit BLOCK in the functions defined
+by the forms listed above does include the initialization forms within
+the lambda list as well as the body forms.
+
+  Rationale:
+
+  One can view the destructuring code which binds the variables in the
+  lambda list as part of the body of the function (for example, as 
+  equivalent to a LET* or DESTRUCTURING-BIND construct), which would
+  be inside the scope of the BLOCK in an ordinary function-defining form.
+  Some users might find this behavior marginally more useful than the
+  other alternative.
+
+
+Proposal (DEFMACRO-BLOCK-SCOPE:EXCLUDES-BINDINGS):
+
+Clarify that the scope of the implicit BLOCK in the functions defined
+by the forms listed above includes only the body forms and not the
+initialization forms within the lambda list.
+
+  Rationale:
+
+  One can view the destructuring code which binds the variables in the
+  lambda list as part of the ordinary lambda-list processing (for example,
+  as equivalent to binding &AUX variables), which would be outside the
+  scope of the BLOCK in an ordinary function-defining form.  Some people
+  might find this to be more consistent with the scoping of the BLOCK 
+  in the non-destructuring cases.
+
+
+Current Practice:
+
+Lucid CL, Utah CL, CMU Common Lisp, Symbolics Genera 7.2, and Franz's
+Allegro Common Lisp currently implement proposal INCLUDES-BINDINGS.
+Kyoto CL implements proposal EXCLUDES-BINDINGS.
+
+
+Cost to implementors:
+
+Probably not too much effort involved to fix it.
+
+
+Cost to users:
+
+Currently nonportable user programs that depend on this being done the
+other way will break, but this is a rather obscure point and it is
+unlikely that there would be many programs affected.
+
+
+Benefits:
+
+The specification of the language is made more precise.
+
+
+Aesthetics:
+
+EXCLUDES-BINDINGS is probably more aesthetic than INCLUDES-BINDINGS
+since it makes the behavior of DEFMACRO and friends consistent with
+that of DEFUN.
+
+
+Discussion:
+
+Moon writes:
+  [There is a third option that] is like INCLUDES-BINDINGS but also
+  changes DEFUN, DEFMETHOD, FLET, LABELS, and any others that I forgot.
+
+  This third option seems clearly correct to me, however it has the
+  defects that it does not correspond to any current practice and that
+  it is impossible to implement reasonably in terms of macro expansion
+  into LAMBDA (basically, a defect in LAMBDA that it has no syntactic
+  way to express a block name).  Given that, I think we probably have
+  to go with EXCLUDES-BINDINGS, but I'd like to see your proposal
+  mention all three options.
+-------
+
+
+

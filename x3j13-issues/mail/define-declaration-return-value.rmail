@@ -1,0 +1,355 @@
+BABYL OPTIONS:
+Version: 5
+Labels:
+Note:   This is the header of an rmail file.
+Note:   If you are seeing it in rmail,
+Note:    it means the file has no messages in it.
+
+1,,
+Summary-line: 29-Oct   sandra%defun@cs.utah.edu  #issue DEFINE-DECLARATION-RETURN-VALUE
+Received: from Xerox.COM by pooh.parc.xerox.com with SMTP
+	(5.61+/IDA-1.2.8/gandalf) id AA06806; Sun, 29 Oct 89 13:16:05 PST
+Received: from Chardonnay.ms by ArpaGateway.ms ; 29 OCT 89 13:16:26 PST
+Return-Path: <X3J13-mailer@SAIL.Stanford.EDU>
+Received: from SAIL.Stanford.EDU ([36.86.0.194]) by Xerox.COM ; 29 OCT 89
+ 13:16:14 PST
+Received: from cs.utah.edu by SAIL.Stanford.EDU with TCP; 29 Oct 89
+ 13:08:43 PST
+Received: from defun.utah.edu by cs.utah.edu (5.61/utah-2.4-cs)
+ 	id AA13638; Sun, 29 Oct 89 14:08:36 -0700
+Received: by defun.utah.edu (5.61/utah-2.3-leaf)
+ 	id AA13479; Sun, 29 Oct 89 14:08:32 -0700
+From: sandra%defun@cs.utah.edu (Sandra J Loosemore)
+Message-Id: <8910292108.AA13479@defun.utah.edu>
+Date: Sun, 29 Oct 89 14:08:30 MST
+Subject: issue DEFINE-DECLARATION-RETURN-VALUE
+To: x3j13@sail.stanford.edu
+
+*** EOOH ***
+From: sandra%defun@cs.utah.edu (Sandra J Loosemore)
+Date: Sun, 29 Oct 89 14:08:30 MST
+Subject: issue DEFINE-DECLARATION-RETURN-VALUE
+To: x3j13@sail.stanford.edu
+
+This is issue #4 from my list.
+
+Forum:		Cleanup
+Issue:		DEFINE-DECLARATION-RETURN-VALUE
+References:	DEFINE-DECLARATION (issue SYNTACTIC-ENVIRONMENT-ACCESS)
+Category:	CHANGE
+Edit History:   V1, 29 Oct 1989, Sandra Loosemore
+
+
+Problem Description:
+
+The specification of the return values from handlers defined with
+DEFINE-DECLARATION (added to the language at the June 89 meeting) only
+permits a declaration to apply either to variable bindings, to
+function bindings, or to neither.  The first return value from the
+handler function indicates which of these cases it is, and the second
+return value is a list containing information about the declaration.
+
+The DYNAMIC-EXTENT declaration cannot be handled with this mechanism
+since it can apply to both variable and function bindings.  It seems
+reasonable for both users and implementations to define other kinds of
+declarations that use a similar syntax, and DEFINE-DECLARATION ought
+to be able to handle these cases.
+
+
+Proposal (DEFINE-DECLARATION-RETURN-VALUE:THREE-VALUES):
+
+Change the specification of DEFINE-DECLARATION to require handler
+functions to return three values.
+
+The first value is a list which corresponds to information about
+variable bindings specified by the declaration.  The format of this
+list is the same as is now required to be returned as the second value
+of DEFINE-DECLARATION when the first value is :VARIABLE; that is, a
+list of (binding-name key value) lists.
+
+The second value is a list which corresponds to information about
+function bindings specified by the declaration.  The format of this
+list is the same as is now required to be returned as the second value
+of DEFINE-DECLARATION when the first value is :FUNCTION; that is, a
+list of (binding-name key value) lists.
+
+The third value is a list which corresponds to information about
+declarations that do not apply to either variable or function
+bindings.  The format of this list is the same as is now required to
+be returned as the second value of DEFINE-DECLARATION when the first
+value is :DECLARE; that is, a list whose CAR is a key (used by the
+function DECLARATION-INFORMATION) and whose CDR is the associated
+return value.
+
+
+Rationale:
+
+This proposal fixes a deficiency in the original specification of 
+DEFINE-DECLARATION, while minimizing the change to the format of the
+information that is returned.
+
+
+Current Practice:
+
+Has anybody even implemented DEFINE-DECLARATION (as originally
+specified in issue SYNTACTIC-ENVIRONMENT-ACCESS) yet?
+
+
+Cost to implementors:
+
+Probably minor.
+
+
+Cost to users:
+
+Probably minor.
+
+
+Benefits:
+
+DEFINE-DECLARATION is made more powerful.
+
+
+Discussion:
+-------
+
+
+
+1, deleted,,
+Summary-line: 10-Jul  Moon@STONY-BROOK.SCRC.Sym  #Issue: DEFINE-DECLARATION-RETURN-VALUE
+Received: from Xerox.COM by pooh.parc.xerox.com with SMTP
+	(5.61+/IDA-1.2.8/gandalf) id AA04331; Tue, 10 Jul 90 19:51:34 PDT
+Received: from Cabernet.ms by ArpaGateway.ms ; 10 JUL 90 19:44:05 PDT
+Return-Path: <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Received: from STONY-BROOK.SCRC.Symbolics.COM ([128.81.41.144]) by
+ Xerox.COM ; 10 JUL 90 19:43:56 PDT
+Received: from KENNETH-WILLIAMS.SCRC.Symbolics.COM by
+ STONY-BROOK.SCRC.Symbolics.COM via INTERNET with SMTP id 818745; 10 Jul 90
+ 22:01:30 EDT
+Date: Tue, 10 Jul 90 22:04 EDT
+From: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: Issue: DEFINE-DECLARATION-RETURN-VALUE
+To: KMP@STONY-BROOK.SCRC.Symbolics.COM, Barmar@Think.com,
+        Sandra@jensen.utah.edu, KAB@CHARON.MIT.EDU, masinter@parc.xerox.com
+File-References: 
+ SCRC|S:>KMP>lisp>x3j13>cleanup>define-declaration-return-value.text.newest
+Message-Id: <19900711020425.3.MOON@KENNETH-WILLIAMS.SCRC.Symbolics.COM>
+Line-Fold: No
+
+*** EOOH ***
+Date: Tue, 10 Jul 90 22:04 EDT
+From: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: Issue: DEFINE-DECLARATION-RETURN-VALUE
+To: KMP@STONY-BROOK.SCRC.Symbolics.COM, Barmar@Think.com,
+        Sandra@jensen.utah.edu, KAB@CHARON.MIT.EDU, masinter@parc.xerox.com
+File-References: 
+ SCRC|S:>KMP>lisp>x3j13>cleanup>define-declaration-return-value.text.newest
+
+Here is Kent's copy of this issue.  There appears to be no copy on Arisia.
+Kent's notes say the status of this is unknown, mine say that it was accepted
+unanimously at the November meeting.  My notes say Barry proposed returning
+an alist instead of multiple values, but don't indicate whether that was a
+friendly amendment that was accepted, or just something that was mentioned in
+passing and didn't affect anything.  The minutes that Larry mailed out mention
+this being passed but don't mention the amendment.  So I don't know the real
+status of this.
+
+Forum:		Cleanup
+Issue:		DEFINE-DECLARATION-RETURN-VALUE
+References:	DEFINE-DECLARATION (issue SYNTACTIC-ENVIRONMENT-ACCESS)
+Category:	CHANGE
+Edit History:   V1, 29 Oct 1989, Sandra Loosemore
+
+
+Problem Description:
+
+The specification of the return values from handlers defined with
+DEFINE-DECLARATION (added to the language at the June 89 meeting) only
+permits a declaration to apply either to variable bindings, to
+function bindings, or to neither.  The first return value from the
+handler function indicates which of these cases it is, and the second
+return value is a list containing information about the declaration.
+
+The DYNAMIC-EXTENT declaration cannot be handled with this mechanism
+since it can apply to both variable and function bindings.  It seems
+reasonable for both users and implementations to define other kinds of
+declarations that use a similar syntax, and DEFINE-DECLARATION ought
+to be able to handle these cases.
+
+
+Proposal (DEFINE-DECLARATION-RETURN-VALUE:THREE-VALUES):
+
+Change the specification of DEFINE-DECLARATION to require handler
+functions to return three values.
+
+The first value is a list which corresponds to information about
+variable bindings specified by the declaration.  The format of this
+list is the same as is now required to be returned as the second value
+of DEFINE-DECLARATION when the first value is :VARIABLE; that is, a
+list of (binding-name key value) lists.
+
+The second value is a list which corresponds to information about
+function bindings specified by the declaration.  The format of this
+list is the same as is now required to be returned as the second value
+of DEFINE-DECLARATION when the first value is :FUNCTION; that is, a
+list of (binding-name key value) lists.
+
+The third value is a list which corresponds to information about
+declarations that do not apply to either variable or function
+bindings.  The format of this list is the same as is now required to
+be returned as the second value of DEFINE-DECLARATION when the first
+value is :DECLARE; that is, a list whose CAR is a key (used by the
+function DECLARATION-INFORMATION) and whose CDR is the associated
+return value.
+
+
+Rationale:
+
+This proposal fixes a deficiency in the original specification of 
+DEFINE-DECLARATION, while minimizing the change to the format of the
+information that is returned.
+
+
+Current Practice:
+
+Has anybody even implemented DEFINE-DECLARATION (as originally
+specified in issue SYNTACTIC-ENVIRONMENT-ACCESS) yet?
+
+
+Cost to implementors:
+
+Probably minor.
+
+
+Cost to users:
+
+Probably minor.
+
+
+Benefits:
+
+DEFINE-DECLARATION is made more powerful.
+
+
+Discussion:
+
+
+1, deleted, filed,,
+Summary-line: 10-Jul  Moon@STONY-BROOK.SCRC.Sym  #Issue: DEFINE-DECLARATION-RETURN-VALUE
+Received: from Xerox.COM by pooh.parc.xerox.com with SMTP
+	(5.61+/IDA-1.2.8/gandalf) id AA04331; Tue, 10 Jul 90 19:51:34 PDT
+Received: from Cabernet.ms by ArpaGateway.ms ; 10 JUL 90 19:44:05 PDT
+Return-Path: <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Received: from STONY-BROOK.SCRC.Symbolics.COM ([128.81.41.144]) by
+ Xerox.COM ; 10 JUL 90 19:43:56 PDT
+Received: from KENNETH-WILLIAMS.SCRC.Symbolics.COM by
+ STONY-BROOK.SCRC.Symbolics.COM via INTERNET with SMTP id 818745; 10 Jul 90
+ 22:01:30 EDT
+Date: Tue, 10 Jul 90 22:04 EDT
+From: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: Issue: DEFINE-DECLARATION-RETURN-VALUE
+To: KMP@STONY-BROOK.SCRC.Symbolics.COM, Barmar@Think.com,
+        Sandra@jensen.utah.edu, KAB@CHARON.MIT.EDU, masinter@parc.xerox.com
+File-References: 
+ SCRC|S:>KMP>lisp>x3j13>cleanup>define-declaration-return-value.text.newest
+Message-Id: <19900711020425.3.MOON@KENNETH-WILLIAMS.SCRC.Symbolics.COM>
+Line-Fold: No
+
+*** EOOH ***
+Date: Tue, 10 Jul 90 22:04 EDT
+From: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: Issue: DEFINE-DECLARATION-RETURN-VALUE
+To: KMP@STONY-BROOK.SCRC.Symbolics.COM, Barmar@Think.com,
+        Sandra@jensen.utah.edu, KAB@CHARON.MIT.EDU, masinter@parc.xerox.com
+File-References: 
+ SCRC|S:>KMP>lisp>x3j13>cleanup>define-declaration-return-value.text.newest
+
+Here is Kent's copy of this issue.  There appears to be no copy on Arisia.
+Kent's notes say the status of this is unknown, mine say that it was accepted
+unanimously at the November meeting.  My notes say Barry proposed returning
+an alist instead of multiple values, but don't indicate whether that was a
+friendly amendment that was accepted, or just something that was mentioned in
+passing and didn't affect anything.  The minutes that Larry mailed out mention
+this being passed but don't mention the amendment.  So I don't know the real
+status of this.
+
+Forum:		Cleanup
+Issue:		DEFINE-DECLARATION-RETURN-VALUE
+References:	DEFINE-DECLARATION (issue SYNTACTIC-ENVIRONMENT-ACCESS)
+Category:	CHANGE
+Edit History:   V1, 29 Oct 1989, Sandra Loosemore
+
+
+Problem Description:
+
+The specification of the return values from handlers defined with
+DEFINE-DECLARATION (added to the language at the June 89 meeting) only
+permits a declaration to apply either to variable bindings, to
+function bindings, or to neither.  The first return value from the
+handler function indicates which of these cases it is, and the second
+return value is a list containing information about the declaration.
+
+The DYNAMIC-EXTENT declaration cannot be handled with this mechanism
+since it can apply to both variable and function bindings.  It seems
+reasonable for both users and implementations to define other kinds of
+declarations that use a similar syntax, and DEFINE-DECLARATION ought
+to be able to handle these cases.
+
+
+Proposal (DEFINE-DECLARATION-RETURN-VALUE:THREE-VALUES):
+
+Change the specification of DEFINE-DECLARATION to require handler
+functions to return three values.
+
+The first value is a list which corresponds to information about
+variable bindings specified by the declaration.  The format of this
+list is the same as is now required to be returned as the second value
+of DEFINE-DECLARATION when the first value is :VARIABLE; that is, a
+list of (binding-name key value) lists.
+
+The second value is a list which corresponds to information about
+function bindings specified by the declaration.  The format of this
+list is the same as is now required to be returned as the second value
+of DEFINE-DECLARATION when the first value is :FUNCTION; that is, a
+list of (binding-name key value) lists.
+
+The third value is a list which corresponds to information about
+declarations that do not apply to either variable or function
+bindings.  The format of this list is the same as is now required to
+be returned as the second value of DEFINE-DECLARATION when the first
+value is :DECLARE; that is, a list whose CAR is a key (used by the
+function DECLARATION-INFORMATION) and whose CDR is the associated
+return value.
+
+
+Rationale:
+
+This proposal fixes a deficiency in the original specification of 
+DEFINE-DECLARATION, while minimizing the change to the format of the
+information that is returned.
+
+
+Current Practice:
+
+Has anybody even implemented DEFINE-DECLARATION (as originally
+specified in issue SYNTACTIC-ENVIRONMENT-ACCESS) yet?
+
+
+Cost to implementors:
+
+Probably minor.
+
+
+Cost to users:
+
+Probably minor.
+
+
+Benefits:
+
+DEFINE-DECLARATION is made more powerful.
+
+
+Discussion:
+
+

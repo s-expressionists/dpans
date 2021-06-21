@@ -1,0 +1,756 @@
+BABYL OPTIONS:
+Version: 5
+Labels:
+Note:   This is the header of an rmail file.
+Note:   If you are seeing it in rmail,
+Note:    it means the file has no messages in it.
+
+1,,
+Summary-line: 30-Oct             jonl@lucid.com  #Issue: FLOATING-POINT-CONDITION-NAMES
+Received: from Xerox.COM by pooh.parc.xerox.com with SMTP
+	(5.61+/IDA-1.2.8/gandalf) id AA14135; Mon, 30 Oct 89 19:27:39 PST
+Received: from Semillon.ms by ArpaGateway.ms ; 30 OCT 89 19:28:06 PST
+Return-Path: <X3J13-mailer@SAIL.Stanford.EDU>
+Received: from SAIL.Stanford.EDU ([36.86.0.194]) by Xerox.COM ; 30 OCT 89
+ 19:12:36 PST
+Received: from lucid.com by SAIL.Stanford.EDU with TCP; 30 Oct 89  19:05:00
+ PST
+Received: from bhopal ([192.43.178.13]) by heavens-gate id AA00451g; Mon,
+ 30 Oct 89 19:01:59 PST
+Received: by bhopal id AA06510g; Mon, 30 Oct 89 19:03:55 PST
+Date: Mon, 30 Oct 89 19:03:55 PST
+From: Jon L White <jonl@lucid.com>
+Message-Id: <8910310303.AA06510@bhopal>
+To: x3j13@sail.stanford.edu
+Subject: Issue: FLOATING-POINT-CONDITION-NAMES
+
+*** EOOH ***
+Date: Mon, 30 Oct 89 19:03:55 PST
+From: Jon L White <jonl@lucid.com>
+To: x3j13@sail.stanford.edu
+Subject: Issue: FLOATING-POINT-CONDITION-NAMES
+
+Looking over past "cleanup" discussions, I see that we never got around 
+to finishing the work on floating-point traps.  I realize this is a bit 
+late, but the addition suggested below seems so short to describe, so non-
+controversial (I hope!), and turns out to be so important to portability, 
+that it would be a shame if we couldn't agree on it next week.
+
+Forum:		Cleanup
+Issue:		FLOATING-POINT-CONDITION-NAMES
+References:	CLtL, Section 12.10 "Implementation Parameters" (for floats)
+		CLtL, P.448 "*features*"
+		IEEE Standard for Binary Floating-Point Arithmetic
+Related Issues:	FLOAT-UNDERFLOW
+		ERROR-CHECKING-IN-NUMBERS-CHAPTER
+Category:	ADDITION
+Edit History:   V1, 30 Oct 1989, JonL White
+
+
+Problem Description:
+
+The currently proposed error system contains names for three conditions
+related to floating-point operations: floating-point-underflow,
+floating-point-overflow, and division-by-zero.  Probably a majority
+of implementation will be running on machines that support the IEEE
+floating point standard; but there is no name for the remaining two out 
+of the five mandated trapping conditions, namely floating-point-inexact
+and floating-point-invalid-operation.
+
+Furthermore, even though the condition names may appear in an image,
+it is not clear that such traps are enabled at every point in time.
+The IEEE standard specifies that user-level programs ought to have
+the capability of selectively enabling or disabling its five traps;
+and other implementations may run on a variety of hardware configurations
+for which the traps possible vary from host to host.  However, there is
+no current way for user-code to ask (1) what conditions are in fact
+supporting floating-point traps, nor to ask (2) just what traps are 
+currently active
+
+Note that some very simple implementations might not be able to cause
+trapping even for floating-point-underflow;  and in other implementations,
+the relevant traps may vary on a host-to-host basic, depending on what
+particular optional hardware is available on that host.  For example,
+Sun3 workstations come  in three configurations: one with only software 
+floating-point support, one with a Motorola MC68881 attached co-processor, 
+and one with both an MC68881 and a Weitek Floating Point "Accelerator"; 
+the increasing hardware complement gives rise to an increasing number of 
+implementation-specific traps.  Even within the IEEE standard, it is 
+possible for a conforming implementation to make a refinement of the five 
+suggested traps [the MC68881 partitions one of the traps into three, 
+giving a total of eight]; so even though one knows that an implementation 
+is IEEE compatible, it still makes sense to ask what conditions are 
+supportable as floating-point traps.
+
+
+Proposal (FLOATING-POINT-CONDITION-NAMES:ADD-MINIMAL-IEEE)
+
+  1. Add FLOATING-POINT-INVALID-OPERATION and FLOATING-POINT-INEXACT
+     as conditions which are sub-conditions of ARITHMETIC-ERROR.
+  2. Add a global parameter SUPPORTED-FLOATING-POINT-CONDITIONS which
+     is to contain a list of all the condition names that can, in that
+     implementation, be enabled as floating-point traps; this is to
+     be an "implementation revealing" parameter.
+  3. Add a function of no arguments ENABLED-FLOATING-POINT-TRAPS which
+     returns a list of condition names for all currently enabled
+     floating point trapping conditions.
+
+The intent is that if condition FOO is a currently enabled floating
+point trap, then whenever that particular situation arises the
+system will arrange to signal the Lisp condition FOO.  The means for
+enabling and disabling traps is not addressed in this proposal.
+
+
+Rationale:
+
+Many Common Lisp implementations do in fact run on hardware that
+supports the IEEE floating-point standard;  a minimal requirement
+for porting between these implementations is that they all use the
+same name for the five IEEE-mandated floating-point conditions.
+Since at least some implementations will provide means for selective
+enabling and disabling of various floating-point traps, then the 
+user must be able to query the system to find out what the current
+state is, and what states are supportable.
+
+
+Current Practice:
+
+Lucid Common Lisp supports this much; moreover, it uses SETF on
+(ENABLED-FLOATING-POINT-TRAPS) as the primary means to alter the
+currently-enabled traps.
+
+
+Cost to implementors:
+
+Trivial.
+
+
+Cost to users:
+
+None; this is an upward-compatible addition.
+
+
+Benefits:
+
+Portability of a greater amount of user code; portability of "skills",
+since IEEE support is so common.
+
+
+Aesthetics:
+
+It is better for all IEEE implementations to use the same names for
+these conditions, rather than have them vary from one to another.
+It is also probably better for non-IEEE implementations to use the
+IEEE condition names where appropriate, just to minimize the 
+conceptual overload.
+
+
+Discussion:
+
+If an implementation is to claim full IEEE support, then it ought to 
+provide some means of enabling and catching these five IEEE-mandated
+traps.  Then it would be appropriate to put :IEEE-FLOATING-POINT on
+the list *FEATURES* (see CLtL, P.448).
+
+Moon and JonL privately discussed some means for enabling and
+disabling various floating-point traps, back in June 1989 when the 
+float-underflow proposal was under discussion; they came to the 
+conclusion that "getting the design right and efficient" was more 
+than a few minutes worth of work, and so postponed further work on it.
+
+
+[The IEEE standard apparently goes by the name of ANSI-IEEE Std 754-1985; 
+my working copy is Draft 10.0 from 1982.  I don't think there are great 
+variances between them. -- JonL --]
+
+
+
+1,,
+Summary-line: 31-Oct   sandra%defun@cs.utah.edu  #Re: Issue: FLOATING-POINT-CONDITION-NAMES
+Received: from Xerox.COM by pooh.parc.xerox.com with SMTP
+	(5.61+/IDA-1.2.8/gandalf) id AA16144; Tue, 31 Oct 89 08:09:18 PST
+Received: from Chardonnay.ms by ArpaGateway.ms ; 31 OCT 89 08:09:29 PST
+Return-Path: <X3J13-mailer@SAIL.Stanford.EDU>
+Received: from SAIL.Stanford.EDU ([36.86.0.194]) by Xerox.COM ; 31 OCT 89
+ 07:40:43 PST
+Received: from cs.utah.edu by SAIL.Stanford.EDU with TCP; 31 Oct 89
+ 07:29:09 PST
+Received: from defun.utah.edu by cs.utah.edu (5.61/utah-2.4-cs)
+ 	id AA16079; Tue, 31 Oct 89 08:29:03 -0700
+Received: by defun.utah.edu (5.61/utah-2.3-leaf)
+ 	id AA15236; Tue, 31 Oct 89 08:29:01 -0700
+From: sandra%defun@cs.utah.edu (Sandra J Loosemore)
+Message-Id: <8910311529.AA15236@defun.utah.edu>
+Date: Tue, 31 Oct 89 08:28:59 MST
+Subject: Re: Issue: FLOATING-POINT-CONDITION-NAMES
+To: Jon L White <jonl@lucid.com>
+Cc: x3j13@sail.stanford.edu
+In-Reply-To: Jon L White <jonl@lucid.com>, Mon, 30 Oct 89 19:03:55 PST
+
+*** EOOH ***
+From: sandra%defun@cs.utah.edu (Sandra J Loosemore)
+Date: Tue, 31 Oct 89 08:28:59 MST
+Subject: Re: Issue: FLOATING-POINT-CONDITION-NAMES
+To: Jon L White <jonl@lucid.com>
+Cc: x3j13@sail.stanford.edu
+In-Reply-To: Jon L White <jonl@lucid.com>, Mon, 30 Oct 89 19:03:55 PST
+
+Two minor complaints about the proposal:
+  2. Add a global parameter SUPPORTED-FLOATING-POINT-CONDITIONS [...]
+
+This should be "symbolic constant" (as in a DEFCONSTANT-style constant)
+instead of "global parameter", right?  I can't imagine how it would be
+useful to allow users to modify its value.
+
+  3. Add a function of no arguments ENABLED-FLOATING-POINT-TRAPS [...]
+
+I'm a bit bothered by the asymmetry of the names here.  These should
+either both be -TRAPS or both -CONDITIONS.
+
+I also wonder if it might make more sense to have both
+SUPPORTED-FLOATING-POINT-CONDITIONS and ENABLED-FLOATING-POINT-TRAPS
+be type specifiers instead of a constant on the one hand and a
+function on the other.  Instead of doing a MEMBER test on the
+resulting list of condition names, one would do a SUBTYPEP test to
+check whether an implementation supports a particular condition. 
+
+I don't have any fundamental complaint with the intent of the proposal.
+
+-Sandra
+-------
+
+
+
+1,,
+Summary-line: 31-Oct  Moon@STONY-BROOK.SCRC.Sym  #Issue: FLOATING-POINT-CONDITION-NAMES
+Received: from Xerox.COM by pooh.parc.xerox.com with SMTP
+	(5.61+/IDA-1.2.8/gandalf) id AA17916; Tue, 31 Oct 89 13:17:21 PST
+Received: from Salvador.ms by ArpaGateway.ms ; 31 OCT 89 13:17:48 PST
+Return-Path: <X3J13-mailer@SAIL.Stanford.EDU>
+Received: from SAIL.Stanford.EDU ([36.86.0.194]) by Xerox.COM ; 31 OCT 89
+ 13:08:04 PST
+Received: from STONY-BROOK.SCRC.Symbolics.COM by SAIL.Stanford.EDU with
+ TCP; 31 Oct 89  12:57:35 PST
+Received: from EUPHRATES.SCRC.Symbolics.COM by
+ STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 684951; 31 Oct
+ 89 15:56:24 EST
+Date: Tue, 31 Oct 89 15:56 EST
+From: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: Issue: FLOATING-POINT-CONDITION-NAMES
+To: Jon L White <jonl@lucid.com>
+Cc: x3j13@sail.stanford.edu
+In-Reply-To: <8910310303.AA06510@bhopal>
+Message-Id: <19891031205628.5.MOON@EUPHRATES.SCRC.Symbolics.COM>
+
+*** EOOH ***
+Date: Tue, 31 Oct 89 15:56 EST
+From: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: Issue: FLOATING-POINT-CONDITION-NAMES
+To: Jon L White <jonl@lucid.com>
+Cc: x3j13@sail.stanford.edu
+In-Reply-To: <8910310303.AA06510@bhopal>
+
+    Date: Mon, 30 Oct 89 19:03:55 PST
+    From: Jon L White <jonl@lucid.com>
+
+    Looking over past "cleanup" discussions, I see that we never got around 
+    to finishing the work on floating-point traps.  I realize this is a bit 
+    late, but the addition suggested below seems so short to describe, so non-
+    controversial (I hope!), and turns out to be so important to portability, 
+    that it would be a shame if we couldn't agree on it next week.
+
+Since we canned something like this in June on the grounds that there
+wasn't any time left to add new features, I don't see how we can justify
+adding it now.  I think we all want something like this, but there are a
+number of problems with the details of your proposal and I don't think
+there is any time left to work on the design of this new feature.  I
+hate to leave this out, I'm myself an advocate of giving good control
+over floating point exceptions, but I really think we have no choice.
+
+I suppose you might not believe there are problems with the details if
+I don't list some.  This may not be a complete list.  I'll keep it brief.
+
+  - The names are inconsistent.
+  - There is no dynamic-extent form of floating-point exception enabling,
+    which means that programs will not work correctly in multiprocess
+    Lisps (such as Symbolics Genera, Explorer, and recent versions of Lucid).
+  - There is still no specification of what causes the conditions to
+    be signalled (neither the new conditions nor the existing ones).
+  - There is no specification of how this interacts with safe/unsafe code.
+  - There is no specification of what can be done to recover when a
+    condition is signalled.
+  - There is no specification of what happens when a condition is disabled.
+  - Division by Zero is in the IEEE spec as a disablable exception but
+    is missing from your proposal.
+
+
+
+1,,
+Summary-line: 31-Oct             jonl@lucid.com  #Issue: FLOATING-POINT-CONDITION-NAMES
+Received: from Xerox.COM by pooh.parc.xerox.com with SMTP
+	(5.61+/IDA-1.2.8/gandalf) id AA18228; Tue, 31 Oct 89 13:58:44 PST
+Received: from Chardonnay.ms by ArpaGateway.ms ; 31 OCT 89 13:58:33 PST
+Return-Path: <X3J13-mailer@SAIL.Stanford.EDU>
+Received: from SAIL.Stanford.EDU ([36.86.0.194]) by Xerox.COM ; 31 OCT 89
+ 13:34:16 PST
+Received: from lucid.com by SAIL.Stanford.EDU with TCP; 31 Oct 89  13:25:20
+ PST
+Received: from bhopal ([192.43.178.13]) by heavens-gate id AA00302g; Tue,
+ 31 Oct 89 13:22:24 PST
+Received: by bhopal id AA17846g; Tue, 31 Oct 89 13:24:20 PST
+Date: Tue, 31 Oct 89 13:24:20 PST
+From: Jon L White <jonl@lucid.com>
+Message-Id: <8910312124.AA17846@bhopal>
+To: sandra%defun@cs.utah.edu
+Cc: x3j13@sail.stanford.edu
+In-Reply-To: Sandra J Loosemore's message of Tue, 31 Oct 89 08:28:59 MST
+ <8910311529.AA15236@defun.utah.edu>
+Subject: Issue: FLOATING-POINT-CONDITION-NAMES
+
+*** EOOH ***
+Date: Tue, 31 Oct 89 13:24:20 PST
+From: Jon L White <jonl@lucid.com>
+To: sandra%defun@cs.utah.edu
+Cc: x3j13@sail.stanford.edu
+In-Reply-To: Sandra J Loosemore's message of Tue, 31 Oct 89 08:28:59 MST
+ <8910311529.AA15236@defun.utah.edu>
+Subject: Issue: FLOATING-POINT-CONDITION-NAMES
+
+re:   2. Add a global parameter SUPPORTED-FLOATING-POINT-CONDITIONS [...]
+    This should be "symbolic constant" (as in a DEFCONSTANT-style constant)
+    instead of "global parameter", right?  I can't imagine how it would be
+    useful to allow users to modify its value.
+
+It can't be a constant because there are ports for which it will vary
+on a host-by-host basis (the example given was the Sun3, which may or
+may not have an FPA board attached).  Admittedly, only chaos can result
+if the End-User starts fiddling with it's value.  At worst, this too
+would have to be a functional interface.
+
+
+re: I'm a bit bothered by the asymmetry of the names here.  These should
+    either both be -TRAPS or both -CONDITIONS.
+
+Sometime I get puzzled by it too, but there is a difference between a
+"trap" and a CommonLisp "condition".  No item in the condition hierarchy
+is disabled whenever the associated trap is disable -- it still exists
+there, for whatever purposes the software can find for it.  Maybe the
+confusing thing was to use condition names as the output of the enabled
+traps function; or maybe it is confusing to use condition names rather
+than condition object on the supported-conditions list?   I don't feel 
+very strongly about the name, except that calling the list of supported
+condition names a -TRAPS list could be even more confusing.
+
+
+re: ...SUPPORTED-FLOATING-POINT-CONDITIONS and ENABLED-FLOATING-POINT-TRAPS
+    be type specifiers instead of a constant on the one hand and . .. 
+
+We thought about having a join condition for all the floating-point
+conditions simply a convenience; but the trouble is with DIVISION-BY-ZERO 
+-- it would need multiple parents since it includes both the floating-point
+division by zero trap, and the non-floating-point one.  I don't remember if 
+we  allowed multiple-inheritance for the condition system.  At least you 
+can do (subtypep x 'arithmetic-error) as well as:
+    (subtypep x '(or floating-point-<this> floating-point-<that>))
+
+
+-- JonL --
+
+
+
+1,,
+Summary-line: 31-Oct  Moon@STONY-BROOK.SCRC.Sym  #Issue: FLOATING-POINT-CONDITION-NAMES
+Received: from Xerox.COM by pooh.parc.xerox.com with SMTP
+	(5.61+/IDA-1.2.8/gandalf) id AA18309; Tue, 31 Oct 89 14:08:33 PST
+Received: from Semillon.ms by ArpaGateway.ms ; 31 OCT 89 14:08:01 PST
+Return-Path: <X3J13-mailer@SAIL.Stanford.EDU>
+Received: from SAIL.Stanford.EDU ([36.86.0.194]) by Xerox.COM ; 31 OCT 89
+ 13:55:41 PST
+Received: from STONY-BROOK.SCRC.Symbolics.COM by SAIL.Stanford.EDU with
+ TCP; 31 Oct 89  13:49:08 PST
+Received: from EUPHRATES.SCRC.Symbolics.COM by
+ STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 685007; 31 Oct
+ 89 16:47:24 EST
+Date: Tue, 31 Oct 89 16:47 EST
+From: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: Issue: FLOATING-POINT-CONDITION-NAMES
+To: Jon L White <jonl@lucid.com>
+Cc: x3j13@sail.stanford.edu
+In-Reply-To: <8910312124.AA17846@bhopal>
+Message-Id: <19891031214724.1.MOON@EUPHRATES.SCRC.Symbolics.COM>
+
+*** EOOH ***
+Date: Tue, 31 Oct 89 16:47 EST
+From: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: Issue: FLOATING-POINT-CONDITION-NAMES
+To: Jon L White <jonl@lucid.com>
+Cc: x3j13@sail.stanford.edu
+In-Reply-To: <8910312124.AA17846@bhopal>
+
+    Date: Tue, 31 Oct 89 13:24:20 PST
+    From: Jon L White <jonl@lucid.com>
+
+    I don't remember if 
+    we  allowed multiple-inheritance for the condition system.
+
+We didn't used to, but we do now.  See for example, simple-warning on p.2-19
+of the recently distributed draft.  It's defined in a way that can only be
+implemented using multiple inheritance.  Fortunately CLOS is available to
+provide the multiple inheritance.
+
+
+
+1,,
+Summary-line:  1-Nov             jonl@lucid.com  #Issue: FLOATING-POINT-CONDITION-NAMES
+Received: from Xerox.COM by pooh.parc.xerox.com with SMTP
+	(5.61+/IDA-1.2.8/gandalf) id AA22790; Wed, 1 Nov 89 10:50:54 PST
+Received: from Semillon.ms by ArpaGateway.ms ; 01 NOV 89 10:22:57 PST
+Return-Path: <X3J13-mailer@SAIL.Stanford.EDU>
+Received: from SAIL.Stanford.EDU ([36.86.0.194]) by Xerox.COM ; 01 NOV 89
+ 10:17:23 PST
+Received: from lucid.com by SAIL.Stanford.EDU with TCP; 1 Nov 89  10:10:11
+ PST
+Received: from bhopal ([192.43.178.13]) by heavens-gate id AA08220g; Wed, 1
+ Nov 89 10:07:12 PST
+Received: by bhopal id AA00684g; Wed, 1 Nov 89 10:09:07 PST
+Date: Wed, 1 Nov 89 10:09:07 PST
+From: Jon L White <jonl@lucid.com>
+Message-Id: <8911011809.AA00684@bhopal>
+To: Moon@STONY-BROOK.SCRC.Symbolics.COM
+Cc: x3j13@sail.stanford.edu
+In-Reply-To: David A. Moon's message of Tue, 31 Oct 89 16:47 EST
+ <19891031214724.1.MOON@EUPHRATES.SCRC.Symbolics.COM>
+Subject: Issue: FLOATING-POINT-CONDITION-NAMES
+
+*** EOOH ***
+Date: Wed, 1 Nov 89 10:09:07 PST
+From: Jon L White <jonl@lucid.com>
+To: Moon@STONY-BROOK.SCRC.Symbolics.COM
+Cc: x3j13@sail.stanford.edu
+In-Reply-To: David A. Moon's message of Tue, 31 Oct 89 16:47 EST
+ <19891031214724.1.MOON@EUPHRATES.SCRC.Symbolics.COM>
+Subject: Issue: FLOATING-POINT-CONDITION-NAMES
+
+re:     I don't remember if 
+	we  allowed multiple-inheritance for the condition system.
+    We didn't used to, but we do now.  See for example, simple-warning on 
+    p.2-19 of the recently distributed draft.  It's defined in a way that 
+    can only be implemented using multiple inheritance.  Fortunately CLOS 
+    is available to provide the multiple inheritance.
+
+Yea, I remember that discussion, and the subsequent worry about this
+being one of the few places in the non-CLOS part of the spec that
+absolutely requires CLOS.  
+
+Given the ISO and Japanese worries about CLOS, I'd certainly prefer not 
+to have the floating-point condition hieararchy force the CLOS issue -- 
+it's really a very minor point about the one codition division-by-zero.
+
+
+-- JonL --
+
+
+P.S. Which is not to say that I want to avoid the ISO-CLOS issue --
+     merely that I wouldn't like to have it bundled into the
+     floating-point condition names issue.
+
+
+
+1,,
+Summary-line:  1-Nov  Moon@STONY-BROOK.SCRC.Sym  #Issue: FLOATING-POINT-CONDITION-NAMES
+Received: from Xerox.COM by pooh.parc.xerox.com with SMTP
+	(5.61+/IDA-1.2.8/gandalf) id AA22793; Wed, 1 Nov 89 10:51:02 PST
+Received: from Salvador.ms by ArpaGateway.ms ; 01 NOV 89 10:37:25 PST
+Return-Path: <X3J13-mailer@SAIL.Stanford.EDU>
+Received: from SAIL.Stanford.EDU ([36.86.0.194]) by Xerox.COM ; 01 NOV 89
+ 10:36:30 PST
+Received: from STONY-BROOK.SCRC.Symbolics.COM by SAIL.Stanford.EDU with
+ TCP; 1 Nov 89  10:30:57 PST
+Received: from EUPHRATES.SCRC.Symbolics.COM by
+ STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 685572; 1 Nov
+ 89 13:29:32 EST
+Date: Wed, 1 Nov 89 13:29 EST
+From: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: Issue: FLOATING-POINT-CONDITION-NAMES
+To: Jon L White <jonl@lucid.com>
+Cc: x3j13@sail.stanford.edu
+In-Reply-To: <8911011759.AA00590@bhopal>
+Message-Id: <19891101182932.5.MOON@EUPHRATES.SCRC.Symbolics.COM>
+
+*** EOOH ***
+Date: Wed, 1 Nov 89 13:29 EST
+From: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: Issue: FLOATING-POINT-CONDITION-NAMES
+To: Jon L White <jonl@lucid.com>
+Cc: x3j13@sail.stanford.edu
+In-Reply-To: <8911011759.AA00590@bhopal>
+
+    Date: Wed, 1 Nov 89 09:59:07 PST
+    From: Jon L White <jonl@lucid.com>
+
+    Dave, I'm afraid your comments in this reply are directed entirely at 
+    some other proposal (possibly the one we privately discussed in June, 
+    and decided not to work further on?)  For example, among other things, 
+    you say:
+
+      - Division by Zero is in the IEEE spec as a disablable exception but
+	is missing from your proposal.
+
+    But the introduction to the proposal clearly says:
+
+	The currently proposed error system contains names for three conditions
+	related to floating-point operations: floating-point-underflow,
+	floating-point-overflow, and division-by-zero.  
+
+I apologize, somehow I missed seeing that.  Possibly that happened because
+I generally read the Proposal section of an issue writeup much more carefully
+than the other sections of supporting material.
+
+    Also you say:
+
+      - There is no dynamic-extent form of floating-point exception enabling, ...
+      - There is still no specification of what causes the conditions to
+	be signalled (neither the new conditions nor the existing ones).
+
+    But the issue FLOATING-POINT-CONDITION-NAMES addressed *only* the names to 
+    use in the condition system for what are mandated conditions by the IEEE 
+    spec.  It specifically said that it would not address the means of
+    enabling or disabling, and the comments section said:
+
+	Moon and JonL privately discussed some means for enabling and
+	disabling various floating-point traps, back in June 1989 when the 
+	float-underflow proposal was under discussion; they came to the 
+	conclusion that "getting the design right and efficient" was more 
+	than a few minutes worth of work, and so postponed further work on it.
+
+While what you say about the scope of your proposal is true, my point is
+that because it omits parts of the complete solution, it's not very
+useful by itself.  This supports my larger point, also supported by the
+comments you quoted just above, that there simply isn't time, five
+months AFTER the "feature freeze" for ANSI Common Lisp, to design this
+feature properly, and therefore we really are forced not to solve this
+particular problem this time around.  I wish that wasn't true but
+wishing won't change it.
+
+
+
+1,,
+Summary-line:  1-Nov             jonl@lucid.com  #Issue: FLOATING-POINT-CONDITION-NAMES
+Received: from Xerox.COM by pooh.parc.xerox.com with SMTP
+	(5.61+/IDA-1.2.8/gandalf) id AA23744; Wed, 1 Nov 89 13:30:08 PST
+Received: from Salvador.ms by ArpaGateway.ms ; 01 NOV 89 13:28:47 PST
+Return-Path: <X3J13-mailer@SAIL.Stanford.EDU>
+Received: from SAIL.Stanford.EDU ([36.86.0.194]) by Xerox.COM ; 01 NOV 89
+ 13:26:20 PST
+Received: from lucid.com by SAIL.Stanford.EDU with TCP; 1 Nov 89  13:21:45
+ PST
+Received: from bhopal ([192.43.178.13]) by heavens-gate id AA08980g; Wed, 1
+ Nov 89 13:18:42 PST
+Received: by bhopal id AA01638g; Wed, 1 Nov 89 13:20:28 PST
+Date: Wed, 1 Nov 89 13:20:28 PST
+From: Jon L White <jonl@lucid.com>
+Message-Id: <8911012120.AA01638@bhopal>
+To: Moon@STONY-BROOK.SCRC.Symbolics.COM
+Cc: x3j13@sail.stanford.edu
+In-Reply-To: David A. Moon's message of Wed, 1 Nov 89 13:29 EST
+ <19891101182932.5.MOON@EUPHRATES.SCRC.Symbolics.COM>
+Subject: Issue: FLOATING-POINT-CONDITION-NAMES
+
+*** EOOH ***
+Date: Wed, 1 Nov 89 13:20:28 PST
+From: Jon L White <jonl@lucid.com>
+To: Moon@STONY-BROOK.SCRC.Symbolics.COM
+Cc: x3j13@sail.stanford.edu
+In-Reply-To: David A. Moon's message of Wed, 1 Nov 89 13:29 EST
+ <19891101182932.5.MOON@EUPHRATES.SCRC.Symbolics.COM>
+Subject: Issue: FLOATING-POINT-CONDITION-NAMES
+
+re:  . . . there simply isn't time, five
+    months AFTER the "feature freeze" for ANSI Common Lisp, to design this
+    feature properly, and therefore we really are forced not to solve this
+    particular problem this time around. 
+
+You still appear to be confusing (1) the question of the names of supported
+conditions with (2) the mechanics for enabling/disabling hardware features
+that these names imply.
+
+The currently accepted condition system proposal contains the names
+FLOATING-POINT-OVERFLOW, FLOATING-POINT-UNDERFLOW, and DIVISION-BY-ZERO
+*** without addressing the issue of how to enable or disable them ***.  
+I only propose to smooth out the set of condition names relevant to 
+floating point, especially so that it is useful in IEEE impelmentations.
+
+
+-- JonL --
+
+
+
+1,,
+Summary-line:  1-Nov  Moon@STONY-BROOK.SCRC.Sym  #Issue: FLOATING-POINT-CONDITION-NAMES
+Received: from Xerox.COM by pooh.parc.xerox.com with SMTP
+	(5.61+/IDA-1.2.8/gandalf) id AA24367; Wed, 1 Nov 89 15:00:39 PST
+Received: from Chardonnay.ms by ArpaGateway.ms ; 01 NOV 89 14:58:59 PST
+Return-Path: <X3J13-mailer@SAIL.Stanford.EDU>
+Received: from SAIL.Stanford.EDU ([36.86.0.194]) by Xerox.COM ; 01 NOV 89
+ 14:58:33 PST
+Received: from STONY-BROOK.SCRC.Symbolics.COM by SAIL.Stanford.EDU with
+ TCP; 1 Nov 89  14:54:06 PST
+Received: from EUPHRATES.SCRC.Symbolics.COM by
+ STONY-BROOK.SCRC.Symbolics.COM via CHAOS with CHAOS-MAIL id 685840; 1 Nov
+ 89 17:25:47 EST
+Date: Wed, 1 Nov 89 17:25 EST
+From: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: Issue: FLOATING-POINT-CONDITION-NAMES
+To: Jon L White <jonl@lucid.com>
+Cc: x3j13@sail.stanford.edu
+In-Reply-To: <8911012120.AA01638@bhopal>
+Message-Id: <19891101222549.3.MOON@EUPHRATES.SCRC.Symbolics.COM>
+
+*** EOOH ***
+Date: Wed, 1 Nov 89 17:25 EST
+From: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+Subject: Issue: FLOATING-POINT-CONDITION-NAMES
+To: Jon L White <jonl@lucid.com>
+Cc: x3j13@sail.stanford.edu
+In-Reply-To: <8911012120.AA01638@bhopal>
+
+    Date: Wed, 1 Nov 89 13:20:28 PST
+    From: Jon L White <jonl@lucid.com>
+
+    re:  . . . there simply isn't time, five
+	months AFTER the "feature freeze" for ANSI Common Lisp, to design this
+	feature properly, and therefore we really are forced not to solve this
+	particular problem this time around. 
+
+    You still appear to be confusing (1) the question of the names of supported
+    conditions with (2) the mechanics for enabling/disabling hardware features
+    that these names imply.
+
+    The currently accepted condition system proposal contains the names
+    FLOATING-POINT-OVERFLOW, FLOATING-POINT-UNDERFLOW, and DIVISION-BY-ZERO
+    *** without addressing the issue of how to enable or disable them ***.  
+    I only propose to smooth out the set of condition names relevant to 
+    floating point, especially so that it is useful in IEEE impelmentations.
+
+The proposal that I was talking about is this one:
+
+    Date: Mon, 30 Oct 89 19:03:55 PST
+    From: Jon L White <jonl@lucid.com>
+    
+    Proposal (FLOATING-POINT-CONDITION-NAMES:ADD-MINIMAL-IEEE)
+    
+      1. Add FLOATING-POINT-INVALID-OPERATION and FLOATING-POINT-INEXACT
+	 as conditions which are sub-conditions of ARITHMETIC-ERROR.
+
+This is a proposal to add some condition names.
+
+      2. Add a global parameter SUPPORTED-FLOATING-POINT-CONDITIONS which
+	 is to contain a list of all the condition names that can, in that
+	 implementation, be enabled as floating-point traps; this is to
+	 be an "implementation revealing" parameter.
+
+This is a proposal relating to enabling or disabling traps, not a 
+proposal to add some condition names.
+
+      3. Add a function of no arguments ENABLED-FLOATING-POINT-TRAPS which
+	 returns a list of condition names for all currently enabled
+	 floating point trapping conditions.
+
+This is a proposal relating to enabling or disabling traps, not a 
+proposal to add some condition names.
+    
+    The intent is that if condition FOO is a currently enabled floating
+    point trap, then whenever that particular situation arises the
+    system will arrange to signal the Lisp condition FOO.  
+
+This statement is too incomplete to let a programmer know how to use
+this facility.
+
+							   The means for
+    enabling and disabling traps is not addressed in this proposal.
+
+This statement indicates the proposal is too incomplete to let a
+programmer know how to use this facility.
+
+I don't think I'm confusing two different proposals.
+
+If when you said
+
+    I only propose to smooth out the set of condition names relevant to 
+    floating point, especially so that it is useful in IEEE impelmentations.
+
+you were saying that you are now reducing your proposal to just point
+1, then I don't think there are any design issues as such.  Those are
+simply names of conditions that might be signalled in some unspecified
+circumstances, just like the existing names FLOATING-POINT-OVERFLOW and
+FLOATING-POINT-UNDERFLOW.  I wouldn't object to that smaller proposal on
+the grounds of time, since there is nothing to discuss but the names and
+the names you propose are consistent.  I would still comment that the
+proposal is not useful by itself, just as the existing conditions
+FLOATING-POINT-OVERFLOW and FLOATING-POINT-UNDERFLOW are not useful
+by themselves because their integration into the language was never
+completed.
+
+
+
+1,,
+Summary-line: 31-Oct           barmar@Think.COM  #Re: Issue: FLOATING-POINT-CONDITION-NAMES
+Received: from Xerox.COM by pooh.parc.xerox.com with SMTP
+	(5.61+/IDA-1.2.8/gandalf) id AA18249; Tue, 31 Oct 89 14:00:26 PST
+Received: from Salvador.ms by ArpaGateway.ms ; 31 OCT 89 13:59:58 PST
+Return-Path: <X3J13-mailer@SAIL.Stanford.EDU>
+Received: from SAIL.Stanford.EDU ([36.86.0.194]) by Xerox.COM ; 31 OCT 89
+ 13:37:50 PST
+Received: from Think.COM (Gateway.Think.COM) by SAIL.Stanford.EDU with TCP;
+ 31 Oct 89  13:31:59 PST
+Return-Path: <barmar@Think.COM>
+Received: from Occam.Think.COM by Think.COM; Tue, 31 Oct 89 16:33:17 -0500
+Date: Tue, 31 Oct 89 16:28 EST
+From: Barry Margolin <barmar@Think.COM>
+Subject: Re: Issue: FLOATING-POINT-CONDITION-NAMES
+To: Sandra J Loosemore <sandra%defun@cs.utah.edu>
+Cc: Jon L White <jonl@lucid.com>, x3j13@sail.stanford.edu
+In-Reply-To: <8910311529.AA15236@defun.utah.edu>
+Message-Id: <19891031212830.2.BARMAR@OCCAM.THINK.COM>
+
+*** EOOH ***
+Date: Tue, 31 Oct 89 16:28 EST
+From: Barry Margolin <barmar@Think.COM>
+Subject: Re: Issue: FLOATING-POINT-CONDITION-NAMES
+To: Sandra J Loosemore <sandra%defun@cs.utah.edu>
+Cc: Jon L White <jonl@lucid.com>, x3j13@sail.stanford.edu
+In-Reply-To: <8910311529.AA15236@defun.utah.edu>
+
+    Date: Tue, 31 Oct 89 08:28:59 MST
+    From: sandra%defun@cs.utah.edu (Sandra J Loosemore)
+
+    Two minor complaints about the proposal:
+      2. Add a global parameter SUPPORTED-FLOATING-POINT-CONDITIONS [...]
+
+    This should be "symbolic constant" (as in a DEFCONSTANT-style constant)
+    instead of "global parameter", right?  I can't imagine how it would be
+    useful to allow users to modify its value.
+
+Perhaps a loadable IEEE compatibility library would include support for
+additional conditions.
+
+      3. Add a function of no arguments ENABLED-FLOATING-POINT-TRAPS [...]
+
+    I'm a bit bothered by the asymmetry of the names here.  These should
+    either both be -TRAPS or both -CONDITIONS.
+
+Good idea.
+
+    I also wonder if it might make more sense to have both
+    SUPPORTED-FLOATING-POINT-CONDITIONS and ENABLED-FLOATING-POINT-TRAPS
+    be type specifiers instead of a constant on the one hand and a
+    function on the other.  Instead of doing a MEMBER test on the
+    resulting list of condition names, one would do a SUBTYPEP test to
+    check whether an implementation supports a particular condition. 
+
+I don't see the need for this.
+
+                                                barmar
+
+
+
