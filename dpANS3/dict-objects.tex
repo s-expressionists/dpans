@@ -3145,7 +3145,11 @@ implementation can extend the \CLOS\ to recognize other qualities.
 A simple implementation that has only one method selection technique 
 and ignores \declref{optimize} \term{declaration specifiers} is valid.
  
-The \declref{special}, \declref{ftype}, \declref{function}, \declref{inline},
+The \declref{special}, \declref{ftype}
+\issue{DECLARE-FUNCTION-AMBIGUITY:DELETE-FTYPE-ABBREVIATION}
+% , \declref{function}
+\endissue{DECLARE-FUNCTION-AMBIGUITY:DELETE-FTYPE-ABBREVIATION}
+, \declref{inline},
 \declref{notinline}, and \declref{declaration} declarations are not permitted.
 Individual implementations can extend the \misc{declare} option to
 support additional declarations.
