@@ -1,4 +1,4 @@
-Status:       passed v2 on 15-0 vote, Jun-90
+Status:       passed v2, proposal MORE-UNSPECIFIED on 15-0 vote, Jun-90
 Issue:        FUNCTION-CALL-EVALUATION-ORDER
 
 References:   CLtL p 194 ("...that order is always left to right")
