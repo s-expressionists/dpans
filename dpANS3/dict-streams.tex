@@ -1470,7 +1470,7 @@ not the substring \term{bounded} by \param{start} and \param{end}.
 \code
  (write-string string)
 \EQ (dotimes (i (length string)
-      (write-char (char string i)))
+      (write-char (char string i))))
 
  (write-line string)
 \EQ (prog1 (write-string string) (terpri))
