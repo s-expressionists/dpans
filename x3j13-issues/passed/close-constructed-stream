@@ -2,12 +2,12 @@ Status:  Proposal ARGUMENT-STREAM-ONLY passed, Jan 89 X3J13
 Forum:	Cleanup
 Issue:         CLOSE-CONSTRUCTED-STREAM
 
-References:    Close (CLtL p. 332), WITH-OPEN-STREAM 
+References:    close (CLtL p. 332), WITH-OPEN-STREAM 
 	(CLtL p 330), make-synonym-stream, make-broadcast-stream,
 	make-concatenated-stream, make-two-way-stream,
 	make-echo-stream, make-string-input-stream,
 	make-string-output-stream, with-input-from-string,
-	with-output-from-string
+	with-output-to-string
 
 Related issues: CLOSED-STREAM-OPERATIONS
 
@@ -31,7 +31,7 @@ the input-stream and output-stream given to MAKE-TWO-WAY-STREAM or MAKE-ECHO-STR
 
 A "constructed" stream is either a composite stream or one created with 
 MAKE-STRING-INPUT-STREAM, MAKE-STRING-OUTPUT-STREAM, WITH-INPUT-FROM-STRING,
- WITH-OUTPUT-FROM-STRING.
+ WITH-OUTPUT-TO-STRING.
 
 The function "CLOSE" is currently described in 21.3, which starts "This
 section contains discussion of only those operations that are common to all

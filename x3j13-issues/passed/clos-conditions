@@ -36,8 +36,8 @@ Proposal (CLOS-CONDITIONS:INTEGRATE):
       (DEFINE-CONDITION FOO (BAR) ((A 1) (B 2)))
      would have to be written
       (DEFINE-CONDITION FOO (BAR)
-	((A :INITARG :A :READER FOO-A :INITFORM 1)
-	 (B :INITARG :B :READER FOO-B :INITFORM 2)))
+        ((A :INITARG :A :READER FOO-A :INITFORM 1)
+         (B :INITARG :B :READER FOO-B :INITFORM 2)))
 
   6. Permit multiple parent-types to be named in the list of parent types.
      Define that these parent types are treated the same as the superior
@@ -50,7 +50,7 @@ Proposal (CLOS-CONDITIONS:INTEGRATE):
      always being NIL. Specifying (:REPORT fn) in the definition of a
      condition type C is equivalent to doing 
       (DEFMETHOD PRINT-OBJECT ((X c) STREAM)
-	(IF *PRINT-ESCAPE* (CALL-NEXT-METHOD) (fn X STREAM)))
+        (IF *PRINT-ESCAPE* (CALL-NEXT-METHOD) (fn X STREAM)))
 
 Rationale:
 
