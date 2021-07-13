@@ -204,7 +204,7 @@ The \param{value-type} can be a \typeref{values}
 Consider a declaration of the following form:
                                    
 \code
- (ftype (function (arg0-type arg1-type ...) val-type) f))
+ (ftype (function (arg0-type arg1-type ...) val-type) f)
 \endcode
  
 Any \term{form}
@@ -246,12 +246,12 @@ Consider the following two
 declarations of \declref{ftype}:
 
 \code
- (ftype (function (arg0-type1 arg1-type1 ...) val-type1) f))
+ (ftype (function (arg0-type1 arg1-type1 ...) val-type1) f)
 \endcode
 and
 
 \code
- (ftype (function (arg0-type2 arg1-type2 ...) val-type2) f))
+ (ftype (function (arg0-type2 arg1-type2 ...) val-type2) f)
 \endcode
  
 If both these declarations are in effect,
@@ -261,7 +261,7 @@ treated as if {\tt f} were declared as follows:
 \code
  (ftype (function ((and arg0-type1 arg0-type2) (and arg1-type1 arg1-type2 ...) ...)
                   (and val-type1 val-type2)) 
-        f))
+        f)
 \endcode
  
 %!!! Barmar: what does this mean?
