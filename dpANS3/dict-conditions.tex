@@ -600,7 +600,7 @@ about writing code like:
 
 \code
  (defun wargames:no-win-scenario ()
-   (if (error "pushing the button would be stupid."))
+   (error "pushing the button would be stupid.")
    (push-the-button))
 \endcode
 In this scenario, there should be no chance that
