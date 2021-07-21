@@ -1,0 +1,93 @@
+\beginsubsection{Atomic Operations}
+\DefineSection{AtomicOperations}
+
+Some accesses to \term{places} are \term{atomic}\meaning{2}. Atomic
+access allows \term{threads} to operate on the same data without the
+expense of \term{locks} and without causing data races.
+
+There are two ways this is possible. First, some \term{atomic
+  accesses} are \term{synchronization operations}. This means that
+they can cause \term{synchronizes-with} relations between
+\term{evaluations} similar to those caused by \term{locks}, and can be
+them sequentially consistent on top of that. Second, all \term{atomic
+  accesses} have defined behavior even when they conflict and there is
+no \term{happens-before} ordering between them, although sometimes
+that behavior is only loosely defined.
+
+\beginsubsubsection{Reads and Writes and Modification Orders}
+\endsubsubsection%{Reads and Writes and Modification Orders}
+
+\beginsubsubsection{Atomic Ordering}
+\endsubsubsection%{Atomic Ordering}
+
+\beginsubsubsection{Atomic Read-Modify-Write Operations}
+\endsubsubsection%{Atomic Read-Modify-Write Operations}
+
+\beginsubsubsection{The ATOMIC Macro and Atomic Expansions}
+\endsubsubsection%{The ATOMIC Macro and Atomic Expansions}
+
+\beginsubsubsection{Fences}
+\endsubsubsection%{Fences}
+
+\endsubsection%{Atomic Operations}
+
+\beginsubsection{Acquire and Release Orderings}
+
+The acquire ordering can only be given to reads, and the release
+ordering only to writes.
+
+Acquire and release accesses synchronize. An acquiring read's write,
+if it is a release operation or stronger, \term{synchronizes-with} the
+read.
+
+This can be used in the implementation of \term{locks}, and
+\term{lock} operations gave these orderings their names. Acquiring a
+\term{lock} is a read (of a shared lock flag), and releasing a
+\term{lock} is a write. The release immediately before the acquisition
+in the \term{lock}'s modification order necessarily
+\term{synchronizes-with} it, ensuring that any operations performed
+while the \term{lock} was held are visible to the new \term{lock}
+holder.
+
+Acquire and release accesses do not need to be as closely paired as
+they are with \term{locks}. For example, consider a shared cache,
+which is written by some \term{threads} and read by others. Multiple
+writes may occur without intervening reads, and only the write
+immediately prior to a read in the modification order
+\term{synchronizes-with} that read.
+
+\endsubsection%{Acquire and Release Orderings}
+
+\beginsubsection{Relaxed Ordering}
+
+Relaxed ordering guarantees a modification order for a place that is
+the same between all \term{threads}. This means that, given that $W_1$ and
+$W_2$ are writes, and $R_1$ and $R_2$ are reads, the following
+guarantees are in place:
+
+\beginlist
+\item{Write-write coherence} If $W_1$ \term{happens-before} $W_2$,
+  $W_1$ is prior to $W_2$ in the modification order.
+\item{Read-read coherence} If $W_1$ is the write for $R_1$, and $R_1$
+  \term{happens-before} $R_2$, $R_2$'s write is either $W_1$, or some
+  write $W_2$ such that $W_1$ \term{happens-before} $W_2$.
+\item{Read-write coherence} If $R_1$ \term{happens-before} $W_1$,
+  $R_1$'s write \term{happens-before} $W_1$.
+\item{Write-read coherence} If $W_1$ \term{happens-before} $R_1$, either
+  $R_1$'s write is $W_1$, or $W_1$ \term{happens-before} $R_1$'s
+  write.
+\endlist
+
+Note that the modification orders for different places are not
+guaranteed to be coherent, and in general will not be. For example, if
+$R_1$ and $R_2$ are relaxed reads of different places, $R_2$'s write
+$W_2$ could \term{happen-before} $R_1$'s write $W_1$ even if $R_1$
+\term{happens-before} $R_2$. As such, relaxed accesses cannot be used
+for synchronization.
+
+Relaxed ordering is intended to provide a basic coherence guarantee. It is
+suitable for applications such as shared counters, in which side effects other
+than counter increments are irrelevant to the incrementing
+\term{threads}.
+
+\endsubsection%{Relaxed Ordering}

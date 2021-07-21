@@ -1976,3 +1976,123 @@ how the \term{condition} is to be \term{reported};
 \funref{type-error-expected-type}
 
 \endcom%{simple-type-error}\ftype{Condition Type}
+
+
+\issue{type-expand}
+\begincom{type-expand,type-expand-1}\ftype{Function}
+
+\label Syntax::
+
+\DefunWithValuesNewline type-expand   {type-specifier {\optional} env} {expansion, expanded-p}
+\DefunWithValues        type-expand-1 {type-specifier {\optional} env} {expansion, expanded-p}
+
+\label Arguments and Values::
+
+\param{type-specifier}---a \term{type specifier}.
+
+\param{env}---an environment object. The default is \miscref{nil}.
+
+\param{expansion}---a \term{type specifier}.
+
+\param{expanded-p}---a \term{generalized boolean}.
+
+\label Description::
+
+\funref{typexpand} and \funref{typexpand-1} expand type macros.
+
+If \param{type-specifier} is a \term{macro type specifier}, then
+\funref{macroexpand-1} expands the \term{macro type specifier} once.
+
+\funref{typexpand} repeatedly expands \param{type-specifier} until it
+is no longer a \term{macro type specifier}. In effect,
+\funref{typexpand} calls \funref{typexpand-1} repeatedly until the
+secondary value it returns is \miscref{nil}.
+
+If \param{type-specifier} is a \term{macro type specifier}, then the
+expansion is a macro expansion and \param{expanded-p} is
+\term{true}. Otherwise, the expansion is \param{type-specifier} and
+\param{expanded-p} is \term{false}.
+
+Macro expansion is carried out as follows. Once \funref{typexpand-1}
+has determined that the \param{type-specifier} is a \term{macro type
+specifier}, it obtains an appropriate expansion function as by
+\funref{type-macro-function}. This function is called with two
+arguments: the \param{type-specifier}, and the \param{env}. The value
+returned from this call is taken to be the expansion of
+the \param{type-specifier}. [paragraph only included if proposal
+"THREE-NEW-OPERATORS" is adopted]
+
+In addition to macro definitions in the global environment, any local
+macro definitions established within \param{env} by \specref{typelet}
+are considered. If only \param{type-specifier} is supplied as an
+argument, then the environment is effectively null, and only global
+macro definitions as established by \macref{deftype} are
+considered. [paragraph only included if "TYPELET" is adopted]
+
+\label Examples:
+
+\code
+;; Note: We use PAIR instead of CONS because an implementation is permitted
+;; to define CONS as a macro type specifier itself.
+(deftype list-of (&rest elements)
+  (if (null elements)
+      'null
+      `(pair ,(first elements) (list-of ,@(rest elements)))))
+
+(deftype list-n (n &optional element-type)
+  `(list-of ,@(make-list n :initial-element element-type)))
+
+(typexpand-1 '(list-n 2 integer)) \EV (LIST-OF INTEGER INTEGER), \term{true}
+(typexpand '(list-n 2 integer)) \EV (PAIR INTEGER (LIST-OF INTEGER)), \term{true}
+(typexpand 'not-a-macro) \EV NOT-A-MACRO, \term{false}
+(typexpand-1 '(not-a-macro integer)) \EV (NOT-A-MACRO INTEGER), \term{false}
+\endcode
+
+\label Affected By::
+
+\macref{deftype},
+\macref{setf} of \funref{type-macro-function} [if proposal is adopted],
+\specref{typelet} [if proposal is adopted]
+
+\label Exceptional Situations::
+
+\None.
+
+\label See Also::
+
+\funref{type-macro-function},
+\macref{deftype}
+\endcom
+
+\begincom{type-macro-function}\ftype{Accessor}
+
+\label Syntax::
+
+\DefunWithValuesNewline type-macro-function {name {\optional} environment} {function}
+\Defsetf type-macro-function {name {\optional} environment} {new-function}
+
+\label Arguments and Values::
+
+\param{name}---a \term{symbol}.
+
+\param{environment}---an \term{enviornment object}.
+
+\param{function}, \param{new-function}---a \term{type macro function}, or \miscref{nil}.
+
+\label Description::
+
+Accesses the \term{type macro function} named \param{name}, if any, in the \param{environment}.
+
+A value of \miscref{nil} denotes the absence of a \term{type macro function} named \param{name}.
+
+\label Exceptional Situations::
+
+The consequences are undefined if \param{environment} is
+non-\misc{nil} in a use of \macref{setf} of
+\funref{type-macro-function}.
+
+\label See Also::
+
+\macref{deftype}, \funref{type-expand}
+\endcom
+\endissue{type-expand}

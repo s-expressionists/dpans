@@ -1,0 +1,46 @@
+\input setup		      % -*- Mode: TeX -*-
+
+\beginchapter{27}{Concurrency}{ChapTwentySeven}{Concurrency}
+
+Concurrency constructs leave the order of some \term{evaluations}
+unspecified, allowing the implementation to order them as they see
+fit. In some situations it may be possible to perform multiple
+\term{evaluations} simultaneously. This can greatly improve the
+performance and capabilities of programs, but complicates their
+semantics.
+
+Concurrency in Lisp is expressed via \term{threads}. Each
+\term{thread} proceeds as though it was performing an ordered sequence
+of \term{evaluations} according to the usual rules specified in
+\secref\EvaluationModel. The order \term{evaluations} in different
+\term{threads} take place in, however, is unspecified, unless
+controlled by what are called synchronization operations, also
+described in this chapter.
+
+It is important to note that, without the presence of synchronization
+operations, the implementation is only constrained as to the
+\term{evaluation} order within a \term{thread}. This means that
+without synchronization, \term{conforming code} cannot rely on
+\term{side effects} in another \term{thread} happening in any order,
+including the order that seems clear from the program text.
+
+Concurrency is explained more formally in the remainder of this
+section.
+
+\beginSection{Concurrency}
+\input concept-concurrency
+\endSection%{Concurrency}
+
+\beginSection{Atomics}
+\input concept-atomics
+\endSection%{Atomics}
+
+\beginSection{Interruption}
+\input concept-interruption
+\endSection%{Interruption}
+
+\includeDictionary{dict-concurrency}
+
+\endchapter
+
+\bye

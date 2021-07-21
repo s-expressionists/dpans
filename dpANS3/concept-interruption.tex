@@ -1,0 +1,113 @@
+\beginsubsection{Interruption}
+
+An \term{interrupt} is an asynchronous request to a \term{thread} to
+perform some action. \term{Interrupts} are \term{conditions}
+\oftype{interrupt}.
+
+\displayfour{\term{Defined names} relating to \term{interrupts}}{
+  call-interrupt   & defer-interrupt       & reject-interrupt      & destroy-thread\cr
+  interrupt-thread & destruction-interrupt & interactive-interrupt & interruptible\cr
+  interruption     & service-interrupt     & signal-interrupts     & signal-pending-interrupts\cr
+  simple-interrupt & thread-dead           & without-interrupts    & interrupt\cr
+}
+
+\reviewer{Moringen: Name the threads $i$ (issuer) and $r$ (receiver)
+  and specify for each action in which of the two it takes place?}
+\term{Interrupts} may be issued by one \term{thread} to a different
+\term{thread}\reviewer{Moringen: slightly reworded} with the function
+\funref{interrupt-thread}, or by the implementation, at
+\term{implementation-defined} points. In either case, the
+\term{interrupt} is an \typeref{interrupt} \term{object}, which is
+placed on a \term{thread}'s \term{pending interrupts list}. These
+\typeref{interrupt} \term{objects} may be \term{signaled} by certain
+\term{operators}, effectively by calling the
+\funref{signal-pending-interrupts}
+function. \Seesection\ImplicitInterruptProcessing for details on when
+this can happen.
+
+The \term{thread} may then respond to the request in three ways:
+
+\beginlist
+\item{Defer} The \term{thread} can defer action by invoking
+  \therestart{defer-interrupt}, or by performing a \term{non-local
+    transfer of control}. The \term{interrupt} remains on the
+  \term{thread}'s \term{pending interrupt list}, and will be
+  \term{signaled} again by subsequent calls to
+  \funref{signal-pending-interrupts}.
+
+\item{Reject} The \term{thread} can reject the \term{interrupt} by
+  invoking \therestart{reject-interrupt}. The \term{interrupt} is
+  removed from the \term{thread}'s \term{pending interrupt list}.
+
+\item{Service} If an \term{interrupt} is neither deferred nor
+  rejected, it is serviced by calling \funref{service-interrupt} on
+  it. The \term{interrupt}'s action will be performed; what this
+  action is is specific to the \term{type} of
+  \term{interrupt}. [Should a restart be added so that a handler can
+  overrule any higher level handlers that might want to defer or
+  reject an interrupt?]  \endlist
+
+[Possible: Add INTERRUPT-STATUS that allows a thread to see what happened to
+an interrupt it put on another thread. Similarly, allow REJECT-INTERRUPT to
+have a reason supplied, and make this reason accessible via
+INTERRUPT-REJECTION-REASON or something. This is why INTERRUPT-THREAD returns
+the interrupt.]
+
+Programmers should ensure that their code is prepared to deal with
+\term{interrupts}, for example by deferring them during sensitive
+operations. Programmers should ensure that long-running code in
+\term{threads} regularly checks for \term{interrupts} (by
+\funref{signal-pending-interrupts}) and services them when it is safe
+to do so, so that \term{interruption} can be carried out successfully.
+
+\reviewer{Moringen: Is there any special interaction with the
+  debugger? In particular, what happens if an attempt is made to
+  interrupt a thread that has entered the debugger?}
+
+\beginsubsubsection{Implicit Interrupt Processing}
+\DefineSection{ImplicitInterruptProcessing}
+
+A program can force pending \term{interrupts} to be \term{signaled} by
+calling \funref{signal-pending-interrupts}, but \term{interrupt}
+processing can occur in other contexts as well. Three cases are
+required:
+
+\beginlist
+\item{\bull} When execution of a \term{thread} has temporarily ceased
+  due to \funref{sleep}.
+\item{\bull} When a \term{thread} is blocking on a \term{condition
+    variable} due to \funref{condition-wait}.
+\item{\bull} When a \term{thread} is waiting for another \term{thread}
+  to finish due to \funref{join-thread}.
+\endlist
+\reviewer{Moringen: acquire-lock?}
+
+This means that if a \term{thread} is in one of these three
+situations, \term{interrupts} are processed when they are received --
+before the blocked/waiting function has returned. \term{Portable
+  programs} may rely on this behavior. Interrupt processing takes
+place as if \funref{signal-pending-interrupts} was called.
+
+If a thread blocking on a condition variable is interrupted, and a handler
+performs a non-local transfer of control (including by ABORT-THREAD), the thread
+is removed from the condition variable's blocking set. This means that a
+notification to a condition variable cannot be lost due to interruption - some
+other thread receives the notification and is removed from the wait set instead.
+[Text should probably be under CONDITION-VARIABLE-WAIT.]
+
+Implementations are permitted to define other situations in which
+\term{interrupt} processing implicitly occurs.
+\reviewer{Moringen: Candidates: read/write-*, run-program, process-wait}
+
+[I kind of want to put in a note that the program state must be coherent during
+any implicit processing, e.g. reordering (setq x 0 y 0) to (setq y 0 x 0) and
+then processing interrupts in the middle would not be okay if a handler could
+refer to x and y, but I think that is implied by the rest of the semantics, and
+common sense, and I can't think of a good way to phrase it.]
+
+Programmers may hint to the implementation that implicit processing should be
+inserted by using the \declref{interruptible} declaration.
+
+\endsubsubsection%{Implicit Interrupt Processing}
+
+\endsubsection%{Interruption}

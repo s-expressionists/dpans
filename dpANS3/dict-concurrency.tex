@@ -1,0 +1,765 @@
+% -*- Mode: TeX -*-
+
+\begincom{thread}\ftype{System Class}
+
+\label Class Precedence List::
+
+\typeref{thread},
+\typeref{t}
+
+\label Description::
+
+A \term{thread} is an \term{object} that represents a thread of execution.
+
+\label See Also::
+
+\funref{make-thread},
+\secref\Threads
+
+\endcom%{thread}
+
+\begincom{thread-error}\ftype{Condition Type}
+
+\label Class Precedence List::
+\typeref{thread-error},
+\typeref{error},
+\typeref{condition},
+\typeref{t}
+
+\label Description::
+
+All \term{conditions} related to \term{threads} are
+\oftype{thread-error}. The initarg \kwd{thread} initializes the
+\term{condition} with the \term{thread} at issue, which can be later
+read by the function \funref{thread-error-thread}.
+
+\label See Also:
+
+\funref{thread-error-thread}
+
+\endcom%{thread-error}
+
+\reviewer{Moringen: Added this}
+\begincom{thread-error-thread}\ftype{Function}
+
+\DefunWithValues thread-error-thread {condition} {thread}
+
+\label Arguments and Values::
+
+\param{condition}---a \typeref{thread-error}.
+
+\param{thread}---a \typeref{thread}.
+
+\label Description::
+
+Returns \param{thread}, the \term{thread} which was the value of the
+\kwd{thread} initarg when \param{condition} was created.
+
+\label Exceptional Situations::
+
+The function \funref{thread-error-thread} should \term{signal} an
+\term{error} \oftype{type-error} if the \param{condition} argument is
+not \oftype{thread-error}.
+
+\label See Also::
+
+\typeref{thread-error},
+\typeref{thread}
+
+\label Notes::
+
+\code
+(thread-error-thread (make-condition 'thread-error :thread \param{thread})) \EQ \param{thread}
+\endcode
+
+\endcom%{thread-error-thread}
+
+\begincom{abnormal-exit}\ftype{Condition Type}
+
+\label Class Precedence List::
+\typeref{abnormal-exit},
+\typeref{thread-error},
+\typeref{error},
+\typeref{condition},
+\typeref{t}
+
+\label Description::
+
+An error \oftype{abnormal-exit} is \term{signaled} when
+\funref{join-thread} is called on a \term{thread} that ended
+abnormally. The \typeref{abnormal-exit} can be initialized with a
+\term{condition} that precipitated the abort with the \term{initarg}
+\kwd{condition}, and this \term{condition} can be read by the function
+\funref{abnormal-exit-condition}.
+
+\label See Also::
+
+\funref{join-thread},
+\funref{abnormal-exit-condition}
+
+\endcom%{abnormal-exit}
+
+\begincom{abort-thread}\ftype{Function}
+
+\label Syntax::
+
+\DefunNoReturn abort-thread {{\key} condition}
+\reviewer{Moringen: couldn't this just as well be a specifically named restart? As far as I can tell, the transfer of control and everything visible from join-thread calls would be the same but without as much special-casing.}
+\label Arguments and Values::
+
+\param{condition}---a \term{condition} or \miscref{nil}.
+
+\label Description::
+
+Aborts the \term{current thread} abnormally. No further
+\term{evaluations} will be carried out in the \term{current
+thread}. Calls to \funref{join-thread} on this \term{thread} will
+\term{signal} an \term{error}.
+
+The \param{condition}, if provided and not \miscref{nil}, will be
+associated with \typeref{abnormal-exit} \term{conditions} \term{signaled} by
+\funref{join-thread}. \reviewer{Moringen: Mention that the argument to join-thread is the current thread of the abort-thread call?}
+
+Calls to this function \term{synchronize-with} calls to
+\funref{join-thread} on this \term{thread} \term{signaling}
+\typeref{abnormal-exit} \term{conditions}. \reviewer{Moringen: Would it make sense to establish for use in the entire section something like "Let $t$ be current thread of the evaluation in which the abort-thread call is made or similar?}
+
+Aborting a \term{thread} effectively\reviewer{Moringen: why
+"effectively"?} transfers control to a point "outside" the
+\term{thread}. The process described in \secref\TransferOfControl
+takes place, only the "exit point" being "transferred to" is outside
+of any local \term{dynamic environment}. This means, particularly,
+that
+
+\beginlist
+\item{\bull} It is not valid to transfer to intervening \term{exit
+points}. Since there are no other \term{exit points}, this means that
+an abort cannot be caught or rejected once it has been triggered.
+\item{\bull} Any \specref{unwind-protect} cleanup clauses in the
+\term{dynamic environment} are executed in the opposite order of their
+establishment.
+\item{\bull} Bindings of \term{special variables}, \term{catch tags},
+\term{condition handlers}, and \term{restarts} are undone in the
+opposite order of their establishment.
+\endlist
+
+[Might want to define a notion of "main thread" or "initial thread" and make
+it undefined or an error to abort it? But then, what if there are multiple
+initial threads, or there is no main thread?
+
+The idea of thread abortion should maybe be defined elsewhere, so that
+ABORT-THREAD is just the public facing use of it, and implementations can
+abort threads in other cirumstances.]
+
+\label Exceptional Situations::
+
+An \term{error} \oftype{type-error} should be \term{signaled}
+if \param{condition} is not \miscref{nil} and not \oftype{condition}.
+
+\label Notes::
+
+\code
+(let* ((c1 (make-condition …))
+       (th (make-thread (lambda () (abort-thread c1)))))
+  (handler-case
+      (join-thread th)
+    (abnormal-exit (c2)
+      (eq c1 (abnormal-exit-condition c2))))) \EV \term{true}
+\endcode
+
+\endcom%{abort-thread}
+
+\begincom{join-thread}\ftype{Function}
+
+\label Syntax::
+
+\DefunWithValues join-thread {thread} {\starparam{object}}
+\reviewer{Moringen: Should this take a &key wait argument?}
+
+\label Arguments and Values:
+
+\param{thread}---a \term{thread}.
+
+\param{object}---the values returned by the function of \param{thread}.
+
+\label Description::
+
+Waits for the given \term{thread} to finish, and then returns its
+results.
+
+The last \term{evaluation} in a \term{thread} \term{synchronizes-with}
+any calls to \funref{join-thread} on that \term{thread} returning, or
+with such calls \term{signaling} \typeref{abnormal-exit} as described
+under "Exceptional Situations" below.
+
+\reviewer{Moringen: Are multiple (simualtaneous) join-thread calls for a single thread allowed? I think SBCL plans to limits this. See sb-thread:join-thread docstring}
+
+\label Exceptional Situations:
+
+An \term{error} should be \term{signaled} if \param{thread} is the
+\term{current thread}.\reviewer{Moringen: should this say \oftype{thread-error}?}
+
+An \term{error} \oftype{abnormal-exit} is \term{signaled}
+if \param{thread} was aborted.
+
+An \term{error} \oftype{type-error} should be \term{signaled}
+if \param{thread} is not \oftype{thread}.
+
+\label See Also::
+
+\funref{abort-thread}, Section NN.2 (Threads)
+
+\endcom%{join-thread}
+
+\begincom{make-thread}\ftype{Function}
+
+\label Syntax::
+
+\DefunWithValues make-thread {function {\key} name arguments} {thread}
+
+\label Arguments and Values::
+
+\param{function}---a \term{function designator}.
+
+\param{name}---a \term{symbol}.\reviewer{Moringen: Could this be any \term{object} instead?}
+
+\param{arguments}---a \term{proper list} of \term{objects}.
+
+\label Description::
+
+Creates and returns a \term{thread} named \param{name}, which will
+call the function \reviewer{Moringen: designated by?} \param{function}
+with the given \param{arguments}. When the \param{function} returns,
+the \term{thread} ends.
+\reviewer{Moringen: Similar note to that for apply about function not being allowed to mutate an argument list received via &rest?}
+
+A call to \funref{make-thread} \term{synchronizes-with} the first
+\term{evaluation} of the new \term{thread}.
+
+\reviewer{Moringen: Would it make sense to name the environment, say $e$, in which make-thread is called and then refer to it by name below?}
+While the created \term{thread} shares the \term{global environment},
+it starts in a new \term{dynamic environment}, not the \term{dynamic
+environment} \funref{make-thread} was called in.
+
+This means that, for example:
+
+\beginlist
+\item{\bull} Local \term{dynamic variable} bindings are not shared (though \term{global bindings} are).
+\item{\bull} \term{Exit points}, as established by \specref{tagbody},
+\specref{block}, \specref{unwind-protect}, or \specref{catch}, are not
+valid.
+\item{\bull} \term{Condition handlers} and \term{restarts} are not active.\reviewer{Moringen: Without the qualification suggested above, this contradicts the fact that an abort restart is active}
+\endlist
+
+It is \term{implementation-defined} whether the \term{thread}'s new \term{dynamic environment} is
+actually empty or includes some bindings etc. defined by the implementation.
+[Should this be more restrictive? For example, as written it allows an
+implementation to rebind every dynamic variable that was bound in the thread
+creator, making it impossible for the new thread to access global bindings.]
+
+It is encouraged for a new \miscref{abort} \term{restart} to be
+available, and for this \term{restart} to effectively call
+\funref{abort-thread}.
+
+\label Exceptional Situations::
+
+An \term{error} \oftype{type-error} should be \term{signaled} if \param{function} is not a \term{function designator}.
+An \term{error} \oftype{type-error} should be \term{signaled} if \param{name} is not a \term{symbol}.
+
+\label See Also::
+
+\typeref{thread},
+\funref{thread-name},
+Chapter NN (Concurrency),
+Section NN.1.3 Note on Parallelism
+
+\endcom%{make-thread}
+
+\begincom{current-thread}\ftype{Function}
+
+\label Syntax::
+
+\DefunWithValues current-thread {\noargs} {thread}
+
+\label Arguments and Values::
+
+\param{thread}---the \term{current thread}.
+
+\label Description::
+
+Returns the \term{thread} object representing the \term{current
+thread} of execution.
+
+\label Side Effects::
+
+\None.
+
+\label Exceptional Situations::
+
+\None.
+\endcom%{current-thread}
+
+\reviewer{Moringen: Added this}
+\begincom{lock}\ftype{System Class}
+
+\label Class Precedence List::
+\typeref{lock},
+\typeref{t}
+
+\label Description::
+
+\label See Also::
+\funref{lockp},
+\funref{make-lock},
+\funref{acquire-lock},
+\funref{release-lock}
+
+\endcom%{lock}
+
+\reviewer{Moringen: Added this}
+\begincom{lockp}\ftype{Function}
+
+\label Syntax::
+
+\DefunWithValues lockp {object} {result}
+
+\label Arguments and Values::
+
+\param{object}---an \term{object}.
+
+\param{result}---a \term{generalized boolean}.
+
+\label Description::
+
+Returns \term{true} if \param{object} is \oftype{lock}; otherwise
+returns \term{false}.
+
+\label See Also::
+
+\typeref{lock},
+\funref{make-lock}
+
+\label Notes::
+
+\code
+(lockp \param{object}) \EQ (typep \param{object} 'lock)
+\endcode
+
+\endcom%{lockp}
+
+\reviewer{Moringen: Added this}
+\begincom{lock-name}\ftype{Function}
+
+\label Syntax::
+
+\DefunWithValues lock-name {lock} {name}
+
+\label Arguments and Values::
+
+\param{lock}---a \typeref{lock}.
+
+\param{name}---an \term{object}.
+
+\label Description::
+
+Returns \param{name}, which is the name assigned to \param{lock} in
+the \funref{make-lock} call that created \param{lock}.
+
+\label Exceptional Situations::
+
+The function \funref{lock-name} should \term{signal} an \term{error}
+\oftype{type-error} if the \param{lock} argument is not \oftype{lock}.
+
+\label See Also::
+
+\typeref{lock},
+\funref{make-lock}
+
+\label Notes::
+
+\code
+(lock-name (make-lock \param{name})) \EQ \param{name}
+\endcode
+
+\endcom%{lock-name}
+
+\reviewer{Moringen: Added this}
+\begincom{make-lock}\ftype{Function}
+
+\label Syntax::
+
+\reviewer{Moringen: &optional or &key for the name?}
+\DefunWithValues make-lock {{\optional} name} {lock}
+
+\label Arguments and Values::
+
+\reviewer{Moringen: Restrict name to symbol or string?}
+\param{name}---an \term{object}. Default is \miscref{nil}.
+
+\param{lock}---a \typeref{lock}.
+
+\label Description::
+
+Creates and returns a new \typeref{lock} named \param{name}. The
+returned \typeref{lock} is not held by any \term{thread}.
+
+\label Exceptional Situations::
+
+\None.
+
+\label See Also::
+
+\typeref{lock},
+\funref{lockp},
+\funref{lock-name}
+
+\endcom%{make-lock}
+
+\begincom{acquire-lock}\ftype{Function}
+
+\label Syntax::
+
+\DefunWithValues acquire-lock {lock {\key} wait} {success}
+
+\label Arguments and Values::
+
+\param{lock}---a \typeref{lock}.
+
+\param{wait}---a \term{generalized boolean}. Default is \term{false}.
+
+\param{success}---a \term{generalized boolean}.
+
+\label Description::
+
+Attempts to acquire the \param{lock} for the \term{current thread}.
+
+If the \param{lock} is held and \param{wait} is \term{false}, returns
+\term{false}. If the \param{lock} is held by another \term{thread}
+and \param{wait} is \term{true}, waits for the \param{lock} to be
+released, acquires it, and then returns \term{true}.
+
+The \term{lock release} immediately prior to a \term{lock acquisition}
+in the \param{lock}'s \term{modification order}, if there is one,
+\term{synchronizes-with} the \term{lock acquisition}.  [Since these
+terms are used in multiple places, "lock release" and "lock
+acquisition" may warrant glossary entries.]
+
+The consequences are undefined if \param{wait} is \term{true} and
+the \param{lock} is held by the \term{current thread}.
+
+\label Exceptional Situations::
+
+The function \funref{acquire-lock} should \term{signal} an
+\term{error} \oftype{type-error} if the \param{lock} argument is not
+\oftype{lock}.
+
+\label See Also::
+
+\funref{release-lock},
+\macref{with-lock-held}
+\endcom%{acquire-lock}
+
+\begincom{release-lock}\ftype{Function}
+
+\label Syntax::
+
+\DefunWithValues release-lock {lock} {\term{implementation-dependent}}
+
+\label Arguments and Values::
+
+\param{lock}---a \typeref{lock}.
+
+\label Description::
+
+Releases the \param{lock} if it is held by the \term{current
+thread}. The consequences are undefined if the \param{lock} is not
+held by the \term{current thread}.
+
+A \term{lock release} \term{synchronizes-with} the \term{lock
+acquisition} immediately subsequent to it in the \param{lock}'s
+\term{modification order}, if there is one.
+
+\label Exceptional Situations::
+
+The function \funref{release-lock} should \term{signal} an
+\term{error} \oftype{type-error} if the \param{lock} argument is not
+\oftype{lock}.
+
+\label See Also::
+
+\funref{acquire-lock},
+\macref{with-lock-held}
+\endcom%release-lock
+
+\begincom{with-lock-held}\ftype{Macro}
+
+\label Syntax::
+
+\DefmacWithValues with-lock-held {(lock {\key}) \starparam{form}} {\starparam{value}}
+
+\label Arguments and Values::
+
+\param{lock}---a \typeref{lock}; \term{evaluated}.
+
+\param{forms}---an \term{implicit progn}.
+
+\param{values}---the \term{values} returned by the \param{forms}.
+
+\label Description::
+
+\term{Evaluates} the \param{forms} while the \param{lock} is held by
+the \term{current thread}.  In more detail, the \param{lock} is
+acquired as if by \funref{acquire-lock} with \kwd{wait} \term{true},
+\reviewer{Moringen: This used to say :wait nil, but that doesn't seem very useful}
+and then the \param{forms} are \term{evaluated} as an \term{implicit
+progn}. When control leaves the body, either normally or abnormally,
+the \param{lock} is released as if by \funref{release-lock}. The
+values returned by the \param{forms} are returned from
+\macref{with-lock-held}.
+
+[bordeaux threads additionally notes that if the debugger is entered, it is
+unspecified whether the lock is released when the debugger is entered or
+exited or what, but this is not mentioned by WITH-OPEN-FILE, and I think it's
+a straightforward consequence of how INVOKE-DEBUGGER works.]
+
+The \term{lock acquisition} and \term{lock release} may
+\term{synchronize-with} other \term{lock acquisitions} and \term{lock
+releases}, as described in \secref\SemanticsOfLocks.
+
+\label Exceptional Situations::
+
+An \term{error} \oftype{type-error} should be \term{signaled}
+if \param{lock} is not a \typeref{lock}.
+
+\label See Also::
+
+\typeref{lock},
+\funref{acquire-lock},
+\funref{release-lock}
+\endcom%{with-lock-held}
+
+\begincom{atomic}\ftype{Accessor}
+
+\label Syntax::
+
+\DefunWithValues atomic {place {\key} order {\allowotherkeys}} {value}
+\Defsetf         atomic {place {\key} order {\allowotherkeys}} {new-value}
+
+\label Arguments and Values::
+
+\param{place}---a \term{place}.
+
+\param{order}---an \term{atomic ordering designator}. Default is \kwd{sequentially-consistent}.
+
+\param{value}, \param{new-value}---\term{objects}.
+
+\label Description:
+
+\funref{atomic} is used to indicate that access to a \term{place} must
+be performed such that its effects and results are defined even in the
+presence of conflicting accesses. Various requirements are imposed
+depending on the value of \param{order}: See NN.5.1.
+
+Possibilities for \param{order} are \kwd{unordered}, \kwd{relaxed},
+\kwd{acquire}, \kwd{release}, \kwd{acquire-release},
+\kwd{sequentially-consistent}. The default is
+\kwd{sequentially-consistent}. Other than \kwd{not-atomic}, these
+correspond to the atomic orderings described in NN.5.1.
+
+Any other keyword arguments are passed, unevaluated, to
+\funref{get-atomic-expansion}.
+
+The atomicity applies only to the single access, and not to evaluation
+of the subforms.
+
+\funref{atomic} of a \specref{the} \term{place} is defined such that
+\code
+(atomic (the spec place) order) = (the spec (atomic place order))
+\endcode.
+\funref{atomic} of a macro \term{place} is defined such that
+\code
+(atomic macro-form order) = (atomic expanded-form order)
+\endcode.
+
+Implementations are required to support \funref{atomic} with at least the following \term{places} and ordering
+\beginlist
+\item{\kwd{sequentially-consistent}} lexical variables (including
+closed-over variables), special variables, \funref{car}, \funref{cdr},
+\funref{first}, \funref{rest}, \funref{svref}, \funref{symbol-value},
+\funref{standard-instance-access},
+\funref{funcallable-standard-instance-access}, structure slots with a
+type that \typeref{t} is recognizably a subtype of,
+\funref{slot-value} given that \typeref{t} is a \term{recognizable
+subtype} of the slot's \term{type}.
+\endlist
+
+\label Exceptional Situations::
+
+If the requirements cannot be met, an \term{error} \oftype{not-atomic}
+is \term{signaled}.
+
+\label Notes::
+
+\funref{atomic} could be implemented in terms of
+\funref{get-atomic-expansion} as follows:
+\code
+(defmacro atomic (place &rest keys &key order &allow-other-keys
+                  &environment env)
+  (declare (ignore order))
+  (multiple-value-bind (vars vals stores write read)
+      (apply #'get-atomic-expansion place :environment env keys)
+    (declare (ignore stores write))
+    `(let* (,@(mapcar #'list vars vals)) ,read)))
+
+(define-setf-expander atomic (place
+                              &rest keys &key order &allow-other-keys
+                              &environment env)
+  (declare (ignore order))
+  (apply #'get-atomic-expansion place :environment env keys))
+\endcode
+\endcom
+
+\begincom{atomic-update,atomic-update-explicit}\ftype{Macro}
+
+\DefmacWithValuesNewline atomic-update          {(place {\key} order {\allowotherkeys}) update-fn {\rest} arguments} {new-value}
+\DefmacWithValues        atomic-update-explicit {place update-fn {\rest} arguments}                                  {success, present}
+
+\label Arguments and Values::
+
+\param{place}---a \term{place} with an atomic expansion.
+
+\param{order}---an \term{atomic ordering specifier}. Default is \kwd{sequentially-consistent}.\reviewer{Moringen: is this evaluated?}
+
+\param{update-fn}---a \term{designator} for a function that accepts as many arguments as are provided, plus one.
+
+\param{arguments}---\term{objects}.
+
+\param{new-value}---an \term{object}.
+
+\param{success}---a \term{generalized boolean}\reviewer{Moringen: Not discussed}
+
+\param{present}---a \term{generalized boolean}
+
+\label Description::
+
+Performs an arbitrary atomic read-modify-write operation
+on \param{place}. First, the subforms of \param{place},
+the \param{update-fn}, and the \param{arguments} are \term{evaluated},
+in that order. Second, the value of \param{place} is read atomically,
+with the given parameters \reviewer{Moringen: Be more explicit about "parameters"?} in
+\macref{atomic-update-explicit}. Third, \param{update-fn} is called as
+by \f{(apply \param{update-fn} \param{placeval} \param{arguments})}, \param{placeval} being the value read
+from the \param{place}.  Finally, the primary value of this call is written
+into the \param{place}, and returned from the \term{form}.
+\reviewer{Moringen: from the atomic-update[-explicit] form?}
+
+It is permissible for an implementation to read from the \param{place}
+multiple times, and to call \param{update-fn} multiple times, e.g. in
+a compare-and-swap loop; however
+\param{place}'s subforms, \param{update-fn}, and the \param{arguments} may be evaluated at most once.
+
+\label See Also::
+
+\funref{atomic}
+
+\label Notes::
+
+\code
+(atomic-update \param{place} ...) \EQ (atomic-update-explicit ...) \reviewer{Moringen: is there (supposed to be) such an equation given the different return values?}
+\endcode
+
+\endcom%{atomic-update,atomic-update-explicit}
+
+\begincom{atomic-incf,atomic-decf,atomic-incf-explicit,atomic-decf-explicit}\ftype{Macro}
+
+\label Syntax::
+
+\DefmacWithValuesNewline atomic-incf          {place {\optional} delta}                                  {new}
+\DefmacWithValuesNewline atomic-decf          {place {\optional} delta}                                  {new}
+\DefmacWithValuesNewline atomic-incf-explicit {(place {\key} order {\allowotherkeys}) {\optional} delta} {new}
+\DefmacWithValues        atomic-decf-explicit {(place {\key} order {\allowotherkeys}) {\optional} delta} {new}
+
+\label Arguments and Values::
+
+\param{place}---a \term{place}, the value of which is a \term{number}, which has an atomic
+expansion.
+
+\param{delta}---\term{evaluated}. A \term{number}. Default is \f{1}.
+
+\param{order}---an \term{atomic ordering specifier}. Default is \kwd{sequentially-consistent}.
+
+\param{new}---the value written by the operation.\reviewer{Moringen: I think this should say "an object" and the semantics should be in the description}
+
+\label Description::
+
+As \macref{incf} and \macref{decf}, but as \term{atomic}
+read-modify-write operations.
+
+The \param{place} may be read multiple times, but its subforms are
+\term{evaluated} only once, as is \param{delta}. The order of
+\term{evaluations} is as specified in \secref\GenRefSubFormEval.
+
+\reviewer{Moringen: Describe \param{new} here?}
+
+\label See Also::
+
+\macref{incf},
+\macref{decf},
+\macref{atomic-update-explicit}
+
+\label Notes::
+
+\code
+  (atomic-incf \param{place} \param{delta}) \EQ (atomic-incf-explicit (\param{place}) \param{delta})
+  (atomic-incf-explicit (\param{place} ...) \param{delta})
+  \EQ (atomic-update-explicit (\param{place} ...) #'+ \param{delta}) \reviewer{Moringen: The current definition of atomic-update-explicit does use this syntax}
+\endcode
+\endcom
+
+\begincom{interruptible}\ftype{Declaration}
+
+\label Syntax::
+
+\f{(interruptible [\param{value}])}
+\reviewer{Moringen: Is the value supposed to be optional? Would interruptible | (interruptible value) be better for that?}
+
+\label Arguments::
+
+\param{value}---one of the \term{integers} \f{0}, \f{1}, \f{2}, or \f{3}.
+
+\label Valid Context::
+
+\term{declaration} or \term{proclamation}
+
+\label Binding Types Affected::
+
+\None.
+
+\label Description::
+
+Hints to the implementation the extent to which implicit
+\term{interrupt} processing should occur. \f{0} means as little
+processing as possible should be done, and \f{3} means as much as
+possible. This hint may be ignored.
+
+For example, a compiler given \f{(interruptible 3)} could decide to
+insert implicit processing at the tops of loops and whenever a
+\term{lock acquisition} is attempted.
+
+Declaring \f{(interruptible 0)} does not prevent any \term{interrupt}
+processing from occurring, and in particular, \funref{sleep},
+\funref{condition-wait}, and \funref{join-thread} must process
+\term{interrupts} regardless. For code to be actually uninterruptible,
+\term{interrupt} processing must be dynamically deferred, as by
+\macref{without-interrupts}.
+
+[This could be an optimize quality, but I'm not sure a one-line description
+suffices.]
+
+\reviewer{Moringen: Added this}
+\label See Also::
+
+\funref{signal-pending-interrupts},
+\macref{without-interrupts}
+
+\endcom%{interruptible}
