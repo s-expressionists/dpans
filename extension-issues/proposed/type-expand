@@ -1,0 +1,102 @@
+Issue:          TYPE-EXPAND
+Forum:          Extension
+Category:       ADDITION
+Status:         proposed
+Edit history:   2021-07-16, version 1 by Bike
+References:     DEFTYPE
+
+Problem Description:
+
+  Common Lisp defines a macro mechanism for types, and the glossary mentions a
+  "type expansion", but access to these by programmers is limited. Programmers
+  cannot determine if a type specifier is a derived type, or the expansion of
+  that type.
+
+  Some metaprogramming projects could use this information.
+  Implementation-specific type expansion functions are used by, for example, Jan
+  Moringen's configuration.options project, Massimiliano Ghilardi's
+  cl-parametric-types project, and Masataro Asai's type-i project.
+
+  Additionally, the type macro mechanism is opaque compared to the form macro
+  mechanism. deftype is described as defining a function to perform the
+  expansion, but this function is not accessible to programmers or defined in
+  detail.
+
+Proposal (TYPE-EXPAND:TWO-NEW-OPERATORS):
+
+  Add the TYPE-EXPAND and TYPE-EXPAND-1 functions defined in the accompanying
+  documents. Edit the glossary entry on "type expand" to indicate the existence
+  of these functions. Add text, probably in 4.2.3, saying that any standardized
+  type specifier may be implemented as a type macro, analogously to how special
+  operators may be implemented as macros.
+
+  Rationale:
+
+    Improves the regularity of the language, and expands the capability of
+    advanced programmers to do metaprogramming relating to types.
+
+  Current Practice:
+
+    SBCL exports these functions in its miscellaneous extensions package, under
+    the names typexpand and typexpand-1, as well as an additional typexpand-all.
+
+  Cost to Implementors:
+
+    Low. All implementations already include some means of macroexpanding types
+    to implement Common Lisp, but several do not export a simple interface like
+    this. For example, CCL and CMUCL only have ccl::%deftype-expander and
+    ext:info (respectively) enabling access to type macro functions, which must
+    be called manually. In short, some implementations would have to do a bit of
+    work to present this clean interface.
+
+  Cost to Users:
+
+    Assuming the new symbols wouldn't be external symbols of CL, none. If they
+    were, code defining functions by those names in packages that :use CL would
+    have errors, easily fixed by shadowing.
+
+  Cost of Non-Adoption:
+
+    Some metaprogrammers have to rely on unstable and/or implementation
+    dependent interfaces to accomplish something any implementation can do
+    easily.
+
+  Aesthetics:
+
+    This is obviously closely analogous to MACROEXPAND and MACROEXPAND-1,
+    clarifies the type system, and allows programmers uniform access to
+    something implementations mostly have already.
+
+Proposal (TYPE-EXPAND:THREE-NEW-OPERATORS):
+
+  As TWO-NEW-OPERATORS, but also include the TYPE-MACRO-FUNCTION accessor
+  defined in the accompanying file. Edit the description of DEFTYPE to refer to
+  type macro functions more explicitly, analogous to the description of
+  DEFMACRO.
+
+  Add a glossary entry: "type macro function n. a function of two arguments, a
+  type specifier and an environment, that implements type expansion by producing
+  a type specifier to be used in place of the original argument type specifier."
+
+  Rationale:
+
+    Ditto TWO-NEW-OPERATORS, and the rest of that analysis applies here as well,
+    except the Cost to Implementors.
+
+  Cost to Implementors:
+
+    While implementations must in general have some kind of type macro function
+    already, the form of that function, and whether it is used for all DEFTYPE
+    definitions, is not uniform. For example, SBCL type macro functions do not
+    accept an environment. ECL type macro functions do not accept an environment
+    and take the CDR of a type specifier rather than the whole specifier. In
+    either case it shouldn't be too much effort to change, though, and in fact
+    Clasp has already rewritten ECL's code so that type macro functions accept
+    the convention given here.
+
+Discussion:
+
+  TYPEEXPAND and TYPEXPAND are possible alternate names. TYPEEXPAND is closer to
+  MACROEXPAND but has a double E. TYPEXPAND eliminates the double E but is a
+  little collapsed looking. TYPE-EXPAND is the lengthiest. "The two hardest
+  problems in computer science" etc.

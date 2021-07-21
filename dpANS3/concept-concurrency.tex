@@ -1,0 +1,348 @@
+\beginsubsection{Definition}
+
+The normal \term{evaluation} rules in \secref\EvaluationModel
+define the order \term{evaluations} occur in in a non-concurrent
+program. For example, in \f{(progn $form_1$ $form_2$)}, any
+\term{evaluation} of $form_1$ takes place before that of $form_2$. In
+general, the \term{evaluation} order is not totally fixed by the
+program text. For example, \term{evaluation} of a function body may
+proceed in different ways depending on the inputs to the function, and
+function bodies may be \term{evaluated} multiple times although they
+only appear in the source code once. If the \specref{progn}
+\term{form} is \term{evaluated} multiple times, an \term{evaluation}
+of $form_2$ may take place before an \term{evaluation} of $form_1$. As
+such the non-concurrent \term{evaluation} order rules in Section
+3.1.2, and the concurrent order rules described here, constrain, but
+do not totally fix the \term{evaluation} order of any execution of a
+program.
+
+We formalize this notion of \term{evaluation} order as follows.
+
+An \term{evaluation} $A$ in one \term{thread} is
+\term{sequenced-before} another \term{evaluation} $B$ in the same
+\term{thread} if $A$ must occur before $B$ according to the usual
+evaluation rules. The \term{sequenced-before} relation between
+\term{evaluations} is antisymmetric and transitive: if $A$ is
+\term{sequenced-before} $B$, $B$ is not \term{sequenced-before}
+$A$. If $A$ is \term{sequenced-before} $B$ and $B$ is
+\term{sequenced-before} $C$, $A$ is \term{sequenced-before} $C$.
+
+An \term{evaluation} in one \term{thread} may \term{synchronize-with}
+an \term{evaluation} in another \term{thread}. The
+\term{synchronize-with} ordering is also antisymmetric and
+transitive. Operations that may induce a \term{synchronize-with}
+ordering are called \term{synchronization operations}. The most
+important synchronization operations are as follows:
+
+\beginlist
+\item{\bull} Release operations, such as \funref{release-lock}, may
+  \term{synchronize-with} acquisition operations, such as
+  \funref{acquire-lock}, that refer to the \term{same}
+  \term{object}. Acquisition and release operations are explained in
+  more detail in \secref\Locks [and \secref\AtomicOperations].
+\item{\bull} \funref{make-thread} \term{synchronizes-with} the first
+  \term{evaluation} in the \term{thread} it creates.
+\item{\bull} The final evaluation in a \term{thread}
+  \term{synchronizes-with} all \funref{join-thread} calls on that
+  \term{thread} returning, as well as any \funref{thread-alive-p}
+  calls on that \term{thread} that return \term{false}.
+\endlist
+
+A third antisymmetric and transitive relation between
+\term{evaluations} is the \term{happens-before} ordering. An
+\term{evaluation} $A$ \term{happens-before} another \term{evaluation}
+$B$ if $A$ is \term{sequenced-before} $B$, or $A$ is
+\term{synchronized-with} $B$, or there is a third \term{evaluation}
+$C$ such that $A$ \term{happens-before} $C$ and $C$
+\term{happens-before} $B$.
+
+The \term{happens-before} relation defines which \term{evaluations}
+occur before others in the intuitive sense. In a program that does not
+use concurrency, all \term{evaluations} must occur in one well defined
+order, as for any two \term{evaluations}, one is
+\term{sequenced-before} (and therefore \term{happens-before}) the
+other. In a program that does use concurrency, two \term{evaluations}
+may not have any necessary \term{happens-before} relation between
+them.
+
+If an \term{evaluation} $A$ does not \term{happen before} another
+\term{evaluation} $B$, and $B$ does not \term{happen before} $A$, the
+\term{evaluations} are unordered. The \term{side effects} (e.g. writes
+to \term{places}) performed by $A$ may not be visible to $B$, or may
+appear partially completed, or may appear incoherently. For the case
+of writes to \term{places}, the visible effects may be constrained, as
+described in Section NN.1.2 (Conflicts and Data Races). Because of the
+unusual effects, if $A$ is affected by the side effects of $B$ or vice
+versa, it is usually prudent to ensure that one \term{happens-before}
+the other.
+
+\beginsubsubsection{Reordering}
+
+The weak constraints on \term{evaluations} between \term{threads} can
+sometimes produce very unintuitive results. This section attempts to
+explain one reason for this in more detail, in order to provide some
+intuition for programmers.
+
+Consider the \term{form}
+\code
+(let ((x 1) (y 1)) (setq x 0) (setq y 0) ...)
+\endcode.
+The write to \f{x} is \term{sequenced-before} the write to
+\f{y}. However, the evaluation of \f{(setq y 0)} is not affected by
+the side effects of \f{(setq x 0)}. Subsequent code \bold{in the same
+  \term{thread}} is not able to discern which write actually took
+place first. As such, an implementation may decide to actually
+evaluate the write to \f{y} before the write to \f{x}. In other words,
+it has reordered the code. In this example there is no obvious point
+to doing so, but this is sometimes useful for optimization purposes.
+
+The situation is complicated by concurrency. Consider what happens if
+another \term{thread} evaluates \f{(list x y)}, and this evaluation is
+unordered with respect to the \term{evaluation} of the \specref{let}
+\term{form}. If the implementation has performed the reordering
+described, it might be possible for \f{(list x y)} to result in \f{(1
+  0)}, even though from looking at the obvious meaning of the
+\specref{let} \term{form}, there is no point at which \f{x} is \f{1}
+and \f{y} is \f{0}.
+
+Other valid transformations with similar effects are possible, such as
+eliding writes. These transformations are widely carried out by
+compilers and machines and are very important to
+performance. Programmers working with concurrency should keep in mind
+the unintuitive effects unordered evaluations can cause.
+
+The particular semantics of unordered writes and reads are explained
+in more detail in Section NN.1.3 (Conflicts and Data Races).
+
+\endsubsubsection%{Reordering}
+
+\beginsubsubsection{Sequential Consistency}
+
+A set of \term{evaluations} is \term{sequentially consistent} iff
+there is a total order on them, and this order is consistent with the
+program's \term{happens-before} order. In other words, for any two
+sequentially consistent operations, one \term{happens-before} the
+other. This means that any \term{sequentially consistent}
+\term{evaluation} observes the \term{side effects} of all
+\term{sequentially consistent} \term{evaluations} that
+\term{happen-before} it. If \term{evaluations} across \term{threads}
+are \term{sequentially consistent}, the execution of the program
+consists of an interleaving of these \term{evaluations} in some order
+that is undefined other than being consistent with the
+\term{sequenced-before} order.
+
+Sequential consistency is a simple and intuitive notion of
+concurrency, but some concurrent programs are not sequentially
+consistent. Some compiler optimizations, as well as runtime
+optimizations like per-\term{thread} caches, defeat sequential
+consistency, and so to guarantee sequential consistency requested by
+the programmer, an implementation may have to disable certain
+optimizations. As such, it is important that programmers be aware of
+the more complex behaviors that they may have to deal with.
+
+\endsubsubsection%{Sequential Consistency}
+
+\endsubsection%{Definition}
+
+\beginsubsection{Threads}
+\DefineSection{Threads}
+
+A \term{thread} is an \term{object} that represents a thread of
+execution. Each \term{thread} begins by calling a function provided
+when the \term{thread} is created, and ends when that function returns, or
+when the thread is aborted. The detailed semantics of threads are
+explained in Section NN.1 (Concurrency Concepts).
+
+\displayfive{Figure [whatever]. Some \term{defined names} relating to \term{threads}.}{
+  thread           & thread-name    & threadp         & make-thread    & current-thread\cr
+  all-threads      & join-thread    & abort-thread    & thread-yield   & interrupt-thread\cr
+  signal-in-thread & warn-in-thread & error-in-thread & destroy-thread & thread-alive-p\cr
+}
+
+\endsubsection%{Threads}
+
+\beginsubsection{Locks}
+\DefineSection{Locks}
+
+A lock is a \term{class} of \term{object} that can be used to
+implement mutual exclusion, i.e. preventing multiple \term{threads}
+from \term{evaluating} the same code simultaneously.
+\reviewer{Moringen: Also used for arbitrating access to resources from
+  different code sections} A \term{lock} that is not held can be
+\term{acquired} by a \term{thread}, after which it is held by that
+\term{thread}. A \term{thread} holding a \term{lock} can
+\term{release} it, after which it is not held. Because only one
+\term{thread} can hold a \term{lock} at a time, code that can only be
+\term{evaluated} while a \term{lock} is held can only be
+\term{evaluated} by one \term{thread} at a time.
+
+\displayfour{Figure [whatever]. Some \term{defined names} relating to \term{locks}.}{
+  lock         & lockp        & lock-name      & make-lock\cr
+  acquire-lock & release-lock & with-lock-held &\cr
+}
+
+\beginsubsubsection{Semantics of Locks}
+\DefineSection{SemanticsOfLocks}
+
+For any execution of a program, each lock it uses has a modification
+order. The modification order is a sequence of \term{lock
+  acquisitions} followed by \term{lock releases}. The modification
+order may be empty if no \term{thread} ever acquires the lock, but
+otherwise, it begins with a \term{lock acquisition}. A \term{lock}'s
+modification order is the same between all \term{threads}.
+
+A \term{lock acquisition} specifically occurs when a call to
+\funref{acquire-lock} on that lock returns \term{true}, and a
+\term{lock release} occurs when a call to \funref{release-lock} on
+that lock returns. [This is phrased pedantically so that for example a
+RELEASE-LOCK call that signals an error due to the lock not being held
+is not counted.]
+
+For any \term{lock release} in the modification order, the \term{lock
+  acquisition} immediately before it in the order is
+\term{sequenced-before} the \term{lock release}, because only the
+\term{thread} that acquired a lock can release it. It is further
+defined that for any \term{lock acquisition} of the lock past the
+first, the \term{lock release} immediately before it in the order
+\term{synchronizes-with} the \term{lock acquisition}. Together, these
+two properties ensure that any operation in the modification order
+\term{happens-before} the subsequent operation in the modification
+order, and therefore \term{happens-before} all subsequent operations
+in the modification order.
+
+The modification orders of locks must result in a consistent
+(i.e. acyclic) \term{happens-before} ordering of
+\term{evaluations}. Beyond this and the above properties, the
+modification order is not defined and may vary between executions.
+
+\endsubsubsection%{Semantics of Locks}
+
+\endsubsection%{Locks}
+
+\beginsubsection{Condition Variables}
+
+Condition variables provide a mechanism for \term{threads} to put
+themselves to sleep while waiting for the state of something to
+change, then to be subsequently woken by another \term{thread} which
+has changed the state.
+
+A condition variable must be used in conjunction with a \term{lock} to
+protect access to the state of the \term{object} of interest. The
+procedure is as follows:
+
+Suppose there are two \term{threads} $A$ and $B$, a condition variable
+$CV$, and some kind of notional event channel $C$. $A$ is consuming
+events in $C$, and $B$ is producing them.\reviewer{Moringen: Name the
+  lock, like "A \term{lock} $L$ that safeguards access to $C$"?}
+
+\beginlist
+\item{1.} $A$ acquires the \term{lock} that safeguards access to $C$
+\item{2.} $A$ threads\reviewer{Moringen: reads?} and removes all
+  events that are available in $C$
+\item{3.} When $C$ is empty, $A$ calls \funref{condition-wait}, which
+  atomically releases the \term{lock} and puts $A$ to sleep on $CV$
+\item{4.} $A$ continues to sleep until notified. When notified,
+  \funref{condition-wait} acquires the \term{lock} again before
+  returning
+\item{5.} Loop back to step 2, for as long as threading should
+  continue
+\endlist
+
+When $B$ generates an event $E$, it
+
+\beginlist
+\item{1.} acquires the \term{lock} guarding $C$
+\item{2.} adds $E$ to the channel $C$
+\item{3.} releases the \term{lock}
+\item{4.} calls \funref{condition-notify} on $CV$ to wake any sleeping
+  \term{thread} \reviewer{Moringen: any \term{thread} sleeping on $CV$
+    such as $A$}
+\endlist
+
+To avoid the "lost wakeup" problem, the implementation must guarantee
+that \funref{condition-wait} in \term{thread} $A$ atomically releases
+the \term{lock} and sleeps. If this is not guaranteed there is the
+possibility that \term{thread} $B$ can add an event and call
+\funref{condition-notify} between the \term{lock release} and the
+sleep -- in this case the notify call would not see $A$, which would
+be left sleeping despite there being an event available.
+
+[copied almost verbatim from bordeaux, except the lock can be released
+before notifying the CV]
+\reviewer{Moringen: Ask bordeaux-threads authors to release this
+  section into the public domain?}
+
+\displayfour{Some \term{defined names} relating to \term{condition variables}}{
+  condition-variable & condition-variable-p & make-condition-variable    & condition-variable-name\cr
+  condition-wait     & condition-notify     & condition-notify-broadcast & \cr
+}
+
+\beginsubsubsection{Semantics of Condition Variables}
+
+Implicitly associated with a \term{condition variable} is a set of
+\term{threads} currently blocked on it. \funref{condition-wait} adds a
+\term{thread} to this set, \funref{condition-notify} removes one
+arbitrarily selected \term{thread} from it, and
+\funref{condition-broadcast} empties the set entirely.
+
+A \funref{condition-wait}'s adding the \term{current thread} to the
+set clearly must \term{happen-before} \funref{condition-notify} or
+\funref{condition-broadcast} removing it. Since the
+\funref{condition-notify} or \funref{condition-broadcast} necessarily
+takes place in a different \term{thread}, we require that
+\funref{condition-wait} blocking its \term{thread}
+\term{synchronizes-with} the call to \funref{condition-notify} or
+\funref{condition-broadcast} that unblocks it.
+
+Clearly the waiting \term{thread} cannot attempt to reacquire the
+\term{lock} until it has been unblocked, by the basic definition of
+\term{condition variables}. So the call to \funref{condition-notify}
+or \funref{condition-broadcast} \term{synchronizes-with} the waiting
+\term{thread}'s attempt to acquire the \term{lock}. (Attempts, rather
+than a successful acquisition, are referred to here to hedge against
+the possibility that, for example, attempting to acquire a lock could
+cause some other effect, like an error being signaled.) A waiting
+\term{thread} can also be spuriously unblocked, for which case further
+synchronization is not required.
+
+In more detail, we can define a \term{modification order} for each
+\term{condition variable}'s blocking set. The \term{modification
+  order} consists of writes to the blocking set (adding a
+\term{thread}, removing a \term{thread}, or removing all
+\term{threads}) as well as the reads implicitly performed by the
+notification functions to determine their return value. For example, a
+notification that removes a \term{thread} must appear in the order
+after to the \funref{condition-wait} that put the \term{thread} there,
+and there must not be any \funref{condition-wait} blockings between
+two \funref{condition-broadcasts} if the second
+\funref{condition-broadcast} returns \term{false}. Then we require
+that entries in the order must \term{happen-before} later entries in
+the order, whether by synchronization or sequencing.
+
+To avoid a "lost wakeup" problem, \funref{condition-wait} releasing
+the \term{lock} and blocking must occur atomically. Specifically, it
+cannot be possible for another \term{thread} to acquire the
+\term{lock} and then observe that the waiting \term{thread} is not in
+the blocked set. If it were not so, the following could occur: the
+\term{lock} is released. Another \term{thread} acquires the
+\term{lock}, alters the condition so that the \term{thread} could be
+unblocked, and then in whatever order releases the \term{lock} and
+notifies the \term{condition variable}. When it performs the
+notification, the waiting \term{thread} has not yet been added to the
+waiting set, so the waiting \term{thread} will not be
+unblocked/"awoken" until something else unblocks it.
+
+We can formalize this last condition by saying that if the \term{lock
+  release} \term{synchronizes-with} a \term{lock acquisition},
+\funref{condition-wait} blocking the \term{thread} also
+\term{synchronizes-with} that \term{lock acquisition}. [I'm not sure
+that requiring this in the other direction is strictly necessary. You
+can imagine blocking the thread without releasing the lock, and then
+another thread unblocking the thread, and then this causing the
+waiting thread to try to acquire the lock it has not yet released, but
+since the lock release is already sequenced-before the lock
+acquisition maybe this isn't required.]
+
+\endsubsubsection%{Semantics of Condition Variables}
+
+\endsubsection%{Condition Variables}
