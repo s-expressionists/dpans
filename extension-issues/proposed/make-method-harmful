@@ -1,0 +1,236 @@
+Issue:          MAKE-METHOD-LAMBDA-HARMFUL
+Forum:          Extension
+Category:       CHANGE
+Status:         proposed
+Edit History:   15-Jul-21, Version 1 by Bike.
+References:     CALL-METHOD, MAKE-METHOD, MAKE-METHOD-LAMBDA, METHOD-FUNCTION
+                COMPUTE-DISCRIMINATING-FUNCTION
+
+Problem Description:
+
+  MAKE-METHOD-LAMBDA is considered harmful. Some issues with it are explained in
+  the paper of that name by Pascal Costanza and Charlotte Herzeel. For example,
+  to be effective, generic functions must be fully defined at the time DEFMETHOD
+  forms are macroexpanded (not just evaluated), and there is a tight coupling
+  between generic functions and methods, such that it is difficult to have a
+  generic function with both standard and user defined method classes. It is not
+  widely implemented in actual Lisp implementations [or at least wasn't at the
+  time that paper was written - check this].
+
+  Costanza and Herzeel's solution is to generalize method functions to take
+  keyword parameters, while deleting MAKE-METHOD-LAMBDA. This solves the
+  problems they identify, but there are other issues they do not tackle, and
+  their solution involves some performance penalties. Method functions must
+  process keyword arguments. More subtly, some implementations actually bypass
+  the METHOD-FUNCTION protocol altogether when this is invisible in order to
+  invoke methods more efficiently, but custom method functions cannot access
+  these internal and much faster method invocations.
+
+  Another issue with MAKE-METHOD-LAMBDA is that its definition alters that of
+  the local macro CALL-METHOD used within method combinations, but this
+  alteration is not fully explained. MOP redefines CALL-METHOD such that it can
+  take any number of arguments and that method functions must expect these
+  arguments, but does not explain how arguments to CALL-METHOD are evaluated
+  (or more likely not evaluated), which is important given that it's a macro.
+
+  In the standard itself, CALL-METHOD is a somewhat unusual operator, but its
+  accessory MAKE-METHOD is worse. For example, the class of methods that
+  MAKE-METHOD produces is not defined, and indeed would be difficult to define
+  given that method classes may take initialization arguments unknown to this
+  standard macro. Despite being defined as a local macro, MAKE-METHOD can only
+  be validly used in very specific positions in a CALL-METHOD (which, again,
+  MAKE-METHOD-LAMBDA does not explain the extension of - can extra parameters to
+  CALL-METHOD include MAKE-METHOD?). The form within a MAKE-METHOD is specified
+  to be evaluated in a very specific environment, a null lexical environment
+  with a local macro for CALL-METHOD and no bindings named with symbols visible
+  from the common-lisp-user-package. Given that CALL-METHOD forms can appear in
+  method combination expansions controlled by the user, if taken literally
+  this would mean that the implementation would somehow need to hide the user's
+  own bindings should those bindings be named by such symbols.
+
+  The METHOD-FUNCTIONs defined by MOP take a list of arguments and a list of
+  next methods as arguments. This entails substantial overhead. Standard generic
+  functions must cons a &rest list, and each standard method invoked must
+  traverse this list to parse out its arguments. MOP does not require method
+  functions to prevent the arguments list or next methods list from escaping, so
+  strictly speaking the arguments list cannot be consed with dynamic extent (on
+  the stack). MOP does not seem to state that method functions cannot alter the
+  arguments list or list of next methods, which could have unfortunate
+  consequences, and could imply that the list of next methods must be consed
+  more than once. To use CALL-NEXT-METHOD, standard method functions must
+  (briefly) traverse the list of next methods. This issues are serious enough
+  that at least two implementations, SBCL and Clasp, entirely bypass the use of
+  standard method functions unless there could be visible effects of doing so -
+  such as when nonstandard method classes are used, which means nonstandard
+  methods are less performant than standard ones even if they do not have a
+  different calling protocol or specialize MAKE-METHOD-LAMBDA at all.
+
+Proposal (MAKE-METHOD-LAMBDA-HARMFUL:NEW-OPERATORS-INCOMPATIBLE):
+
+  Delete MAKE-METHOD-LAMBDA and METHOD-FUNCTION. The fashion in which standard
+  methods are invoked, and how DEFMETHOD is expanded, are left to the
+  implementation (except that the class of the method and the initargs to the
+  newly produced method are still defined by CLOS and MOP).
+
+  Add new operators APPLY-METHOD and EXPAND-APPLY-METHOD, described in detail in
+  the accompanying pages.
+
+  Delete the MAKE-METHOD local macro and replace it with the definition of
+  MAKE-METHOD as a symbol described in the accompanying pages. Replace the
+  definition of the CALL-METHOD local macro with that in the accompanying pages.
+
+  Edit the description of the generic function invocation protocol in the
+  definition of COMPUTE-DISCRIMINATING-FUNCTION to describe the new system.
+
+  Add a glossary entry for "make-method expression".
+
+  Rationale:
+
+    Improves extensibility of method invocation while maintaining performance in
+    cases people actaully use.
+
+  Benefits:
+
+    This gives users and implementations great freedom in choosing how to
+    implement method invocation. How a method is invoked depends on the method
+    but not on the generic function, loosening the coupling identified in
+    "make-method-lambda considered harmful". Similarly the strange compile time
+    behavior with MAKE-METHOD-LAMBDA is eliminated.
+
+    Methods can invoke their next methods without concerning themselves with
+    the implementation details of how those methods are invoked, allowing
+    methods of multiple classes to be mixed in the same generic function.
+
+    CALL-METHOD and MAKE-METHOD are made clearer.
+
+  Performance impact:
+
+    Performance of nonstandard methods is improved. The APPLY-METHOD protocol
+    basically takes advantage of the fact that, in any given effective method,
+    the list of next methods is essentially fixed.
+
+  Cost to implementors:
+
+    Substantial. I don't know of any implementation that would require an
+    outright rewrite of the entire system, but it would take some work to do
+    this.
+
+  Cost to users:
+
+    Anyone using MAKE-METHOD-LAMBDA will have to rewrite their systems. Anyone
+    using METHOD-FUNCTION to call methods will have to do some work. A shim
+    METHOD-FUNCTION could be defined as
+    (defun method-function (method)
+      (lambda (arguments next-methods)
+        (eval `(apply-method ,method (,next-methods) ',arguments))))
+    but this would obviously be much slower to use.
+
+    More generally, any system in which the list of next methods is not fixed
+    by the context of an effective method will be much more awkward.
+
+    No extensive survey has been conducted, but use of either operator is
+    probably rare. [TODO: Check that.]
+
+    Requiring users to define their own method-defining macros could cause them
+    to have to do more work. It may be worthwhile to explore operators MOP
+    could export to ease this process, such as operators to parse specializer
+    names, or to parse out qualifiers from a DEFMETHOD form.
+
+Proposal (MAKE-METHOD-LAMBDA-HARMFUL:CLARIFY):
+
+  Rewrite the description of CALL-METHOD to state that it can take any number
+  of arguments after the method, and that these arguments will be passed,
+  unevaluated, to the method function, except that the first argument after the
+  method must be a list, and if any elements of this list are MAKE-METHOD
+  expressions a method will be passed at that position in the list instead,
+  where the method is produced as explained below.
+
+  Delete the definition of MAKE-METHOD as a local macro and define it as a
+  symbol, similar to the accompanying documents. In particular, rewrite the
+  description of MAKE-METHOD to state that the form is evaluated in the lexical
+  environment the CALL-METHOD form is in, possibly augmented as etc., rather
+  than a null lexical environment.
+
+  Define that when a MAKE-METHOD expression is made into a method, it is
+  produced by calling MAKE-INSTANCE on the GENERIC-FUNCTION-METHOD-CLASS of the
+  generic function with at least the initargs:
+
+  * :qualifiers - nil
+  * :lambda-list - the GENERIC-FUNCTION-LAMBDA-LIST of the generic function
+  * :specializers - a proper list of the appropriate length in which all
+    elements are the class T. (Note that this means the next methods list may
+    not be correctly sorted by specificity.)
+  * :function - a function of one or more arguments. The first argument is the
+    list of arguments to the method, and further arguments are ignored. The
+    body of the function is the form in the MAKE-METHOD expression. Uses of
+    CALL-METHOD in that form use the first argument as their method arguments.
+
+  Add text stating that method functions in conforming programs cannot let the
+  method arguments or next method list escape, or mutate them.
+
+  Add a glossary entry for "make-method expression".
+
+  Rationale:
+
+    Clarifies the behavior of MAKE-METHOD-LAMBDA and method functions without
+    breaking existing code, unless that code relied on mutating method lists or
+    something. Clarifies CALL-METHOD and MAKE-METHOD.
+
+  Cost to implementors:
+
+    Low to moderate. Some implementations may have to change how MAKE-METHOD
+    works.
+
+  Cost to users:
+
+    None, unless they relied on mutating method lists or something.
+
+Proposal (APPLY-METHOD:NEW-OPERATORS-COMPATIBLE):
+
+  Add the new APPLY-METHOD and EXPAND-APPLY-METHOD operators. Deprecate but do
+  not delete MAKE-METHOD-LAMBDA and METHOD-FUNCTION. Rewrite CALL-METHOD and
+  MAKE-METHOD as described in CLARIFY, except eliminate the description of
+  CALL-METHOD passing its arguments unevaluated, and incorporate the material in
+  the accompanying documents specifying that it uses EXPAND-APPLY-METHOD. In
+  the description of EXPAND-APPLY-METHOD, strike the line saying the expansion
+  for standard methods is unspecified, and instead state that the expansion
+  calls the METHOD-FUNCTION. State that for the standard method, the extra
+  CALL-METHOD arguments past the first are passed to the method function
+  unevaluated, and the next method list is processed as described in CLARIFY.
+
+  Add text stating that method functions in conforming programs cannot let the
+  method arguments or next method list escape, or mutate them.
+
+  Edit the description of the generic function invocation protocol in the
+  definition of COMPUTE-DISCRIMINATING-FUNCTION to describe the new system.
+
+  Add a glossary entry for "make-method expression".
+
+  Rationale:
+
+    Combines the above two proposals, so that new code can use the new operators
+    while old code continues to work. More detailed benefits etc of this
+    proposal are a combination of those in the above two proposals.
+
+Current practice:
+
+  Clasp implements, roughly, NEW-OPERATORS-COMPATIBLE. SBCL implements
+  MAKE-METHOD-LAMBDA but beyond that I'm not sure.
+
+Discussion:
+
+  CALL-METHOD explicitly allows shadowing. This is different from every other
+  standard local macro or function, but greatly increases the ability to use
+  effective methods in unusual contexts, as is useful for some exotic MOP work.
+  That said, it might cause problems with implementations' "package lock"
+  facilities. If it's too much to overcome, an alternate operator could be
+  defined, WITH-CALL-METHOD or something.
+
+  Some problems relating to COMPILE-FILE are not gone into here. Since this
+  proposal lets users use CALL-METHOD and APPLY-METHOD directly, it would be
+  possible to use COMPILE-FILE on code using these operators, and in this case
+  it is not explicitly defined here whether externalizability problems could
+  result. CALL-METHOD and APPLY-METHOD involve literal methods, but may expand
+  into code that doesn't. It could perhaps be noted for example that whether the
+  standard EXPAND-APPLY-METHOD method returns code with unexternalizable objects
+  in it is undefined.
