@@ -1,0 +1,231 @@
+Issue:          DEFCLASS-COMPILE-FILE-HANDLING
+Forum:          Cleanup
+Category:       CLARIFICATION
+Status:         proposed
+Edit History:   13-Jul-21, Version 1 by Bike.
+References:     DEFCLASS, FIND-CLASS, SUBTYPEP
+
+Problem Description:
+
+  The draft ANSI Common Lisp specification includes the following paragraph in
+  its description of DEFCLASS:
+
+    "If a defclass form appears as a top level form, the compiler must make the
+    class name be recognized as a valid type name in subsequent declarations
+    (as for deftype) and be recognized as a valid class name for defmethod
+    parameter specializers and for use as the :metaclass option of a subsequent
+    defclass. The compiler must make the class definition available to be
+    returned by find-class when its environment argument is a value received as
+    the environment parameter of a macro."
+
+  The behavior with respect to DEFTYPE and parameter specializers is reasonably
+  clear. However, the behavior with respect to metaclasses and FIND-CLASS is
+  not, given the complexities of the meta-object protocol. Fully defining a
+  class may involve calls to MOP generic functions with methods defined in the
+  same file, and implementations aren't required to execute defmethod forms at
+  compile time (and generally do not). If MOP generic functions were to be
+  called, they may have unexpected side effects; for example defining accessor
+  functions at compile time, or whatever other behavior is included in methods.
+  To support these side effects much more code might need to be evaluated by the
+  compiler.
+
+  It is uncommon to actually need to know during compilation that a name refers
+  to a class (whereas knowing that it refers to a type generally has a few
+  more common uses). Requiring extra evaluations for functionality that is
+  rarely if ever used could surprise programmers.
+
+  Another thing worth noting is that in 3.2.2.3 Semantic Constraints, the draft
+  specification states that subclass, superclass, and metaclass relations among
+  classes must be the same at compile and run time. While this is a constraint
+  on programs rather than implementations, it may be worth keeping this in mind
+  as a principle of regularity.
+
+  Another relevant bit of the standard is that there does not seem to be a
+  requirement that SUBTYPEP return exact or correct results if given a
+  compilation environment and type specifiers defined by top-level DEFCLASS (or
+  DEFTYPE, etc.) forms, and indeed contemplates the possibility of types that
+  aren't "defined fully at compile time" in the page on DEFCLASS.
+
+  It additionally seems to be unspecified what FIND-CLASS returns if called with
+  a name that has been forward-referenced as a class in a compilation
+  environment.
+
+Proposal (COMPILE-FILE-HANDLING-OF-DEFCLASS:NONE):
+
+  Strike the requirement that FIND-CLASS must return a class at compile time
+  after a relevant top-level DEFCLASS form is processed, i.e. the last sentence
+  of the quoted paragraph. Add a requirement that the compiler processing
+  top-level DEFCLASS forms does not affect FIND-CLASS with respect to the
+  compilation environment.
+
+Proposal (COMPILE-FILE-HANDLING-OF-DEFCLASS:NONE-WITH-SUBTYPEP):
+
+  As NONE, but additionally require that SUBTYPEP return correct and exact
+  results if given the names of a class and its direct superclass, even if one
+  or both classes has only been in a top-level DEFCLASS form processed by the
+  compiler. (See analogous provision below in COMPILE-META.)
+
+Proposal (COMPILE-FILE-HANDLING-OF-DEFCLASS:COMPILE-META):
+
+  Clarify that the class FIND-CLASS must return at compile time after a relevant
+  top-level DEFCLASS form is processed must be an instance of a new metaclass,
+  COMPILE-TIME-CLASS (or something). CLOS/MOP generic functions with methods
+  for FORWARD-REFERENCED-CLASS have methods with the same behavior specialized
+  to COMPILE-TIME-CLASS, except that the method on CLASS-DIRECT-SUPERCLASSES
+  returns a list of classes (either fully defined classes, or instances of
+  COMPILE-TIME-CLASS or FORWARD-REFERENCED-CLASS).
+
+  Require that any class forward-referenced by a top-level DEFCLASS form that
+  has been processed be available via FIND-CLASS as a FORWARD-REFERENCED-CLASS.
+
+  Require that SUBTYPEP return correct and exact results if given a class and
+  its direct superclass, or their names, even if one or both classes is a
+  FORWARD-REFERENCED-CLASS or COMPILE-TIME-CLASS. This does not seem to be
+  specifically required otherwise (and doing so in the non-compilation-related
+  case should go into another proposal).
+
+  Define a new generic function called e.g. COMPILE-TIME-CLASS-FUTURE-METACLASS
+  of one argument; if called on a COMPILE-TIME-CLASS, the class specified by
+  the :METACLASS argument in the DEFCLASS form is returned (which may itself be
+  a COMPILE-TIME-CLASS).
+
+Proposal (COMPILE-FILE-HANDLING-OF-DEFCLASS:ALTERNATE):
+
+  As NONE, but additionally define new operators to deal specifically with
+  information of this kind in compilation environments. For example, an operator
+  could be defined that, given a class name and compilation environment, returns
+  a boolean indicating whether that name will be defined as a class at runtime.
+  And, again for example, SUBTYPEP could be defined to give exact results given
+  compile time class names and a compilation environment. As in SOME, it would
+  probably be useful to also define that SUBTYPEP work with direct superclasses
+  even if they are forward referenced.
+
+Proposal (COMPILE-FILE-HANDLING-OF-DEFCLASS:ALL):
+
+  Clarify that top-level DEFCLASS forms must be fully evaluated by the compiler,
+  analogous to DEFMACRO. Add a requirement, similar to that in DEFTYPE, that
+  top-level DEFCLASS forms be fully evaluable at compile time.
+
+Examples:
+
+  ;;; It is assumed that FOO, BAR, and META are not defined as classes before
+  ;;; a file containing this code is COMPILE-FILE'd.
+  (eval-when (:compile-toplevel :load-toplevel :execute)
+    (defclass meta (standard-class) ()))
+  (defclass foo (bar)
+    ((%slot :initarg :slot :reader slot))
+    (:metaclass meta))
+  (defmacro test (&environment env)
+    (let ((f (find-class 'foo nil env))
+          (b (find-class 'bar nil env))
+          (m (find-class 'meta nil env)))
+    `(list ',(if f t nil)
+           ',(multiple-value-list (subtypep 'foo 'bar env))
+           ',(and f b (multiple-value-list (subtypep f b env)))
+           ',(and f
+                  (list (mapcar #'class-name (mop:class-direct-superclasses f))
+                        t))
+           ',(and f m (typep f m))
+           ',(and f (class-name (class-of f)))
+           ',(typep b 'mop:forward-referenced-class)
+           ',(and f (length (mop:class-direct-slots f))))))
+  ;;; Results of (test) under each proposal, where T = true, F = false,
+  ;;; and U = undefined:
+  ;;; NONE: (F (U U) F F F F F F)
+  ;;; NONE-WITH-SUBTYPEP, ALTERNATE: (F (T T) F F F F F F)
+  ;;; COMPILE-META: (T (T T) (T T) ((BAR) T) F COMPILE-TIME-CLASS T 0)
+  ;;; ALL: (T (T T) (T T) ((BAR) T) T META T 1)
+
+  ;;; Results under some real implementations:
+  ;;; SBCL, Clasp: (NIL (NIL NIL) NIL NIL NIL NIL NIL NIL), indicating NONE
+  ;;;  (and apparently violating the existing standard requirement).
+  ;;; CCL: (T (NIL T) NIL (NIL T) NIL CCL::COMPILE-TIME-CLASS NIL 0)
+  ;;;  This is similar to COMPILE-META; CCL defines FOO as an instance of
+  ;;;  CCL::COMPILE-TIME-CLASS. It does not however define a class for BAR, and
+  ;;;  the reasoning for the first SUBTYPEP returning (NIL T) is not clear.
+  ;;; [todo: other implementations]
+
+  ;;; An example of actually using the result of FIND-CLASS. Under NONE,
+  ;;; NONE-WITH-SUBTYPEP, COMPILE-META, and ALL, this works for classes defined
+  ;;; already. Under COMPILE-META using a class only known from a top-level
+  ;;; DEFCLASS form will result in an error at compiler-macroexpansion time,
+  ;;; when CLASS-PRECEDENCE-LIST is called on a COMPILE-TIME-CLASS. Under
+  ;;; ALTERNATE it could be possible with some other operators. Under ALL it
+  ;;; would work for classes only known from top-level DEFCLASS forms.
+  (defun classp (object class) (typep object class))
+  (define-compiler-macro classp (&whole whole object class &environment env)
+    (let ((class (find-class class nil env)))
+      (if class
+          `(member (class-of ,object) ',(mop:class-precedence-list class))
+          whole)))
+
+  ;;; An example of possibly unintuitive behaviors resulting from the existing
+  ;;; ambiguity in relation to proposal ALL, taken from Clasp's issue #736,
+  ;;; and cl-python's issue #23, using LispWorks or ECL:
+  (defclass foo (standard-class) ())
+  (defmethod mop:validate-superclass ((class foo) (superclass standard-class))
+    t)
+  (defclass super () ())
+  (defclass bar (super)
+    ()
+    (:metaclass foo))
+  ;;; Under proposal ALL, this is an error, as the validate-superclass method
+  ;;; is not defined when the (DEFCLASS BAR) form is evaluated by the compiler.
+  ;;; The programmer would have to wrap the DEFMETHOD form in an EVAL-WHEN,
+  ;;; which is in fact how the cl-python issue was resolved.
+  ;;; Under the other proposals listed here, behavior is defined and is not an
+  ;;; error, as the implementation is not permitted to fully evaluate the
+  ;;; top-level DEFCLASS forms.
+  ;;; With the current standard, the situation is ambiguous, since some
+  ;;; implementations fully evaluate and some do not.
+
+Rationale:
+
+  For NONE: Easiest to implement while giving programmers clear semantics.
+
+  For NONE-WITH-SUBTYPEP: Only slightly harder to implement than NONE and gives
+  programmers a possibly-useful tool.
+
+  For COMPILE-META: Allows somewhat detailed introspection of classes known to
+  the compiler with only a small number of added classes and operators.
+
+  For ALTERNATE: Allows separation of runtime and compile time concerns.
+
+  For ALL: Easy to implement while giving programmers clear semantics and full
+  introspection.
+
+Cost to Implementors:
+
+  For NONE, NONE-WITH-SUBTYPEP, ALL: Very little.
+
+  For COMPILE-META, ALTERNATE: A decent amount of extra code.
+
+Cost to Users:
+
+  For NONE, NONE-WITH-SUBTYPEP: Disallows introspection on compiler classes.
+
+  For COMPILE-META, ALTERNATE: Probably zero; the most non-introspective code
+  is valid under either of these two proposals.
+
+  For ALL: Programs using MOP may have to be rewritten to insert EVAL-WHEN
+  judiciously.
+
+Benefits:
+
+  Any proposal would help clarify the standard.
+
+  For COMPILE-META, ALTERNATE, ALL: Better introspection capabilities.
+
+Cost of non-adoption:
+
+  See the last example.
+
+Aesthetics:
+
+  For NONE, NONE-WITH-SUBTYPEP, ALTERNATE: Entails a contradiction between what
+  FIND-CLASS and the compiler "know" about classes, which is weird.
+
+  I (Bike) think COMPILE-META is the aesthetically nicest proposal, since it
+  allows reasonable introspection through a mechanism similar to the existing
+  FORWARD-REFERENCED-CLASS, while not requiring users to make their compilers
+  evaluate all their MOP machinery.
