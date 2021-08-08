@@ -582,7 +582,7 @@ defined as follows, except that certain optimizations are permitted:
 
 \code
  (defmethod initialize-instance ((instance standard-object) &rest initargs)
-   (apply #'shared-initialize instance t initargs)))
+   (apply #'shared-initialize instance t initargs))
 \endcode
 
 % Barmar complains that "Programmer Interface level" is not defined.
