@@ -78,7 +78,7 @@ This question was raised in the Common Lisp mailing last summer:
     Subject: Question about readtable null arguments
     From: quiroz%cs.rochester:EDU:Xerox
     To: common-lisp%sail.stanford:EDU:Xerox
-
+
 This issue passed at the Jan 89 X3J13 meeting. The only
 difference between version 2 and 3 was to remove the
 test case because of problems of "function equivalence":
