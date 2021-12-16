@@ -2575,35 +2575,26 @@ ${\hbox{\i{slot-name}}}\sub i${\tt )}}}$$
 %%Syntax fixed per X3J13. -kmp 05-Oct-93
 \DefmacWithValuesNewline defclass
         {\param{class-name} \paren{\star{\curly{\param{superclass-name}}}}
-\paren{\star{\curly{\i{slot-specifier}}}}
- $\lbrack\!\lbrack\downarrow\!\hbox{\i{class-option}}\,\rbrack\!\rbrack$}
+         \paren{\star{\curly{\i{slot-specifier}}}}
+         $\lbrack\!\lbrack\downarrow\!\hbox{\i{class-option}}\,\rbrack\!\rbrack$}
 	{new-class}
  
-\settabs\+\hskip\leftskip&\cr
-\+&\cleartabs\i{slot-specifier}::$=$ &\i{slot-name} $\vert$ 
-(\i{slot-name}  
-$\lbrack\!\lbrack\downarrow\!\hbox{\i{slot-option}}\,\rbrack\!\rbrack$)\cr
-\Vskip 1pc!
-\+&\i{slot-name}::$=$ \term{symbol}\cr
-\Vskip 1pc!
-\+&\cleartabs\i{slot-option}::$=$ &\star{\curly{\kwd{reader} 
-\param{reader-function-name}}} $\vert$ \cr
-\+&&\star{\curly{\kwd{writer} \param{writer-function-name}}} $\vert$ \cr
-\+&&\star{\curly{\kwd{accessor} \param{reader-function-name}}} $\vert$ \cr
-\+&&\curly{\kwd{allocation} \param{allocation-type}} $\vert$ \cr
-\+&&\star{\curly{\kwd{initarg} \param{initarg-name}}} $\vert$ \cr
-\+&&\curly{\kwd{initform} \param{form}} $\vert$ \cr
-\+&&\curly{\kwd{type} \param{type-specifier}} $\vert$ \cr
-\+&&\curly{\kwd{documentation} \term{string}} \cr
-\Vskip 1pc!                                        
-\+&\i{function-name}::$=$ \curly{\term{symbol} 
-$\vert$ {\tt (setf \term{symbol})}}\cr
-\Vskip 1pc!
-\+&\cleartabs\param{class-option}::$=$ &(\kwd{default-initargs} \f{.}
-\param{initarg-list}) $\vert$ \cr
-\+&&(\kwd{documentation} \term{string}) $\vert$ \cr
-\+&&(\kwd{metaclass} \param{metaclass-name}) \cr
-\Vskip 1pc!
+\auxbnf{slot-specifier}{\param{slot-name} |
+                        (\param{slot-name}
+                         \begininterleave\down{\param{slot-option}}\endinterleave)}
+\auxbnf{slot-name}{\term{symbol}}
+\auxbnf{slot-option}{\star{\curly{\kwd{reader}        \param{reader-function-name}}} | \CR
+                     \star{\curly{\kwd{writer}        \param{writer-function-name}}} | \CR
+                     \star{\curly{\kwd{accessor}      \param{reader-function-name}}} | \CR
+                           \curly{\kwd{allocation}    \param{allocation-type}}       | \CR
+                     \star{\curly{\kwd{initarg}       \param{initarg-name}}}         | \CR
+                           \curly{\kwd{initform}      \param{form}}                  | \CR
+                           \curly{\kwd{type}          \param{type-specifier}}        | \CR
+                           \curly{\kwd{documentation} \term{string}}}
+\auxbnf{function-name}{\curly{\term{symbol} | {\tt (setf \term{symbol})}}}
+\auxbnf{class-option}{(\kwd{default-initargs} \f{.} \param{initarg-list}) | \CR
+                      (\kwd{documentation} \term{string})                 | \CR
+                      (\kwd{metaclass} \param{metaclass-name})}
  
 \label Arguments and Values::
  

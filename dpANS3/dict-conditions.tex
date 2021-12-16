@@ -2142,13 +2142,14 @@ that the two situations can be distinguished.
 
 \auxbnf{slot-spec}{slot-name | \paren{slot-name \down{slot-option}}}
 \auxbnf{slot-option}{\begininterleave
-		     \star{\curly{\kwd{reader}     \term{symbol}}}         | \CR
-		     \star{\curly{\kwd{writer}     \down{function-name}}}  | \CR
-		     \star{\curly{\kwd{accessor}   \term{symbol}}}         | \CR
-		           \curly{\kwd{allocation} \down{allocation-type}} | \CR
-		     \star{\curly{\kwd{initarg}    \term{symbol}}}         | \CR
-                           \curly{\kwd{initform}   \term{form}}            | \CR
-		           \curly{\kwd{type}       \param{type-specifier}} 
+		     \star{\curly{\kwd{reader}        \term{symbol}}}         | \CR
+		     \star{\curly{\kwd{writer}        \down{function-name}}}  | \CR
+		     \star{\curly{\kwd{accessor}      \term{symbol}}}         | \CR
+		           \curly{\kwd{allocation}    \down{allocation-type}} | \CR
+		     \star{\curly{\kwd{initarg}       \term{symbol}}}         | \CR
+                           \curly{\kwd{initform}      \term{form}}            | \CR
+		           \curly{\kwd{type}          \param{type-specifier}} | \CR
+                           \curly{\kwd{documentation} \term{string}}
 		     \endinterleave}
 \auxbnf{option}{\begininterleave
 		\paren{\kwd{default-initargs} \f{.} \param{initarg-list}} | \CR
@@ -2298,7 +2299,9 @@ to \kwd{reader} to read the value of the given \term{slot}.
 % \itemitem{\kwd{accessor}} 
 % \itemitem{\kwd{allocation}} 
 
-\itemitem{\bull} The \kwd{initform} slot option is used to provide a default
+\itemitem{\kwd{initform}}
+
+The \kwd{initform} slot option is used to provide a default
 initial value form to be used in the initialization of the \term{slot}.  This
 \term{form} is evaluated every time it is used to initialize the 
 \term{slot}.  The
