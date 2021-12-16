@@ -64,7 +64,7 @@ number of the \subtypesof{condition}.
 
 \issue{CONDITION-SLOTS:HIDDEN}
 Whether a user-defined \term{condition} \term{type} has \term{slots} 
-that are accessible by \term{with-slots} is \term{implementation-dependent}.
+that are accessible by \macref{with-slots} is \term{implementation-dependent}.
 Furthermore, even in an \term{implementation} 
 in which user-defined \term{condition} \term{types} would have \term{slots}, 
 it is \term{implementation-dependent} whether any \term{condition}
@@ -1125,27 +1125,27 @@ If the \term{condition} is not handled, \funref{signal} returns \nil.
    (when (and (typep condition 'arithmetic-error)
               (eq '/ (arithmetic-error-operation condition)))
      (invoke-debugger condition)))
-HANDLE-DIVISION-CONDITIONS
+\EV HANDLE-DIVISION-CONDITIONS
  (defun handle-other-arithmetic-errors (condition)
    (format t "Considering condition for arithmetic condition handling~%")
    (when (typep condition 'arithmetic-error)
      (abort)))
-HANDLE-OTHER-ARITHMETIC-ERRORS
+\EV HANDLE-OTHER-ARITHMETIC-ERRORS
  (define-condition a-condition-with-no-handler (condition) ())
-A-CONDITION-WITH-NO-HANDLER
+\EV A-CONDITION-WITH-NO-HANDLER
  (signal 'a-condition-with-no-handler)
-NIL
+\EV NIL
  (handler-bind ((condition #'handle-division-conditions)
                   (condition #'handle-other-arithmetic-errors))
    (signal 'a-condition-with-no-handler))
-Considering condition for division condition handling
-Considering condition for arithmetic condition handling
-NIL
+\OUT Considering condition for division condition handling
+\OUT Considering condition for arithmetic condition handling
+\EV NIL
  (handler-bind ((arithmetic-error #'handle-division-conditions)
                   (arithmetic-error #'handle-other-arithmetic-errors))
    (signal 'arithmetic-error :operation '* :operands '(1.2 b)))
-Considering condition for division condition handling
-Considering condition for arithmetic condition handling
+\OUT Considering condition for division condition handling
+\OUT Considering condition for arithmetic condition handling
 Back to Lisp Toplevel
 \endcode
 
@@ -2142,13 +2142,14 @@ that the two situations can be distinguished.
 
 \auxbnf{slot-spec}{slot-name | \paren{slot-name \down{slot-option}}}
 \auxbnf{slot-option}{\begininterleave
-		     \star{\curly{\kwd{reader}     \term{symbol}}}         | \CR
-		     \star{\curly{\kwd{writer}     \down{function-name}}}  | \CR
-		     \star{\curly{\kwd{accessor}   \term{symbol}}}         | \CR
-		           \curly{\kwd{allocation} \down{allocation-type}} | \CR
-		     \star{\curly{\kwd{initarg}    \term{symbol}}}         | \CR
-                           \curly{\kwd{initform}   \term{form}}            | \CR
-		           \curly{\kwd{type}       \param{type-specifier}} 
+		     \star{\curly{\kwd{reader}        \term{symbol}}}         | \CR
+		     \star{\curly{\kwd{writer}        \down{function-name}}}  | \CR
+		     \star{\curly{\kwd{accessor}      \term{symbol}}}         | \CR
+		           \curly{\kwd{allocation}    \down{allocation-type}} | \CR
+		     \star{\curly{\kwd{initarg}       \term{symbol}}}         | \CR
+                           \curly{\kwd{initform}      \term{form}}            | \CR
+		           \curly{\kwd{type}          \param{type-specifier}} | \CR
+                           \curly{\kwd{documentation} \term{string}}
 		     \endinterleave}
 \auxbnf{option}{\begininterleave
 		\paren{\kwd{default-initargs} \f{.} \param{initarg-list}} | \CR
@@ -2298,7 +2299,9 @@ to \kwd{reader} to read the value of the given \term{slot}.
 % \itemitem{\kwd{accessor}} 
 % \itemitem{\kwd{allocation}} 
 
-\itemitem{\bull} The \kwd{initform} slot option is used to provide a default
+\itemitem{\kwd{initform}}
+
+The \kwd{initform} slot option is used to provide a default
 initial value form to be used in the initialization of the \term{slot}.  This
 \term{form} is evaluated every time it is used to initialize the 
 \term{slot}.  The
