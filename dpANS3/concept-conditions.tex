@@ -236,7 +236,7 @@ How the denoted \term{condition} is computed depends on the type of the \param{d
 
 \beginlist
 
-\item{{\bull} If the \param{datum} is a \term{symbol} 
+\item{If the \param{datum} is a \term{symbol} 
               naming a \term{condition} \term{type} $\ldots$}
 
 The denoted \term{condition} is the result of
@@ -245,9 +245,11 @@ The denoted \term{condition} is the result of
  (apply #'make-condition \param{datum} \param{arguments})
 \endcode
 
+\item{
 \issue{FORMAT-STRING-ARGUMENTS:SPECIFY}
-\item{{\bull} If the \param{datum} is a \term{format control} $\ldots$}
+If the \param{datum} is a \term{format control} $\ldots$
 \endissue{FORMAT-STRING-ARGUMENTS:SPECIFY}
+}
 
 The denoted \term{condition} is the result of 
 
@@ -265,7 +267,7 @@ The denoted \term{condition} is the result of
 %might not actually turn into a formal issue someday. -kmp 2-Feb-92
 where the \param{defaulted-type} is a \term{subtype} of \param{default-type}.
 
-\item{{\bull} If the \param{datum} is a \term{condition} $\ldots$}
+\item{If the \param{datum} is a \term{condition} $\ldots$}
 
 The denoted \term{condition} is the \param{datum} itself.
 In this case, unless otherwise specified by the description of the

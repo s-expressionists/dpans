@@ -1097,8 +1097,8 @@
 \def\DefineFigure#1{{\let\break=\empty
 \xdef\writeit{\write\reffile{!#1 \chapno--\the\capno}}\writeit}}
 
-%\def\deffigrefs#1{\def\figref##1{{\def##1{\message{Figure ``\string##1'' is not defined.}%
-%Figure $nn$--$mm$ (\string##1)}#1##1}}}
+\def\deffigrefs#1{\def\figref##1{{\def##1{\message{Figure ``\string##1'' is not defined.}%
+Figure $nn$--$mm$ (\string##1)}#1##1}}}
 % Stylistically, ``\Figref'' goes at start of sentence or ``\figref'' in middle,
 % but since "Figure xxx" always comes out capitalized, they're implementationally
 % just synonyms.
@@ -1115,7 +1115,7 @@
 \xdef\writeit{\write\secfile{!#1 Chapter #3 #4}}\writeit
 \xdef\writeit{\write\secfile{!#2 Chapter #3 #4}}\writeit}}
 
-%\def\defsecrefs#1{\def\secref##1{{\def##1{\message{Section ``\string##1'' is not defined.}%
-%Section $mm$.$nn$ (\string##1)}#1##1}}\let\chapref=\secref}
+\def\defsecrefs#1{\def\secref##1{{\def##1{\message{Section ``\string##1'' is not defined.}%
+Section $mm$.$nn$ (\string##1)}#1##1}}\let\chapref=\secref}
 
 \tolerance=2500
