@@ -1,14 +1,14 @@
-Date: Fri, 8 Jun 90 20:00 EDT
-From: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>
-Subject: Issue: METHOD-INITFORM (Version 5)
-To: X3J13@mcc.com
-Message-ID: <19900609000021.5.MOON@KENNETH-WILLIAMS.SCRC.Symbolics.COM>
-
-This version contains the corrections to current practice noted at
-the X3J13 meeting today.
-
-METHOD-INITFORM:ALLOW-CALL-NEXT-METHOD failed 0-11
-METHOD-INITFORM:FORBID-CALL-NEXT-METHOD passed 13-0
+% Date: Fri, 8 Jun 90 20:00 EDT
+% From: David A. Moon <Moon@STONY-BROOK.SCRC.Symbolics.COM>
+% Subject: Issue: METHOD-INITFORM (Version 5)
+% To: X3J13@mcc.com
+% Message-ID: <19900609000021.5.MOON@KENNETH-WILLIAMS.SCRC.Symbolics.COM>
+% 
+% This version contains the corrections to current practice noted at
+% the X3J13 meeting today.
+% 
+% METHOD-INITFORM:ALLOW-CALL-NEXT-METHOD failed 0-11
+% METHOD-INITFORM:FORBID-CALL-NEXT-METHOD passed 13-0
 
 Issue:         METHOD-INITFORM
 
