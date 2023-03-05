@@ -527,7 +527,7 @@ code processed by \funref{compile-file}.  \Seesection\FileCompilation.
 The use of the \param{situation} \kwd{execute} (or {\tt eval}) controls whether
 evaluation occurs for other \specref{eval-when} \term{forms}; that is, 
 those that are not \term{top level forms}, or those in code processed by
-\funref{eval} or \varref{compile}.  If the \kwd{execute} situation is
+\funref{eval} or \funref{compile}.  If the \kwd{execute} situation is
 specified in such a \term{form}, then the body \param{forms} are processed as 
 an \term{implicit progn}; otherwise, the \specref{eval-when} \term{form}
 returns \nil.
