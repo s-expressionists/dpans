@@ -937,9 +937,9 @@ If no \term{slot} of the \term{name} \param{slot-name} exists in the
 \param{instance}, \funref{slot-missing} is called as follows:
 
 \code
- (slot-missing (class-of \i{instance})
-               \i{instance}
-               \i{slot-name}
+ (slot-missing (class-of \param{instance})
+               \param{instance}
+               \param{slot-name}
                'slot-boundp)
 \endcode
 
@@ -1051,9 +1051,9 @@ If no \term{slot} of the name \param{slot-name} exists in the
 \param{instance}, \funref{slot-missing} is called as follows:
 
 \code
-(slot-missing (class-of \i{instance})
-              \i{instance}
-              \i{slot-name}
+(slot-missing (class-of \param{instance})
+              \param{instance}
+              \param{slot-name}
               'slot-makunbound)
 \endcode
 
@@ -1333,9 +1333,9 @@ the name \param{slot-name} exists in the \param{object},
 \funref{slot-missing} is called as follows:
 
 \code
- (slot-missing (class-of \i{instance})
-               \i{instance}
-               \i{slot-name}
+ (slot-missing (class-of \param{object})
+               \param{object}
+               \param{slot-name}
                'slot-value)
 \endcode
  
@@ -1349,11 +1349,11 @@ the name \param{slot-name} exists in the \param{object},
 \funref{slot-missing} is called as follows:
 
 \code
- (slot-missing (class-of \i{instance})
-               \i{instance}
-               \i{slot-name}
+ (slot-missing (class-of \param{object})
+               \param{object}
+               \param{slot-name}
                'setf
-               \i{new-value})
+               \param{new-value})
 \endcode
 
 \issue{SLOT-MISSING-VALUES:SPECIFY}
