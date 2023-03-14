@@ -48,6 +48,9 @@
                    ~Accessor~ and extending the syntax part to include
                    the ~setf~ syntax.
 
+  + ~:listing~ :: A change that fixes the validity of the contents of
+                  a listing as Common Lisp code.
+
   The following kinds can be used as a an additional element of the
   list of kinds but can not be used as the only element of the list:
 
