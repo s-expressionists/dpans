@@ -2609,43 +2609,43 @@ $\vert$ {\tt (setf \term{symbol})}}\cr
  
 %!!! Treatment of documentation?
 
-\param{Class-name}---a \term{non-nil} \term{symbol}.
+\param{class-name}---a \term{non-nil} \term{symbol}.
                                                     
-\param{Superclass-name}--a \term{non-nil} \term{symbol}.
+\param{superclass-name}---a \term{non-nil} \term{symbol}.
  
-\param{Slot-name}--a \term{symbol}.
+\param{slot-name}---a \term{symbol}.
   The \param{slot-name} argument is 
 %!!! Isn't there a more concise way to say this?
   a \term{symbol} that is syntactically valid for use as a variable name.
  
-\param{Reader-function-name}---a \term{non-nil} \term{symbol}.
+\param{reader-function-name}---a \term{non-nil} \term{symbol}.
  \kwd{reader} can be supplied more than once for a given \term{slot}.
           
-\param{Writer-function-name}---a \term{generic function} name.
+\param{writer-function-name}---a \term{generic function} name.
  \kwd{writer} can be supplied more than once for a given \term{slot}.
  
-\param{Reader-function-name}---a \term{non-nil} \term{symbol}.
+\param{reader-function-name}---a \term{non-nil} \term{symbol}.
  \kwd{accessor} can be supplied more than once for a given \term{slot}.
  
-\param{Allocation-type}---(member \kwd{instance} \kwd{class}).
+\param{allocation-type}---(member \kwd{instance} \kwd{class}).
  \kwd{allocation} can be supplied once at most for a given \term{slot}.
  
-\param{Initarg-name}---a \term{symbol}.
+\param{initarg-name}---a \term{symbol}.
  \kwd{initarg} can be supplied more than once for a given \term{slot}.  
  
-\param{Form}---a \term{form}.
+\param{form}---a \term{form}.
  \kwd{initform} can be supplied once at most for a given \term{slot}.  
  
-\param{Type-specifier}---a \term{type specifier}.
+\param{type-specifier}---a \term{type specifier}.
  \kwd{type} can be supplied once at most for a given \term{slot}. 
  
-\param{Class-option}--- refers to the \term{class} as a whole or to all class \term{slots}.
+\param{class-option}--- refers to the \term{class} as a whole or to all class \term{slots}.
 
-\param{Initarg-list}---a \term{list} of alternating initialization argument
+\param{initarg-list}---a \term{list} of alternating initialization argument
 		        \term{names} and default initial value \term{forms}.
  \kwd{default-initargs} can be supplied at most once.
 
-\param{Class-name}---a \term{non-nil} \term{symbol}.
+\param{class-name}---a \term{non-nil} \term{symbol}.
  \kwd{metaclass} can be supplied once at most.
  
 %The \i{class-name} argument is a \term{non-nil} symbol.
