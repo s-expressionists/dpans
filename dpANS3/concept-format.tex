@@ -1704,14 +1704,14 @@ For example:
            argument to be of type ~S,~%but it was called ~
            with an argument of type ~S.~%"
            fn (eql nargs 1) argnum right-type wrong-type))
- (type-clash-error 'aref nil 2 'integer 'vector)  prints:
-AREF requires its second argument to be of type INTEGER,
-but it was called with an argument of type VECTOR.
-NIL
- (type-clash-error 'car 1 1 'list 'short-float)  prints:
-CAR requires its argument to be of type LIST,
-but it was called with an argument of type SHORT-FLOAT.
-NIL
+ (type-clash-error 'aref nil 2 'integer 'vector)
+\OUT AREF requires its second argument to be of type INTEGER,
+\OUT but it was called with an argument of type VECTOR.
+\EV NIL
+ (type-clash-error 'car 1 1 'list 'short-float)
+\OUT CAR requires its argument to be of type LIST,
+\OUT but it was called with an argument of type SHORT-FLOAT.
+\EV NIL
 \endcode
 Note that in this example newlines appear in the output only as specified
 by the \f{~\&} and \f{~\%} directives; the 
