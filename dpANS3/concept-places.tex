@@ -811,9 +811,9 @@ must refer to the global function definition,
 rather than a locally defined \term{function} or \term{macro}.
 \endissue{FUNCTION-NAME:LARGE}
 
-\issue{FUNCTION-NAME:LARGE}
-
 \endsubsubsection%{Setf Expansions and Places}
+
+\issue{FUNCTION-NAME:LARGE}
 
 %% 7.2.0 16
 \beginsubsubsection{Macro Forms as Places}
@@ -835,8 +835,8 @@ other than expanding into a call to a function named \f{(setf \param{reader})}.
 
 
 % I moved this section here from below.  --sjl 5 Mar 92
-\issue{SYMBOL-MACROLET-SEMANTICS:SPECIAL-FORM}
 \beginsubsubsection{Symbol Macros as Places}
+\issue{SYMBOL-MACROLET-SEMANTICS:SPECIAL-FORM}
 
 A reference to a \term{symbol} that has been \term{established} as a \term{symbol macro} 
 can be used as a \term{place}.  In this case,
@@ -874,9 +874,9 @@ expands into a form with the same effect and value as
 A \term{function} named \f{(setf \param{f})} must return its first argument
 as its only value in order to preserve the semantics of \macref{setf}.
 
-\endissue{FUNCTION-NAME:LARGE}
-
 \endsubsubsection%{Other Compound Forms as Places}
+
+\endissue{FUNCTION-NAME:LARGE}
 
 % I moved the symbol macro section up to be with the ordinary macro
 % section.  --sjl 5 Mar 92
