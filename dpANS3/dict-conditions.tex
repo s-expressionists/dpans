@@ -3296,7 +3296,7 @@ signaled.
 
 \code
  (restart-case
-     (handler-bind ((error #'(lambda (c)
+     (handler-bind ((error #'(lambda (condition)
                              (declare (ignore condition))
                              (invoke-restart 'my-restart 7))))
        (error "Foo."))
